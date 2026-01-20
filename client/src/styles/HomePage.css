@@ -1,0 +1,536 @@
+/* Uber Home Page - Clean White Design */
+.uber-home {
+  min-height: 100vh;
+  background: #fff;
+  font-family: 'UberMove', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Navigation */
+.uber-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 36px;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.uber-logo {
+  font-size: 28px;
+  font-weight: 700;
+  color: #000;
+  text-decoration: none;
+  letter-spacing: -1px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-link {
+  padding: 10px 16px;
+  color: #000;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.nav-link:hover {
+  background: #f3f3f3;
+}
+
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lang-btn, .help-btn {
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.lang-btn:hover, .help-btn:hover {
+  background: #f3f3f3;
+}
+
+.nav-btn {
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.nav-btn:hover {
+  background: #f3f3f3;
+}
+
+.nav-btn.signup {
+  background: #000;
+  color: #fff;
+}
+
+.nav-btn.signup:hover {
+  background: #333;
+}
+
+/* Hero Section */
+.hero-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 40px 36px 80px;
+  max-width: 1400px;
+  margin: 0 auto;
+  gap: 60px;
+}
+
+.hero-content {
+  flex: 0 0 480px;
+}
+
+.location-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.location-badge span {
+  color: #000;
+}
+
+.location-badge a {
+  color: #000;
+  text-decoration: underline;
+}
+
+.hero-title {
+  font-size: 52px;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.1;
+  margin-bottom: 32px;
+  letter-spacing: -2px;
+}
+
+/* Booking Card */
+.booking-card {
+  background: #fff;
+}
+
+.pickup-toggle {
+  margin-bottom: 20px;
+}
+
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f3f3f3;
+  border: none;
+  border-radius: 500px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+  background: #e8e8e8;
+}
+
+.toggle-btn .arrow {
+  font-size: 10px;
+  color: #666;
+}
+
+/* Location Inputs */
+.location-inputs {
+  background: #f3f3f3;
+  border-radius: 12px;
+  overflow: visible;
+  position: relative;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  padding: 4px 16px;
+  position: relative;
+}
+
+.input-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.pickup-icon {
+  background: #000;
+}
+
+.dropoff-icon {
+  background: #000;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 16px 0;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  color: #000;
+}
+
+.input-group input::placeholder {
+  color: #6b6b6b;
+}
+
+.input-group input:focus {
+  outline: none;
+}
+
+.location-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-divider {
+  position: relative;
+  padding-left: 38px;
+}
+
+.divider-line {
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.divider-line::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 20px;
+  background: #e0e0e0;
+}
+
+/* Suggestions Dropdown */
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  z-index: 50;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.suggestion-item:hover {
+  background: #f6f6f6;
+}
+
+.suggestion-item.location-access {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.suggestion-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  background: #f3f3f3;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.suggestion-icon-wrapper.target {
+  background: #e0e0e0;
+}
+
+.suggestion-icon-wrapper svg {
+  color: #000;
+}
+
+.suggestion-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.suggestion-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-address {
+  font-size: 14px;
+  color: #6b6b6b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* See Prices Button */
+.see-prices-btn {
+  width: 100%;
+  padding: 16px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.2s;
+}
+
+.see-prices-btn:hover {
+  background: #333;
+}
+
+.login-prompt {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #6b6b6b;
+}
+
+.login-prompt a {
+  color: #000;
+  text-decoration: underline;
+}
+
+/* Hero Image */
+.hero-image {
+  flex: 1;
+  max-width: 600px;
+}
+
+.hero-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* Suggestions Section */
+.suggestions-section {
+  padding: 60px 36px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.suggestions-section h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 32px;
+  letter-spacing: -1px;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.service-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px;
+  background: #f3f3f3;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.service-card:hover {
+  background: #e8e8e8;
+}
+
+.service-content {
+  flex: 1;
+}
+
+.service-content h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+.service-content p {
+  font-size: 14px;
+  color: #6b6b6b;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.details-btn {
+  padding: 10px 16px;
+  background: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.details-btn:hover {
+  background: #e8e8e8;
+}
+
+.service-icon {
+  font-size: 48px;
+  margin-left: 16px;
+}
+
+/* Footer */
+.uber-footer {
+  background: #000;
+  color: #fff;
+  padding: 40px 36px;
+}
+
+.footer-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-brand {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.footer-links {
+  display: flex;
+  gap: 32px;
+}
+
+.footer-links a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.footer-links a:hover {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hero-section {
+    flex-direction: column;
+    padding: 24px 20px;
+  }
+  
+  .hero-content {
+    flex: 1;
+    max-width: 100%;
+  }
+  
+  .hero-title {
+    font-size: 36px;
+  }
+  
+  .hero-image {
+    max-width: 100%;
+  }
+  
+  .nav-links {
+    display: none;
+  }
+  
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .uber-nav {
+    padding: 12px 16px;
+  }
+  
+  .lang-btn, .help-btn {
+    display: none;
+  }
+  
+  .hero-title {
+    font-size: 28px;
+  }
+  
+  .suggestions-section {
+    padding: 40px 16px;
+  }
+  
+  .suggestions-section h2 {
+    font-size: 28px;
+  }
+}

@@ -1,0 +1,740 @@
+/* PaymentSelector - Uber-style Payment Modal */
+
+/* Compact View */
+.payment-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f6f6f6;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.payment-compact:hover {
+  background: #eee;
+  border-color: #ddd;
+}
+
+.payment-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 10px;
+}
+
+.payment-name {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+}
+
+.payment-arrow {
+  color: #666;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+/* Modal Overlay */
+.payment-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal Container */
+.payment-modal.uber-style {
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Modal Header */
+.payment-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+}
+
+.payment-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.payment-modal-header .back-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: #000;
+  position: absolute;
+  left: 12px;
+}
+
+.payment-modal-header .close-btn {
+  background: #f5f5f5;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 12px;
+}
+
+.payment-modal-header .close-btn:hover {
+  background: #e5e5e5;
+}
+
+/* Main View */
+.payment-main-view {
+  padding: 16px 20px 32px;
+}
+
+/* Payment Section */
+.payment-section {
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.section-header span:first-child {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.section-badge.secure {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+/* Payment Option */
+.payment-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: #f8f8f8;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  margin-bottom: 8px;
+}
+
+.payment-option:hover {
+  background: #f0f0f0;
+}
+
+.payment-option.selected {
+  border-color: #000;
+  background: #fff;
+}
+
+.payment-option.insufficient {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.option-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.option-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.option-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #000;
+}
+
+.option-desc {
+  font-size: 13px;
+  color: #666;
+}
+
+.option-desc.verified {
+  color: #2e7d32;
+}
+
+.insufficient-tag {
+  color: #d32f2f;
+  font-weight: 500;
+}
+
+.check-mark {
+  width: 24px;
+  height: 24px;
+  background: #000;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.delete-btn:hover {
+  opacity: 1;
+}
+
+/* UPI Apps Grid */
+.upi-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.upi-app-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  background: #f8f8f8;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upi-app-btn:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+.upi-app-btn .app-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: var(--app-color, #4285f4);
+  border-radius: 10px;
+  color: #fff;
+}
+
+.upi-app-btn .app-name {
+  font-size: 11px;
+  color: #333;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Add New Button */
+.add-new-btn {
+  width: 100%;
+  padding: 14px;
+  background: none;
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.add-new-btn:hover {
+  border-color: #000;
+  color: #000;
+}
+
+.add-new-btn span {
+  font-size: 18px;
+}
+
+/* Promo Section */
+.promo-section {
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.promo-input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.promo-input {
+  flex: 1;
+  padding: 14px 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.promo-input:focus {
+  border-color: #000;
+}
+
+.promo-apply-btn {
+  padding: 14px 24px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.promo-apply-btn:hover {
+  background: #333;
+}
+
+.promo-error {
+  display: block;
+  color: #d32f2f;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.promo-success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.promo-hint {
+  font-size: 12px;
+  color: #999;
+  margin-top: 8px;
+}
+
+/* ===== UPI View ===== */
+.payment-upi-view {
+  padding: 20px;
+}
+
+.upi-instruction {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.upi-instruction p {
+  color: #666;
+  font-size: 14px;
+}
+
+.upi-input-group {
+  margin-bottom: 20px;
+}
+
+.upi-input-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.upi-input-wrapper {
+  position: relative;
+}
+
+.upi-input-wrapper .upi-input {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.upi-input-wrapper .upi-input:focus {
+  border-color: #000;
+}
+
+.upi-input-wrapper .upi-input.error {
+  border-color: #d32f2f;
+}
+
+.upi-input-wrapper .upi-input.verified {
+  border-color: #2e7d32;
+  padding-right: 48px;
+}
+
+.upi-input-wrapper .verified-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #2e7d32;
+  font-size: 20px;
+}
+
+.input-error {
+  display: block;
+  color: #d32f2f;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.upi-hint {
+  display: block;
+  color: #999;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.verify-upi-btn {
+  width: 100%;
+  padding: 16px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+}
+
+.verify-upi-btn:hover {
+  background: #333;
+}
+
+.verify-upi-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.verify-upi-btn.verified {
+  background: #2e7d32;
+}
+
+.verify-upi-btn .spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* UPI Apps Section */
+.upi-apps-section {
+  margin-top: 32px;
+}
+
+.or-divider {
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.or-divider span {
+  background: #fff;
+  padding: 0 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.or-divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: #eee;
+}
+
+.upi-apps-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.upi-app-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f8f8;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upi-app-option:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+.upi-app-option .app-icon-large {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border-radius: 12px;
+  color: #fff;
+}
+
+.upi-app-option span:last-child {
+  font-size: 12px;
+  color: #333;
+  font-weight: 500;
+}
+
+/* ===== Card View ===== */
+.payment-card-view {
+  padding: 20px;
+}
+
+.card-preview {
+  margin-bottom: 24px;
+}
+
+.card-visual {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 24px;
+  color: #fff;
+  aspect-ratio: 1.6;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.card-brand {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.card-number-preview {
+  font-size: 22px;
+  letter-spacing: 3px;
+  font-family: monospace;
+}
+
+.card-details-preview {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Card Form */
+.card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.input-group input {
+  padding: 14px 16px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  border-color: #000;
+}
+
+.input-group input.error {
+  border-color: #d32f2f;
+}
+
+.input-row {
+  display: flex;
+  gap: 12px;
+}
+
+.input-group.half {
+  flex: 1;
+}
+
+.save-card-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.save-card-option input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #000;
+}
+
+.save-card-option label {
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.add-card-btn {
+  width: 100%;
+  padding: 16px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+
+.add-card-btn:hover {
+  background: #333;
+}
+
+.security-note {
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+  margin-top: 16px;
+}
+
+/* Saved Items */
+.saved-items {
+  margin-bottom: 12px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .upi-apps-grid,
+  .upi-apps-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .card-number-preview {
+    font-size: 18px;
+  }
+}

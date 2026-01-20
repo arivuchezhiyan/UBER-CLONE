@@ -1,0 +1,542 @@
+/* Driver App - Uber Driver Clone */
+.driver-app {
+  height: 100vh;
+  height: 100dvh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Map */
+.driver-map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+/* Header */
+.driver-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 50px 16px 16px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.driver-header .menu-btn,
+.driver-header .notif-btn {
+  width: 48px;
+  height: 48px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.driver-header svg {
+  width: 24px;
+  height: 24px;
+  color: #000;
+}
+
+/* Status Pill */
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  padding: 10px 20px;
+  border-radius: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  pointer-events: auto;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #999;
+}
+
+.status-pill.online .status-dot {
+  background: #34D399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+}
+
+.status-pill span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+}
+
+/* Bottom Panel */
+.driver-bottom {
+  position: absolute;
+  bottom: 70px;
+  left: 0;
+  right: 0;
+  padding: 0 16px;
+  z-index: 10;
+}
+
+/* Offline Card */
+.offline-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.offline-info h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 4px;
+}
+
+.offline-info p {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+/* GO Button - Uber Style */
+.go-online-btn {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(135deg, #276EF1 0%, #1E5FD9 100%);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(39, 110, 241, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.go-online-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(39, 110, 241, 0.5);
+}
+
+.go-online-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.go-online-btn:disabled {
+  opacity: 0.7;
+}
+
+.go-online-btn .btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.go-online-btn .btn-icon svg {
+  width: 24px;
+  height: 24px;
+  color: #fff;
+}
+
+.go-online-btn span:not(.btn-icon) {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+/* Online Card */
+.online-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.searching-indicator {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.searching-indicator svg {
+  width: 28px;
+  height: 28px;
+  color: #276EF1;
+  z-index: 2;
+}
+
+.search-ripple {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #276EF1;
+  border-radius: 50%;
+  animation: ripple 2s ease-out infinite;
+}
+
+.search-ripple.delay-1 {
+  animation-delay: 0.5s;
+}
+
+.search-ripple.delay-2 {
+  animation-delay: 1s;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.searching-text h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 4px;
+}
+
+.searching-text p {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 16px;
+}
+
+.go-offline-btn {
+  background: #f3f3f3;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  cursor: pointer;
+}
+
+.go-offline-btn:hover {
+  background: #e5e5e5;
+}
+
+/* Earnings Bar */
+.earnings-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-top: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.earning-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.earning-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000;
+}
+
+.earning-label {
+  font-size: 12px;
+  color: #666;
+}
+
+.earning-divider {
+  width: 1px;
+  height: 32px;
+  background: #eee;
+}
+
+/* Ride Request Overlay */
+.ride-request-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ride-request-modal {
+  width: 100%;
+  background: #fff;
+  border-radius: 24px 24px 0 0;
+  padding: 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Countdown */
+.countdown-circle {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+}
+
+.countdown-circle svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.countdown-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px;
+  font-weight: 700;
+  color: #276EF1;
+}
+
+.ride-request-modal h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #000;
+  text-align: center;
+  margin: 0 0 16px;
+}
+
+/* Fare Display */
+.fare-display {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.fare-amount {
+  font-size: 36px;
+  font-weight: 700;
+  color: #000;
+  display: block;
+}
+
+.fare-type {
+  font-size: 14px;
+  color: #666;
+  background: #f3f3f3;
+  padding: 4px 12px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* Trip Details */
+.trip-details {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.trip-stat {
+  text-align: center;
+}
+
+.trip-stat .stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+}
+
+.trip-stat .stat-label {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Route Preview */
+.route-preview {
+  margin-bottom: 24px;
+}
+
+.route-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.point-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.point-dot.pickup {
+  background: #276EF1;
+}
+
+.point-dot.dropoff {
+  background: #000;
+}
+
+.route-line {
+  width: 2px;
+  height: 24px;
+  background: #ddd;
+  margin-left: 5px;
+  margin: 4px 0 4px 5px;
+}
+
+.point-text {
+  flex: 1;
+}
+
+.point-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #999;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.point-address {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: #000;
+}
+
+/* Request Actions */
+.request-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.decline-btn {
+  flex: 1;
+  padding: 16px;
+  background: #f3f3f3;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+  cursor: pointer;
+}
+
+.decline-btn:hover {
+  background: #e5e5e5;
+}
+
+.accept-btn {
+  flex: 2;
+  padding: 16px;
+  background: #276EF1;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+}
+
+.accept-btn:hover:not(:disabled) {
+  background: #1E5FD9;
+}
+
+.accept-btn:disabled {
+  opacity: 0.7;
+}
+
+/* Bottom Nav */
+.driver-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  background: #fff;
+  padding: 12px 0;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid #eee;
+  z-index: 100;
+}
+
+.driver-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 16px;
+}
+
+.driver-nav .nav-item svg {
+  width: 24px;
+  height: 24px;
+  color: #666;
+}
+
+.driver-nav .nav-item span {
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+}
+
+.driver-nav .nav-item.active svg {
+  color: #000;
+}
+
+.driver-nav .nav-item.active span {
+  color: #000;
+}

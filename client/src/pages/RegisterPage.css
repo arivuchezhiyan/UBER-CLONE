@@ -1,0 +1,234 @@
+/* Register Page - Uber Style */
+.register-app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.register-content {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Logo */
+.logo-section {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo {
+  font-size: 42px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -2px;
+}
+
+/* Progress Bar */
+.progress-bar {
+  height: 3px;
+  background: #333;
+  border-radius: 2px;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* Form */
+.register-form {
+  position: relative;
+}
+
+.register-form h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 24px;
+}
+
+.back-btn {
+  position: absolute;
+  top: -48px;
+  left: 0;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Phone Field */
+.phone-field {
+  display: flex;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.country-prefix {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-right: 1px solid #e0e0e0;
+  color: #000;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.phone-field input {
+  flex: 1;
+  padding: 18px 16px;
+  border: none;
+  font-size: 16px;
+  color: #000;
+  background: #fff;
+}
+
+.phone-field input:focus {
+  outline: none;
+}
+
+/* Input Field */
+.input-field {
+  width: 100%;
+  padding: 18px 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  background: #fff;
+  color: #000;
+  margin-bottom: 12px;
+}
+
+.input-field:focus {
+  outline: none;
+}
+
+.input-field::placeholder {
+  color: #999;
+}
+
+/* Error */
+.error-msg {
+  color: #ef4444;
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+/* Continue Button */
+.continue-btn {
+  width: 100%;
+  padding: 18px;
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.continue-btn:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.continue-btn:disabled {
+  background: #555;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* Links */
+.login-link {
+  text-align: center;
+  color: #888;
+  margin-top: 24px;
+  font-size: 14px;
+}
+
+.login-link a {
+  color: #fff;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* Type Cards */
+.type-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #1a1a1a;
+  border: 2px solid #333;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.type-card:hover {
+  border-color: #555;
+}
+
+.type-card.selected {
+  border-color: #22c55e;
+  background: #0a1f0d;
+}
+
+.type-emoji {
+  font-size: 32px;
+}
+
+.type-content {
+  flex: 1;
+}
+
+.type-content h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.type-content p {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+.type-card .check {
+  width: 24px;
+  height: 24px;
+  background: #22c55e;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* Terms */
+.terms-text {
+  text-align: center;
+  color: #666;
+  font-size: 12px;
+  margin-top: 32px;
+  line-height: 1.5;
+}

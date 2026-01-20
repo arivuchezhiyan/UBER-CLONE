@@ -1,0 +1,244 @@
+/* Uber-style Map Container */
+.uber-map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.uber-map-container .leaflet-container {
+  background: #e5e3df;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Hide default Leaflet controls */
+.uber-map-container .leaflet-control-zoom,
+.uber-map-container .leaflet-control-attribution {
+  display: none !important;
+}
+
+/* Uber Map Controls */
+.uber-map-controls {
+  position: absolute;
+  right: 16px;
+  bottom: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.uber-map-btn {
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.uber-map-btn:hover {
+  background: #f5f5f5;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.uber-map-btn:active {
+  transform: scale(0.95);
+}
+
+.uber-map-btn svg {
+  width: 20px;
+  height: 20px;
+  color: #000;
+}
+
+.uber-map-btn.locate {
+  margin-top: 8px;
+}
+
+.uber-map-btn.locate svg {
+  color: #4285f4;
+}
+
+/* Uber Marker Styles */
+.uber-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Pickup Marker - Green dot with pulse */
+.uber-pickup-marker {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uber-pickup-dot {
+  width: 12px;
+  height: 12px;
+  background: #276ef1;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+
+.uber-pickup-pulse {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: rgba(39, 110, 241, 0.2);
+  border-radius: 50%;
+  animation: uberPulse 2s ease-out infinite;
+}
+
+@keyframes uberPulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Dropoff Marker - Black square */
+.uber-dropoff-marker {
+  width: 12px;
+  height: 12px;
+  background: #000;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Car Marker */
+.uber-car-marker {
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.uber-car-marker svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* User Location - Blue dot like Google Maps */
+.uber-user-location {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uber-user-dot {
+  width: 14px;
+  height: 14px;
+  background: #4285f4;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+
+.uber-user-accuracy {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  background: rgba(66, 133, 244, 0.15);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Route info popup style */
+.leaflet-popup-content-wrapper {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  padding: 0;
+}
+
+.leaflet-popup-content {
+  margin: 12px 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: #000;
+}
+
+.leaflet-popup-tip {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.leaflet-popup-close-button {
+  color: #666 !important;
+  font-size: 20px !important;
+  width: 24px !important;
+  height: 24px !important;
+}
+
+/* Loading State */
+.uber-map-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f6f6f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+
+.uber-map-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e5e5;
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Leaflet tile layer styling for better labels */
+.uber-map-container .leaflet-tile-pane {
+  filter: saturate(0.9);
+}
+
+/* Make sure markers are above tiles */
+.uber-map-container .leaflet-marker-pane {
+  z-index: 600;
+}
+
+.uber-map-container .leaflet-overlay-pane {
+  z-index: 400;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

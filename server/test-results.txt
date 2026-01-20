@@ -1,0 +1,7 @@
+
+╔══════════════════════════════════════════════════════════════════════╗
+║          UBER CLONE - COMPREHENSIVE CONDITION TEST SUITE             ║
+║          Testing ALL conditions, edge cases, and bugs                ║
+╚══════════════════════════════════════════════════════════════════════╝
+  
+[31m❌ Server not running. Start with: cd server && node server.js[0m

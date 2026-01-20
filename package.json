@@ -1,0 +1,22 @@
+{
+  "name": "rental-app",
+  "version": "1.0.0",
+  "description": "Uber-like rental application - Full stack with React and Node.js",
+  "main": "index.js",
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm start",
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build"
+  },
+  "keywords": [
+    "uber",
+    "rental",
+    "ride-sharing",
+    "react",
+    "node",
+    "mongodb"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

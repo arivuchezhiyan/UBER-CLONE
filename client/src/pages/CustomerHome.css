@@ -1,0 +1,543 @@
+/* Uber Home - Exact Uber Clone */
+.uber-home {
+  height: 100vh;
+  height: 100dvh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Map Wrapper */
+.uber-map-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 180px;
+  z-index: 1;
+}
+
+/* Top Bar */
+.uber-top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 50px 16px 16px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.uber-menu-btn {
+  width: 48px;
+  height: 48px;
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.uber-menu-btn svg {
+  width: 24px;
+  height: 24px;
+  color: #000;
+}
+
+/* Bottom Card */
+.uber-bottom-card {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 20px 16px;
+  padding-bottom: calc(70px + env(safe-area-inset-bottom));
+  z-index: 10;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+}
+
+/* Greeting */
+.uber-greeting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.greeting-wave {
+  font-size: 20px;
+}
+
+.greeting-text {
+  font-size: 22px;
+  font-weight: 500;
+  color: #000;
+}
+
+/* Search Bar - Uber Style */
+.uber-search-bar {
+  display: flex;
+  align-items: center;
+  background: #f3f3f3;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.uber-search-bar .search-icon {
+  margin-right: 12px;
+}
+
+.uber-search-bar .search-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #000;
+}
+
+.search-placeholder {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 500;
+  color: #000;
+}
+
+.search-divider {
+  width: 1px;
+  height: 28px;
+  background: #ccc;
+  margin: 0 16px;
+}
+
+.search-now-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.search-now-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Suggestions */
+.uber-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f3f3f3;
+  cursor: pointer;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-icon {
+  width: 40px;
+  height: 40px;
+  background: #f3f3f3;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.suggestion-info {
+  flex: 1;
+}
+
+.suggestion-name {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+  margin-bottom: 2px;
+}
+
+.suggestion-address {
+  display: block;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Services Grid */
+.uber-services {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.service-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  background: #f3f3f3;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.service-item:hover {
+  background: #e8e8e8;
+}
+
+.service-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.service-icon-wrapper.package,
+.service-icon-wrapper.rentals {
+  background: #000;
+  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+}
+
+.service-icon-wrapper.package svg,
+.service-icon-wrapper.rentals svg {
+  width: 28px;
+  height: 28px;
+  color: #fff;
+}
+
+.service-item span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #000;
+  text-align: center;
+}
+
+/* Bottom Nav */
+.uber-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  background: #fff;
+  padding: 12px 0;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid #eee;
+  z-index: 100;
+}
+
+.uber-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 20px;
+}
+
+.uber-nav .nav-item svg {
+  width: 24px;
+  height: 24px;
+  color: #666;
+}
+
+.uber-nav .nav-item span {
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+}
+
+.uber-nav .nav-item.active svg {
+  color: #000;
+}
+
+.uber-nav .nav-item.active span {
+  color: #000;
+}
+
+/* ============ SEARCH SCREEN ============ */
+.uber-search-screen {
+  height: 100vh;
+  height: 100dvh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Search Header */
+.search-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 50px 16px 20px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.search-header .back-btn {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.search-header .back-btn svg {
+  width: 24px;
+  height: 24px;
+  color: #000;
+}
+
+/* Location Inputs */
+.location-inputs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.input-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.input-dot.pickup {
+  background: #000;
+  border: 2px solid #000;
+}
+
+.input-dot.dropoff {
+  background: #000;
+}
+
+.input-connector {
+  width: 2px;
+  height: 20px;
+  background: #000;
+  margin-left: 4px;
+}
+
+.location-inputs input {
+  flex: 1;
+  border: none;
+  background: #f3f3f3;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #000;
+  outline: none;
+}
+
+.location-inputs input::placeholder {
+  color: #666;
+}
+
+.location-inputs input.active {
+  background: #e8e8e8;
+}
+
+.add-stop-btn {
+  width: 40px;
+  height: 40px;
+  background: #f3f3f3;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.add-stop-btn svg {
+  width: 20px;
+  height: 20px;
+  color: #000;
+}
+
+/* Search Content */
+.search-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px;
+}
+
+.saved-section,
+.recent-section {
+  padding: 20px 0;
+}
+
+.saved-section h3,
+.recent-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+.saved-list,
+.recent-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.place-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f3f3;
+}
+
+.place-item:last-child {
+  border-bottom: none;
+}
+
+.place-icon {
+  width: 40px;
+  height: 40px;
+  background: #f3f3f3;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.place-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #666;
+}
+
+.place-icon.saved {
+  background: #e8f5e9;
+}
+
+.place-details {
+  flex: 1;
+}
+
+.place-name {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+  margin-bottom: 2px;
+}
+
+.place-address {
+  display: block;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Map Option */
+.map-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid #eee;
+  margin-top: 16px;
+  cursor: pointer;
+}
+
+.map-icon {
+  width: 40px;
+  height: 40px;
+  background: #f3f3f3;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #000;
+}
+
+.map-option span {
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+}
+
+/* Confirm Bar */
+.confirm-bar {
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1px solid #eee;
+}
+
+.confirm-btn {
+  width: 100%;
+  padding: 16px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-btn:hover {
+  background: #333;
+}

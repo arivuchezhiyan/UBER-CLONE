@@ -1,0 +1,310 @@
+/* Login Page - Uber Style */
+.login-app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.login-content {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Logo */
+.logo-section {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.logo {
+  font-size: 48px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -2px;
+}
+
+/* Form */
+.login-form {
+  position: relative;
+}
+
+.login-form h2 {
+  font-size: 26px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 24px;
+}
+
+.back-btn {
+  position: absolute;
+  top: -48px;
+  left: 0;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+}
+
+.phone-display {
+  color: #a0a0a0;
+  margin: -16px 0 24px;
+  font-size: 15px;
+}
+
+/* Phone Field */
+.phone-field {
+  display: flex;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.country-prefix {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-right: 1px solid #e0e0e0;
+  color: #000;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.phone-field input {
+  flex: 1;
+  padding: 18px 16px;
+  border: none;
+  font-size: 16px;
+  color: #000;
+  background: #fff;
+}
+
+.phone-field input:focus {
+  outline: none;
+}
+
+.phone-field input::placeholder {
+  color: #999;
+}
+
+/* Password Field */
+.password-field {
+  width: 100%;
+  padding: 18px 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  background: #fff;
+  color: #000;
+  margin-bottom: 16px;
+}
+
+.password-field:focus {
+  outline: none;
+}
+
+/* OTP Field */
+.otp-field {
+  width: 100%;
+  padding: 18px 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 20px;
+  text-align: center;
+  letter-spacing: 8px;
+  background: #f5f5f5;
+  color: #000;
+  margin-bottom: 16px;
+}
+
+.otp-field:focus {
+  outline: none;
+  background: #fff;
+}
+
+/* Error Message */
+.error-msg {
+  color: #ef4444;
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+
+/* Continue Button */
+.continue-btn {
+  width: 100%;
+  padding: 18px;
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 16px;
+}
+
+.continue-btn:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.continue-btn:disabled {
+  background: #555;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0;
+  color: #666;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #333;
+}
+
+.divider span {
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+/* Social Buttons */
+.social-btn {
+  width: 100%;
+  padding: 16px;
+  background: transparent;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  transition: background 0.2s;
+}
+
+.social-btn:hover {
+  background: #1a1a1a;
+}
+
+.social-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+/* Links */
+.register-link {
+  text-align: center;
+  color: #888;
+  margin-top: 24px;
+  font-size: 14px;
+}
+
+.register-link a {
+  color: #fff;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.forgot-link {
+  text-align: center;
+  color: #276ef1;
+  cursor: pointer;
+  font-size: 14px;
+  margin: 0;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* Terms */
+.terms-text {
+  text-align: center;
+  color: #666;
+  font-size: 12px;
+  margin-top: 40px;
+  line-height: 1.5;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 500;
+}
+
+.modal-sheet {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 24px max(24px, env(safe-area-inset-bottom));
+  width: 100%;
+  max-width: 450px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #000;
+  margin: 0;
+}
+
+.modal-header button {
+  width: 32px;
+  height: 32px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  color: #000;
+}
+
+.modal-sheet p {
+  color: #666;
+  margin: 0 0 20px;
+  font-size: 14px;
+}
+
+/* Desktop */
+@media (min-width: 768px) {
+  .modal-sheet {
+    border-radius: 20px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}

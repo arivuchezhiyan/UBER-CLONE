@@ -1,0 +1,292 @@
+.ride-history {
+  min-height: 100vh;
+  background: var(--uber-black);
+  padding-bottom: 30px;
+}
+
+/* Header */
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 60px 20px 20px;
+  background: var(--uber-black);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--uber-gray-800);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.back-btn svg {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.history-header h1 {
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.header-spacer {
+  width: 40px;
+}
+
+/* Earnings Overview */
+.earnings-overview {
+  padding: 0 20px 20px;
+}
+
+.earnings-card {
+  background: var(--uber-gray-900);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.earnings-card.main {
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.earnings-amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+}
+
+.earnings-card.main .earnings-amount {
+  font-size: 40px;
+}
+
+.earnings-label {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.earnings-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.earnings-row .earnings-amount {
+  font-size: 28px;
+}
+
+/* Tabs */
+.history-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px 20px;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 10px 20px;
+  background: var(--uber-gray-800);
+  border: none;
+  border-radius: 20px;
+  color: var(--uber-gray-400);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab.active {
+  background: white;
+  color: black;
+}
+
+/* Rides List */
+.rides-list {
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ride-card {
+  background: var(--uber-gray-900);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.ride-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.ride-date {
+  color: var(--uber-gray-400);
+  font-size: 13px;
+}
+
+.ride-status {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.ride-status.completed {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.ride-status.cancelled {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.ride-route {
+  margin-bottom: 16px;
+}
+
+.route-points {
+  display: flex;
+  flex-direction: column;
+}
+
+.point {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.point-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.point-dot.green {
+  background: #22c55e;
+}
+
+.point-dot.black {
+  background: white;
+}
+
+.point-text {
+  color: white;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.route-line {
+  width: 2px;
+  height: 20px;
+  background: var(--uber-gray-700);
+  margin: 4px 0 4px 4px;
+}
+
+.ride-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid var(--uber-gray-800);
+  border-bottom: 1px solid var(--uber-gray-800);
+  margin-bottom: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.detail-label {
+  font-size: 11px;
+  color: var(--uber-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.ride-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.person-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.person-avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--uber-gray-700);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: white;
+  font-size: 14px;
+}
+
+.person-name {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.ride-rating {
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-state svg {
+  width: 80px;
+  height: 80px;
+  color: var(--uber-gray-600);
+  margin-bottom: 20px;
+}
+
+.empty-state h3 {
+  color: white;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--uber-gray-500);
+  font-size: 14px;
+}
