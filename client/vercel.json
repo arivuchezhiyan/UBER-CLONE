@@ -7,5 +7,10 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "CI": "false",
+    "REACT_APP_API_URL": "https://uber-clone-api-arivu.onrender.com/api",
+    "REACT_APP_SOCKET_URL": "https://uber-clone-api-arivu.onrender.com"
+  }
 }
