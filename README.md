@@ -1,232 +1,172 @@
-# 🚗 Uber-Like Rental App
+# 🚖 Uber-Clone — Enterprise Full-Stack Ride-Booking Platform
 
-A complete full-stack rental application similar to Uber, built with modern technologies. Features real-time location tracking, booking system, driver dashboard, and payment integration.
+A production-grade, highly scalable, enterprise ride-booking platform with a full-featured **Node.js/Express** backend, **MongoDB** database with double-entry ledgers, **React 18** client, **Socket.io** real-time GPS streaming, a **16-state ride machine**, centralized **pricing engine**, **3-layer race condition defense**, and an administrative control suite.
 
-## Project Structure
+---
+
+## 🏗️ System Architecture
 
 ```
-uber/
-├── server/                 # Node.js/Express backend
-│   ├── models/            # MongoDB schemas
-│   ├── controllers/       # Business logic
-│   ├── routes/           # API endpoints
-│   ├── middleware/       # Authentication & middleware
-│   ├── server.js         # Main server file
+┌─────────────────────────────────────────────────────────────┐
+│                     React 18 Web Client                     │
+│  (Customer Booking, Driver Dashboard, Active Map Tracking)  │
+└──────────────┬──────────────────────────────┬───────────────┘
+               │ HTTP REST API                │ WebSocket (Socket.io)
+               ▼                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 Node.js / Express Backend                   │
+│  - 16-State Ride State Machine & Validation Engine          │
+│  - 3-Layer Race Condition Lock & Version Control            │
+│  - Centralized FareCalculator (Base + Km + Min + GST 5%)    │
+│  - Sequential 30s Driver Dispatcher & Distance Ranking      │
+│  - Scheduled Ride Background Matching Worker                │
+│  - Double-Entry Driver Ledger Wallet & Payout Processor     │
+│  - Driver Heartbeat & Auto-Offline Background Monitor       │
+│  - Admin Control Suite & Audit Log Trail                    │
+└──────────────┬──────────────────────────────┬───────────────┘
+               │ Mongoose ODM                 │ In-Memory / Standalone
+               ▼                              ▼
+┌─────────────────────────────┐┌──────────────────────────────┐
+│     MongoDB Database        ││     Redis 7 Cache (Optional) │
+│ (10 Schemas, Unique Indexes)││ (Location & Pub/Sub Support) │
+└─────────────────────────────┘└──────────────────────────────┘
+```
+
+---
+
+## 🚀 Key Features Implemented
+
+### 1. 🛡️ 16-State Ride State Machine
+- Strict validation rules preventing invalid state skips:
+  `REQUESTED` → `SEARCHING_DRIVER` → `DRIVER_ASSIGNED` → `DRIVER_ARRIVING` → `DRIVER_ARRIVED` → `TRIP_STARTED` → `TRIP_COMPLETED` → `SETTLED` (with proper `CANCELLED_BY_RIDER`, `CANCELLED_BY_DRIVER`, `EXPIRED`, `REFUNDED` branches).
+- Immutable audit history log (`statusHistory`) recording timestamps, reasons, and actors.
+
+### 2. ⚡ 3-Layer Race Condition Lock Defense
+- **Layer 1**: Atomic `findOneAndUpdate` conditional status query (`status: 'SEARCHING_DRIVER'`, `driverId: null`).
+- **Layer 2**: Unique partial indexes on `_id` + `driverId` and unique `idempotencyKey`.
+- **Layer 3**: Version-based optimistic locking on `Booking` and `DriverWallet` models.
+
+### 3. 💰 Centralized Fare Pricing Engine (`FareCalculator`)
+- Calculates Base Fare, Per-Km Rate, Per-Minute Rate, Minimum Fare enforcement.
+- Extra waiting charges (`waitingChargePerMin` after free threshold).
+- Toll & parking pass-throughs.
+- Dynamic Surge Modifiers (`FareModifier` models) for rain, night, and holiday multipliers.
+- 5% GST tax and 20% platform commission split with 18% GST audit trail.
+
+### 4. 📒 Double-Entry Driver Ledger Wallet (`WalletService`)
+- Complete audit trail (`WalletTransaction` collection) with `CREDIT` and `DEBIT` tracking.
+- Automated earnings credit for online payments and platform commission deduction for cash rides.
+- Bank payout requests with balance verification and unique idempotency keys.
+
+### 5. 🎯 Sequential 30-Second Driver Dispatcher
+- Real-time Haversine distance calculation and composite driver ranking.
+- Dispatches targeted ride requests with a 30-second countdown timer.
+- Fallback loop automatically advances to the next best-ranked candidate driver if declined or timed out.
+
+### 6. ⏰ Scheduled Rides Background Worker
+- Automated cron worker scanning upcoming scheduled bookings 30-45 minutes before pickup.
+- Transitions confirmed bookings to active matching without manual intervention.
+
+### 7. 💓 Driver Heartbeat & Auto-Offline Monitor
+- Periodic GPS heartbeat recording driver location and battery status.
+- Background worker auto-marks inactive drivers (>5 min no ping) as offline.
+
+### 8. 🛡️ Admin Management & Compliance
+- Admin endpoints for live dashboard statistics, driver approvals (`PENDING` → `APPROVED` / `REJECTED` / `SUSPENDED`), document verification, emergency cancellations, pricing configuration, and audit logging.
+
+---
+
+## 📁 Repository Structure
+
+```
+.
+├── client/                     # React 18 Web Application
+│   ├── src/
+│   │   ├── components/         # Map (Leaflet), Location Search, Payment Selector
+│   │   ├── pages/              # BookRide, ActiveRide, DriverHome, History, Profile
+│   │   └── services/           # Axios API Client
+│   ├── Dockerfile
 │   └── package.json
-└── client/               # React frontend
-    ├── src/
-    │   ├── pages/       # Page components
-    │   ├── components/  # Reusable components
-    │   ├── services/    # API client
-    │   ├── styles/      # CSS files
-    │   └── App.js       # Main app component
-    └── package.json
+│
+├── server/                     # Express.js / Node.js Backend Server
+│   ├── controllers/            # bookingController, authController, adminController, etc.
+│   ├── middleware/             # authMiddleware, adminMiddleware
+│   ├── models/                 # Booking, User, Vehicle, FareRule, DriverWallet, etc.
+│   ├── routes/                 # bookingRoutes, authRoutes, adminRoutes, paymentRoutes, etc.
+│   ├── services/               # FareCalculator, WalletService, MatchingService, etc.
+│   ├── test-enterprise-features.js
+│   ├── test-phase2-matching-notifications.js
+│   ├── test-phase3-admin-security.js
+│   ├── test-ride-flow.js
+│   ├── Dockerfile
+│   └── server.js
+│
+├── docs/                       # Architecture Specifications & Runbooks
+│   ├── architecture/           # Master plans, DB schema, API design, race condition specs
+│   ├── guides/                 # Setup, deployment, troubleshooting
+│   ├── legal/                  # Privacy policy, Terms of service, Driver contract
+│   ├── runbooks/               # Incident response, DB restore, payment reconciliation
+│   └── reference/              # OpenAPI spec, enum constants, SQL migrations
+│
+├── docker-compose.yml          # Multi-container Docker deployment
+└── README.md
 ```
 
-## Features
+---
 
-### Customer Features
-- 📍 **Book a Ride** - Easy ride booking with pickup/dropoff locations
-- 💰 **Multiple Payment Methods** - Cash, card, or wallet
-- ⭐ **Rate Drivers** - Rate your ride experience
-- 📋 **Ride History** - View all past rides
-- 🔍 **Find Drivers** - Browse available drivers with ratings
-
-### Driver Features
-- 📱 **Driver Dashboard** - Real-time ride requests and earnings
-- 🟢 **Online/Offline Status** - Control availability
-- 💵 **Earnings Tracking** - Daily and total earnings
-- ⭐ **Driver Rating** - Build your reputation
-- 📍 **Real-time Location** - Share location with customers
-
-### Admin Features
-- 👥 **User Management** - Manage customers and drivers
-- 🚗 **Vehicle Management** - Track registered vehicles
-- 💳 **Payment Management** - Monitor transactions
-- 📊 **Analytics** - View platform statistics
-
-## Tech Stack
-
-### Backend
-- **Node.js** with **Express.js** - Server framework
-- **MongoDB** - Database
-- **Socket.io** - Real-time communication
-- **JWT** - Authentication
-- **Stripe API** - Payment processing
-- **Bcrypt** - Password hashing
-
-### Frontend
-- **React 18** - UI library
-- **React Router** - Navigation
-- **Axios** - HTTP client
-- **Leaflet** - Maps integration
-- **CSS3** - Styling
-
-## Installation
+## ⚡ Quick Start
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB (local or Atlas)
-- npm or yarn
+- **Node.js** (v18 or higher)
+- **MongoDB** (running locally or MongoDB Atlas connection string)
+- **Git**
 
-### Backend Setup
-
+### 1. Start the Backend Server
 ```bash
 cd server
 npm install
+node server.js
 ```
+*The server will auto-seed default vehicle types, enterprise fare rules, and cancellation policies on port `5000`.*
 
-Create `.env` file:
-```
-MONGODB_URI=mongodb://localhost:27017/rental-app
-JWT_SECRET=your_jwt_secret_key_here
-STRIPE_KEY=your_stripe_key_here
-PORT=5000
-NODE_ENV=development
-```
-
-Start the server:
-```bash
-npm run dev
-```
-
-### Frontend Setup
-
+### 2. Start the Frontend Client
 ```bash
 cd client
 npm install
 npm start
 ```
-
-The app will open at `http://localhost:3000`
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-
-### Vehicles
-- `GET /api/vehicles` - Get available vehicles
-- `POST /api/vehicles` - Add vehicle (driver)
-- `PUT /api/vehicles/location` - Update vehicle location
-
-### Bookings
-- `POST /api/bookings` - Request a ride
-- `POST /api/bookings/accept` - Accept ride (driver)
-- `GET /api/bookings` - Get user bookings
-- `PUT /api/bookings/complete` - Complete ride
-
-### Ratings
-- `POST /api/ratings` - Add rating
-- `GET /api/ratings/:userId` - Get user rating
-
-### Payments
-- `POST /api/payments` - Process payment
-
-## Usage
-
-### For Customers
-1. Register with email and password
-2. Select "Customer" during registration
-3. Book a ride by entering pickup and dropoff locations
-4. Wait for a driver to accept
-5. Complete the ride and rate your driver
-
-### For Drivers
-1. Register with email and password
-2. Select "Driver" during registration
-3. Add your vehicle details
-4. Go online on the dashboard
-5. Accept incoming ride requests
-6. Complete rides and earn money
-
-## Real-time Features
-
-The app uses **Socket.io** for:
-- Driver location updates
-- Real-time ride notifications
-- Live driver tracking
-
-## Database Schema
-
-### User Model
-```javascript
-{
-  name, email, password, phone, userType,
-  profileImage, address, rating, numberOfRatings
-}
-```
-
-### Vehicle Model
-```javascript
-{
-  driverId, licensePlate, model, year, seats,
-  vehicleType, pricePerKm, pricePerHour, currentLocation
-}
-```
-
-### Booking Model
-```javascript
-{
-  customerId, driverId, vehicleId,
-  pickupLocation, dropoffLocation, status,
-  fare, distance, duration, paymentMethod
-}
-```
-
-## Security
-
-- Passwords are hashed with bcrypt
-- JWT tokens for authentication
-- Protected API endpoints with auth middleware
-- Input validation on all endpoints
-
-## Future Enhancements
-
-- [ ] Google Maps integration
-- [ ] Ride scheduling
-- [ ] Referral system
-- [ ] Premium ride types
-- [ ] Driver background check
-- [ ] Emergency support
-- [ ] Multiple language support
-- [ ] Push notifications
-- [ ] Admin dashboard
-- [ ] Mobile app (React Native)
-
-## Troubleshooting
-
-### MongoDB connection issues
-- Ensure MongoDB is running: `mongod`
-- Check MONGODB_URI in .env
-
-### Frontend not connecting to backend
-- Ensure backend is running on port 5000
-- Check proxy setting in client/package.json
-
-### Port already in use
-```bash
-# Kill process on port 5000
-lsof -ti:5000 | xargs kill -9
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is open source and available under the MIT License.
-
-## Support
-
-For issues and questions, please open an issue on GitHub.
+*Access the React Web App at `http://localhost:3000`.*
 
 ---
 
-**Made with ❤️ by Your Team**
+## 🧪 Automated Test Verification
+
+Run all test suites inside the `server/` directory:
+
+```bash
+# 1. Test Enterprise Features (FareCalculator, Ledger, 16-State Machine)
+node test-enterprise-features.js
+
+# 2. Test Matching & Dispatch (30s Timer, Distance Ranking, Heartbeat)
+node test-phase2-matching-notifications.js
+
+# 3. Test Admin Panel & Security (Approvals, Documents, Audit Logs)
+node test-phase3-admin-security.js
+
+# 4. Test Complete End-to-End Live Ride Flow with Race Conditions
+node test-ride-flow.js
+```
+
+---
+
+## 🐳 Docker Deployment
+
+Run the complete multi-container stack with a single command:
+
+```bash
+docker-compose up -d --build
+```
+
+---
+
+© 2026 Uber-Clone Platform. All Rights Reserved.
