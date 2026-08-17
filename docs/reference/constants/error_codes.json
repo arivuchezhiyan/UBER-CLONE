@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ErrorCodesCatalog",
+  "errorCodes": [
+    { "code": "VALIDATION_ERROR", "status": 400, "message": "Request parameter validation failed" },
+    { "code": "UNAUTHORIZED", "status": 401, "message": "Authentication token missing or invalid" },
+    { "code": "FORBIDDEN", "status": 403, "message": "Insufficient permissions for requested operation" },
+    { "code": "RESOURCE_NOT_FOUND", "status": 404, "message": "Requested entity does not exist" },
+    { "code": "ACTIVE_RIDE_EXISTS", "status": 409, "message": "User already has an active ride in progress" },
+    { "code": "RIDE_ALREADY_ASSIGNED", "status": 409, "message": "Ride request has already been accepted by another driver" },
+    { "code": "INVALID_STATE_TRANSITION", "status": 422, "message": "Requested ride status transition is not allowed" },
+    { "code": "DRIVER_NOT_APPROVED", "status": 403, "message": "Driver account pending verification or rejected" },
+    { "code": "OTP_EXPIRED", "status": 401, "message": "Provided OTP code has expired" },
+    { "code": "PAYMENT_FAILED", "status": 402, "message": "Payment processing failed" },
+    { "code": "RATE_LIMITED", "status": 429, "message": "Too many requests, please slow down" },
+    { "code": "INTERNAL_SERVER_ERROR", "status": 500, "message": "An unexpected error occurred on the server" }
+  ]
+}

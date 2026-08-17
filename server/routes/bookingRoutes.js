@@ -1,10 +1,12 @@
 const express = require('express');
 const { 
   requestRide, 
-  acceptRide, 
-  startRide,
+  acceptRide,
+  driverArrived,
+  startRide, 
   completeRide, 
   cancelRide,
+  recordLocation,
   getUserBookings, 
   getDriverBookings,
   getPendingRides,
@@ -26,7 +28,9 @@ router.post('/rate', authMiddleware, rateRide);
 router.get('/pending', authMiddleware, getPendingRides);
 router.get('/driver', authMiddleware, getDriverBookings);
 router.post('/accept', authMiddleware, acceptRide);
+router.post('/arrived', authMiddleware, driverArrived);
 router.post('/start', authMiddleware, startRide);
 router.post('/complete', authMiddleware, completeRide);
+router.post('/location', authMiddleware, recordLocation);
 
 module.exports = router;

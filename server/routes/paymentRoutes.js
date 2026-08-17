@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/authMiddleware');
 const Booking = require('../models/Booking');
 const User = require('../models/User');
+const WalletService = require('../services/WalletService');
 
 // Get saved payment methods
 router.get('/methods', auth, async (req, res) => {
@@ -63,7 +64,6 @@ router.post('/process', auth, async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
     
-    // Simulate payment processing
     const paymentResult = {
       success: true,
       transactionId: 'TXN' + Date.now(),
@@ -72,7 +72,6 @@ router.post('/process', auth, async (req, res) => {
       timestamp: new Date()
     };
     
-    // Update booking payment status
     booking.paymentStatus = 'completed';
     booking.paymentMethod = paymentMethod;
     await booking.save();
@@ -94,7 +93,7 @@ router.get('/history', auth, async (req, res) => {
       customerId: req.userId,
       paymentStatus: 'completed'
     })
-    .select('actualFare paymentMethod paymentStatus completedAt pickupLocation dropoffLocation')
+    .select('actualFare paymentMethod paymentStatus completedAt pickupLocation dropoffLocation fareBreakdown rideNumber')
     .sort({ completedAt: -1 })
     .limit(20);
     
@@ -104,7 +103,7 @@ router.get('/history', auth, async (req, res) => {
   }
 });
 
-// Add money to wallet
+// Add money to customer wallet
 router.post('/wallet/add', auth, async (req, res) => {
   try {
     const { amount } = req.body;
@@ -114,7 +113,7 @@ router.post('/wallet/add', auth, async (req, res) => {
       user.walletBalance = 0;
     }
     
-    user.walletBalance += amount;
+    user.walletBalance += Number(amount);
     await user.save();
     
     res.json({ 
@@ -127,14 +126,17 @@ router.post('/wallet/add', auth, async (req, res) => {
   }
 });
 
-// Get wallet balance
+// Get customer & driver wallet balance
 router.get('/wallet/balance', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('walletBalance driverWallet');
+    const ledgerDetails = await WalletService.getWalletDetails(req.userId, 10);
+    
     res.json({ 
       success: true, 
       balance: user?.walletBalance || 0,
-      driverWallet: user?.driverWallet || 0
+      driverWallet: ledgerDetails.wallet.balance,
+      ledger: ledgerDetails
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -174,34 +176,47 @@ router.get('/driver/upi', auth, async (req, res) => {
   }
 });
 
-// Add money to driver wallet (when online payment is confirmed)
+// Add money to driver wallet (Double-Entry Ledger integration)
 router.post('/driver/wallet/add', auth, async (req, res) => {
   try {
     const { amount, bookingId, paymentMethod } = req.body;
     
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      { $inc: { driverWallet: amount } },
-      { new: true }
-    ).select('driverWallet');
+    const result = await WalletService.recordTransaction({
+      driverId: req.userId,
+      rideId: bookingId || null,
+      type: 'ADJUSTMENT',
+      amount: Number(amount),
+      direction: 'CREDIT',
+      description: `Manual/Online Top-up via ${paymentMethod || 'online'}`,
+      idempotencyKey: `TOPUP-${req.userId}-${Date.now()}`
+    });
+
+    await User.findByIdAndUpdate(req.userId, { driverWallet: result.balanceAfter });
     
     res.json({ 
       success: true, 
-      driverWallet: user.driverWallet,
-      message: `₹${amount} added to your wallet`
+      driverWallet: result.balanceAfter,
+      message: `₹${amount} added to your wallet`,
+      transaction: result.transaction
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
-// Get driver wallet balance
+// Get driver wallet balance & full double-entry ledger history
 router.get('/driver/wallet', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select('driverWallet withdrawals');
+    const ledger = await WalletService.getWalletDetails(req.userId, 20);
+    const user = await User.findById(req.userId).select('withdrawals');
+    
     res.json({ 
       success: true, 
-      balance: user?.driverWallet || 0,
+      balance: ledger.wallet.balance,
+      totalEarned: ledger.wallet.totalEarned,
+      totalPaidOut: ledger.wallet.totalPaidOut,
+      totalCommissionPaid: ledger.wallet.totalCommissionPaid,
+      transactions: ledger.transactions,
       withdrawals: user?.withdrawals || []
     });
   } catch (err) {
@@ -209,52 +224,47 @@ router.get('/driver/wallet', auth, async (req, res) => {
   }
 });
 
-// Request withdrawal
+// Request withdrawal (with ledger debit)
 router.post('/driver/withdraw', auth, async (req, res) => {
   try {
     const { amount, phone } = req.body;
     
     const user = await User.findById(req.userId);
-    
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    if (amount <= 0) {
+    if (!amount || Number(amount) <= 0) {
       return res.status(400).json({ message: 'Invalid amount' });
     }
     
-    if (user.driverWallet < amount) {
-      return res.status(400).json({ message: 'Insufficient wallet balance' });
-    }
-    
-    // Validate phone (should match user's registered phone or provided phone)
     const withdrawPhone = phone || user.phone;
     
-    // Create withdrawal record
+    // Execute double-entry debit
+    const ledgerResult = await WalletService.requestPayout(req.userId, Number(amount), withdrawPhone.slice(-4));
+    
     const withdrawal = {
-      amount,
+      amount: Number(amount),
       phone: withdrawPhone,
-      status: 'completed', // In production, this would be 'pending' and processed later
-      transactionId: 'WD' + Date.now(),
+      status: 'completed',
+      transactionId: ledgerResult.transaction.idempotencyKey,
       requestedAt: new Date(),
       completedAt: new Date()
     };
     
-    // Deduct from wallet and add withdrawal record
-    user.driverWallet -= amount;
     if (!user.withdrawals) user.withdrawals = [];
     user.withdrawals.push(withdrawal);
+    user.driverWallet = ledgerResult.balanceAfter;
     await user.save();
     
     res.json({ 
       success: true, 
       withdrawal,
-      newBalance: user.driverWallet,
+      newBalance: ledgerResult.balanceAfter,
       message: `₹${amount} withdrawal successful to ${withdrawPhone}`
     });
   } catch (err) {
-    res.status(500).json({ message: 'Withdrawal failed', error: err.message });
+    res.status(400).json({ message: err.message });
   }
 });
 
@@ -271,7 +281,7 @@ router.get('/driver/withdrawals', auth, async (req, res) => {
   }
 });
 
-// Confirm online payment (customer pays, money goes to driver wallet)
+// Confirm online payment (customer pays, money goes to driver ledger)
 router.post('/confirm-online-payment', auth, async (req, res) => {
   try {
     const { bookingId, amount } = req.body;
@@ -281,21 +291,21 @@ router.post('/confirm-online-payment', auth, async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
     
-    // Add money to driver's wallet
     if (booking.driverId) {
-      await User.findByIdAndUpdate(
+      await WalletService.creditRideEarnings(
         booking.driverId,
-        { $inc: { driverWallet: amount } }
+        booking._id,
+        Number(amount) || booking.actualFare || booking.estimatedFare,
+        booking.rideNumber
       );
     }
     
-    // Update booking payment status
     booking.paymentStatus = 'completed';
     await booking.save();
     
     res.json({ 
       success: true, 
-      message: 'Payment confirmed and added to driver wallet'
+      message: 'Payment confirmed and credited to driver wallet ledger'
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });

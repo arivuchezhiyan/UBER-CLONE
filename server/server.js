@@ -13,13 +13,14 @@ const server = http.createServer(app);
 // CORS configuration for production
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://localhost:5173',
   process.env.CLIENT_URL
 ].filter(Boolean);
 
 const io = socketIo(server, {
   cors: { 
     origin: allowedOrigins.length > 0 ? allowedOrigins : "*", 
-    methods: ["GET", "POST"] 
+    methods: ["GET", "POST", "PUT", "DELETE"] 
   }
 });
 
@@ -63,22 +64,57 @@ async function connectDatabase() {
   }
 }
 
-// Seed initial vehicle data
+// Seed initial vehicles & enterprise fare rules
 async function seedInitialData() {
-  const Vehicle = require('./models/Vehicle');
-  const vehicleCount = await Vehicle.countDocuments();
-  
-  if (vehicleCount === 0) {
-    const vehicles = [
-      { name: 'UberGo', type: 'sedan', pricePerKm: 12, baseFare: 50, image: '🚗', capacity: 4, description: 'Affordable, everyday rides' },
-      { name: 'Premier', type: 'sedan', pricePerKm: 15, baseFare: 70, image: '🚙', capacity: 4, description: 'Comfortable sedans, top-quality drivers' },
-      { name: 'UberXL', type: 'suv', pricePerKm: 18, baseFare: 100, image: '🚐', capacity: 6, description: 'Affordable rides for groups up to 6' },
-      { name: 'Uber Auto', type: 'auto', pricePerKm: 8, baseFare: 25, image: '🛺', capacity: 3, description: 'Auto-rickshaw at your doorstep' },
-      { name: 'Uber Moto', type: 'bike', pricePerKm: 5, baseFare: 15, image: '🏍️', capacity: 1, description: 'Affordable motorcycle rides' },
-    ];
-    
-    await Vehicle.insertMany(vehicles);
-    console.log('🚗 Initial vehicle data seeded');
+  try {
+    const Vehicle = require('./models/Vehicle');
+    const FareRule = require('./models/FareRule');
+    const CancellationRule = require('./models/CancellationRule');
+
+    // 1. Seed Vehicles
+    const vehicleCount = await Vehicle.countDocuments();
+    if (vehicleCount === 0) {
+      const vehicles = [
+        { name: 'UberGo', type: 'sedan', pricePerKm: 12, baseFare: 50, image: '🚗', capacity: 4, description: 'Affordable, everyday rides' },
+        { name: 'Premier', type: 'sedan', pricePerKm: 15, baseFare: 70, image: '🚙', capacity: 4, description: 'Comfortable sedans, top-quality drivers' },
+        { name: 'UberXL', type: 'suv', pricePerKm: 18, baseFare: 100, image: '🚐', capacity: 6, description: 'Affordable rides for groups up to 6' },
+        { name: 'Uber Auto', type: 'auto', pricePerKm: 8, baseFare: 25, image: '🛺', capacity: 3, description: 'Auto-rickshaw at your doorstep' },
+        { name: 'Uber Moto', type: 'bike', pricePerKm: 5, baseFare: 15, image: '🏍️', capacity: 1, description: 'Affordable motorcycle rides' },
+      ];
+      await Vehicle.insertMany(vehicles);
+      console.log('🚗 Initial vehicle categories seeded');
+    }
+
+    // 2. Seed Fare Rules
+    const fareRuleCount = await FareRule.countDocuments();
+    if (fareRuleCount === 0) {
+      const fareRules = [
+        { vehicleCategory: 'UberGo', distanceType: 'SHORT', baseFare: 50, perKmRate: 12, perMinuteRate: 1.5, minimumFare: 60, commissionPercentage: 20, taxPercentage: 5 },
+        { vehicleCategory: 'UberGo', distanceType: 'LONG', baseFare: 100, perKmRate: 11, perMinuteRate: 1.2, minimumFare: 500, commissionPercentage: 18, taxPercentage: 5 },
+        { vehicleCategory: 'Premier', distanceType: 'SHORT', baseFare: 70, perKmRate: 15, perMinuteRate: 2.0, minimumFare: 90, commissionPercentage: 20, taxPercentage: 5 },
+        { vehicleCategory: 'UberXL', distanceType: 'SHORT', baseFare: 100, perKmRate: 18, perMinuteRate: 2.5, minimumFare: 130, commissionPercentage: 20, taxPercentage: 5 },
+        { vehicleCategory: 'Uber Auto', distanceType: 'SHORT', baseFare: 25, perKmRate: 8, perMinuteRate: 1.0, minimumFare: 30, commissionPercentage: 15, taxPercentage: 5 },
+        { vehicleCategory: 'Uber Moto', distanceType: 'SHORT', baseFare: 15, perKmRate: 5, perMinuteRate: 0.8, minimumFare: 20, commissionPercentage: 15, taxPercentage: 5 },
+      ];
+      await FareRule.insertMany(fareRules);
+      console.log('💰 Enterprise FareRules seeded (base, per-km, per-min, taxes & commission)');
+    }
+
+    // 3. Seed Cancellation Rules
+    const cancelRuleCount = await CancellationRule.countDocuments();
+    if (cancelRuleCount === 0) {
+      await CancellationRule.create({
+        cancelledByRole: 'RIDER',
+        rideStatus: 'DRIVER_ASSIGNED',
+        minMinutesAfterAssignment: 3,
+        cancellationFee: 50,
+        feeType: 'FLAT',
+        isActive: true
+      });
+      console.log('🛡️ Default cancellation policy rule seeded');
+    }
+  } catch (err) {
+    console.error('Seed data error:', err.message);
   }
 }
 
@@ -104,7 +140,7 @@ app.use('/api/ratings', require('./routes/ratingRoutes'));
 // Make io accessible to routes
 app.set('io', io);
 
-// Track connected drivers
+// Track connected drivers & active tracking rooms
 const connectedDrivers = new Map();
 
 // WebSocket events for real-time synchronization
@@ -118,8 +154,24 @@ io.on('connection', (socket) => {
     console.log(`Driver ${driverId} is online with socket ${socket.id}`);
   });
 
-  // Driver location update
+  // Join ride tracking room
+  socket.on('join-ride-tracking', (rideId) => {
+    socket.join(`ride-${rideId}`);
+    console.log(`Socket ${socket.id} joined tracking room ride-${rideId}`);
+  });
+
+  // Leave ride tracking room
+  socket.on('leave-ride-tracking', (rideId) => {
+    socket.leave(`ride-${rideId}`);
+  });
+
+  // Real-time GPS Breadcrumb streaming
   socket.on('driver-location-update', (data) => {
+    // Broadcast to tracking room if rideId is provided
+    if (data.rideId) {
+      io.to(`ride-${data.rideId}`).emit('live-driver-location', data);
+    }
+    // Global broadcast for map discovery
     socket.broadcast.emit('driver-location', data);
   });
 
@@ -130,7 +182,6 @@ io.on('connection', (socket) => {
 
   // When a driver accepts a ride - notify all other drivers
   socket.on('ride-accepted', (data) => {
-    // Broadcast to ALL sockets except sender that this ride is taken
     socket.broadcast.emit('ride-taken', {
       bookingId: data.bookingId,
       driverId: data.driverId
@@ -147,33 +198,43 @@ io.on('connection', (socket) => {
   });
 });
 
-// Auto-cancel stale bookings (rides stuck in 'searching' for more than 5 minutes)
+// Auto-cancel stale bookings with 16-state machine transition
 const Booking = require('./models/Booking');
 const cleanupStaleBookings = async () => {
   try {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
     
     const staleBookings = await Booking.find({
-      status: 'searching',
+      status: { $in: ['SEARCHING_DRIVER', 'searching', 'REQUESTED'] },
       requestedAt: { $lt: fiveMinutesAgo }
     });
     
     for (const booking of staleBookings) {
-      booking.status = 'cancelled';
+      const oldStatus = booking.status;
+      booking.status = 'EXPIRED';
       booking.cancelledAt = new Date();
-      booking.cancellationReason = 'No drivers available - auto cancelled';
+      booking.cancellationReason = 'No drivers available within 5 minutes - auto expired';
       booking.cancelledBy = 'system';
+      if (!booking.statusHistory) booking.statusHistory = [];
+      booking.statusHistory.push({
+        fromStatus: oldStatus,
+        toStatus: 'EXPIRED',
+        changedByRole: 'SYSTEM',
+        reason: 'Timeout waiting for driver acceptance',
+        timestamp: new Date()
+      });
       await booking.save();
       
       // Notify customer via socket
       io.emit('ride-cancelled', {
         bookingId: booking._id,
+        rideNumber: booking.rideNumber,
         cancelledBy: 'system',
-        reason: 'No drivers available',
+        reason: 'No drivers available within timeout',
         customerId: booking.customerId
       });
       
-      console.log(`Auto-cancelled stale booking: ${booking._id}`);
+      console.log(`Auto-expired stale booking: ${booking._id} (${booking.rideNumber})`);
     }
   } catch (err) {
     console.error('Error cleaning up stale bookings:', err);
@@ -185,7 +246,18 @@ setInterval(cleanupStaleBookings, 60 * 1000);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'Server is running' });
+  res.json({
+    status: 'Server is running',
+    environment: process.env.NODE_ENV || 'development',
+    features: [
+      '16-state ride machine',
+      '3-layer race condition defense',
+      'centralized FareCalculator pricing engine',
+      'double-entry driver wallet ledger',
+      'real-time WebSocket GPS breadcrumbs',
+      'scheduled rides'
+    ]
+  });
 });
 
 const PORT = process.env.PORT || 5000;

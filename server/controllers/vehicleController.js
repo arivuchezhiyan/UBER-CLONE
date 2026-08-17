@@ -1,4 +1,5 @@
 const Vehicle = require('../models/Vehicle');
+const FareCalculator = require('../services/FareCalculator');
 
 // Get ride types (UberGo, Premier, etc.)
 const getRideTypes = async (req, res) => {
@@ -21,27 +22,28 @@ const getAvailableVehicles = async (req, res) => {
   }
 };
 
-// Calculate fare estimate
+// Calculate fare estimate with full pricing engine
 const getFareEstimate = async (req, res) => {
   try {
-    const { vehicleType, distance } = req.query;
-    
-    const vehicle = await Vehicle.findOne({ name: vehicleType });
-    if (!vehicle) {
-      return res.status(404).json({ message: 'Vehicle type not found' });
-    }
-    
-    const baseFare = vehicle.baseFare || 50;
-    const distanceFare = (parseFloat(distance) || 5) * vehicle.pricePerKm;
-    const total = Math.round(baseFare + distanceFare);
-    
+    const { vehicleType = 'UberGo', distance = 5, duration = 15 } = req.query;
+
+    const breakdown = await FareCalculator.calculateFare({
+      vehicleCategory: vehicleType,
+      distanceKm: parseFloat(distance) || 5,
+      durationMin: parseFloat(duration) || 15
+    });
+
     res.json({
       vehicleType,
-      baseFare,
-      distanceFare,
-      pricePerKm: vehicle.pricePerKm,
-      total,
-      currency: 'INR'
+      baseFare: breakdown.baseFare,
+      distanceFare: breakdown.distanceFare,
+      timeFare: breakdown.timeFare,
+      surgeMultiplier: breakdown.surgeMultiplier,
+      subtotal: breakdown.subtotal,
+      taxAmount: breakdown.taxAmount,
+      total: breakdown.totalFare,
+      currency: 'INR',
+      breakdown
     });
   } catch (error) {
     res.status(500).json({ message: 'Error calculating fare', error: error.message });

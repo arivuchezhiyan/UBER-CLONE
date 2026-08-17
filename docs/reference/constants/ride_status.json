@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RideStatusEnum",
+  "description": "Comprehensive ride status enums for RideNow platform",
+  "statuses": [
+    { "code": "REQUESTED", "terminal": false, "cancellableByRider": true, "cancellableByDriver": false },
+    { "code": "SEARCHING_DRIVER", "terminal": false, "cancellableByRider": true, "cancellableByDriver": false },
+    { "code": "NO_DRIVER_FOUND", "terminal": false, "cancellableByRider": true, "cancellableByDriver": false },
+    { "code": "DRIVER_ASSIGNED", "terminal": false, "cancellableByRider": true, "cancellableByDriver": true },
+    { "code": "DRIVER_ARRIVING", "terminal": false, "cancellableByRider": true, "cancellableByDriver": true },
+    { "code": "DRIVER_ARRIVED", "terminal": false, "cancellableByRider": true, "cancellableByDriver": true },
+    { "code": "TRIP_STARTED", "terminal": false, "cancellableByRider": false, "cancellableByDriver": false },
+    { "code": "TRIP_COMPLETED", "terminal": false, "cancellableByRider": false, "cancellableByDriver": false },
+    { "code": "PAYMENT_PENDING", "terminal": false, "cancellableByRider": false, "cancellableByDriver": false },
+    { "code": "PAYMENT_COMPLETED", "terminal": false, "cancellableByRider": false, "cancellableByDriver": false },
+    { "code": "PAYMENT_FAILED", "terminal": false, "cancellableByRider": false, "cancellableByDriver": false },
+    { "code": "SETTLED", "terminal": true, "cancellableByRider": false, "cancellableByDriver": false },
+    { "code": "CANCELLED_BY_RIDER", "terminal": true, "cancellableByRider": false, "cancellableByDriver": false },
+    { "code": "CANCELLED_BY_DRIVER", "terminal": true, "cancellableByRider": false, "cancellableByDriver": false },
+    { "code": "EXPIRED", "terminal": true, "cancellableByRider": false, "cancellableByDriver": false },
+    { "code": "REFUNDED", "terminal": true, "cancellableByRider": false, "cancellableByDriver": false }
+  ]
+}
