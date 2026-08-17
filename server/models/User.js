@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, sparse: true },
   password: { type: String, required: true },
   phone: { type: String, required: true, unique: true },
-  userType: { type: String, enum: ['customer', 'driver'], required: true },
+  userType: { type: String, enum: ['customer', 'driver', 'admin'], required: true },
+  role: { type: String, enum: ['USER', 'DRIVER', 'ADMIN', 'SUPER_ADMIN'], default: 'USER' },
   profileImage: String,
   address: String,
   
@@ -14,7 +15,17 @@ const userSchema = new mongoose.Schema({
   numberOfRatings: { type: Number, default: 0 },
   totalTrips: { type: Number, default: 0 },
   
-  // Driver specific fields
+  // Driver specific fields & Approval Workflow
+  approvalStatus: { 
+    type: String, 
+    enum: ['PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED'], 
+    default: 'APPROVED' // Default approved for backward compatibility, new drivers will be pending
+  },
+  approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  approvedAt: Date,
+  rejectionReason: String,
+  suspensionReason: String,
+
   isOnline: { type: Boolean, default: false },
   currentLocation: {
     latitude: Number,
@@ -76,9 +87,11 @@ const userSchema = new mongoose.Schema({
     type: { type: String, enum: ['home', 'work', 'other'] }
   }],
   
-  // Account status
+  // Account status & Admin moderation
   isVerified: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
+  isBlocked: { type: Boolean, default: false },
+  blockedReason: String,
   
   // Password reset
   resetOTP: String,
@@ -87,5 +100,10 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date }
 });
+
+userSchema.index({ phone: 1 }, { unique: true });
+userSchema.index({ email: 1 }, { sparse: true });
+userSchema.index({ userType: 1, isOnline: 1 });
+userSchema.index({ approvalStatus: 1 });
 
 module.exports = mongoose.model('User', userSchema);

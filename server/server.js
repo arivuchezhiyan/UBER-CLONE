@@ -136,6 +136,7 @@ app.use('/api/vehicles', require('./routes/vehicleRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/ratings', require('./routes/ratingRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // Make io accessible to routes
 app.set('io', io);
