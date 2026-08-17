@@ -143,15 +143,32 @@ app.set('io', io);
 // Track connected drivers & active tracking rooms
 const connectedDrivers = new Map();
 
+// Import Phase 2 Services
+const MatchingService = require('./services/MatchingService');
+const ScheduledRideJob = require('./services/ScheduledRideJob');
+const DriverHeartbeatService = require('./services/DriverHeartbeatService');
+
+// Start Phase 2 Background Jobs
+ScheduledRideJob.start(io);
+DriverHeartbeatService.start(io);
+
 // WebSocket events for real-time synchronization
 io.on('connection', (socket) => {
   console.log('New user connected:', socket.id);
 
   // Driver joins with their user ID
-  socket.on('driver-online', (driverId) => {
+  socket.on('driver-online', async (driverId) => {
     connectedDrivers.set(driverId, socket.id);
     socket.driverId = driverId;
+    await DriverHeartbeatService.recordHeartbeat(driverId);
     console.log(`Driver ${driverId} is online with socket ${socket.id}`);
+  });
+
+  // Driver Heartbeat & GPS ping
+  socket.on('driver-heartbeat', async (data) => {
+    if (socket.driverId) {
+      await DriverHeartbeatService.recordHeartbeat(socket.driverId, data);
+    }
   });
 
   // Join ride tracking room
@@ -166,7 +183,13 @@ io.on('connection', (socket) => {
   });
 
   // Real-time GPS Breadcrumb streaming
-  socket.on('driver-location-update', (data) => {
+  socket.on('driver-location-update', async (data) => {
+    if (socket.driverId) {
+      await DriverHeartbeatService.recordHeartbeat(socket.driverId, {
+        latitude: data.lat || data.latitude,
+        longitude: data.lng || data.longitude
+      });
+    }
     // Broadcast to tracking room if rideId is provided
     if (data.rideId) {
       io.to(`ride-${data.rideId}`).emit('live-driver-location', data);
@@ -180,13 +203,19 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('ride-available', rideData);
   });
 
-  // When a driver accepts a ride - notify all other drivers
+  // When a driver accepts a ride - notify all other drivers & cancel dispatch
   socket.on('ride-accepted', (data) => {
+    MatchingService.cancelDispatch(data.bookingId);
     socket.broadcast.emit('ride-taken', {
       bookingId: data.bookingId,
       driverId: data.driverId
     });
     console.log(`Ride ${data.bookingId} accepted by driver ${data.driverId}`);
+  });
+
+  // When a driver declines a ride - advance sequential dispatch
+  socket.on('driver-reject-ride', async (data) => {
+    await MatchingService.handleDriverRejection(data.bookingId, socket.driverId, data.reason, io);
   });
 
   socket.on('disconnect', () => {
@@ -254,8 +283,10 @@ app.get('/api/health', (req, res) => {
       '3-layer race condition defense',
       'centralized FareCalculator pricing engine',
       'double-entry driver wallet ledger',
-      'real-time WebSocket GPS breadcrumbs',
-      'scheduled rides'
+      'sequential 30s driver matching dispatch',
+      'scheduled ride background worker',
+      'driver heartbeat & auto-offline monitor',
+      'real-time WebSocket GPS breadcrumbs'
     ]
   });
 });

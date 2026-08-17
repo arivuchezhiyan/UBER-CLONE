@@ -2,6 +2,7 @@ const express = require('express');
 const { 
   requestRide, 
   acceptRide,
+  rejectRide,
   driverArrived,
   startRide, 
   completeRide, 
@@ -28,6 +29,7 @@ router.post('/rate', authMiddleware, rateRide);
 router.get('/pending', authMiddleware, getPendingRides);
 router.get('/driver', authMiddleware, getDriverBookings);
 router.post('/accept', authMiddleware, acceptRide);
+router.post('/reject', authMiddleware, rejectRide);
 router.post('/arrived', authMiddleware, driverArrived);
 router.post('/start', authMiddleware, startRide);
 router.post('/complete', authMiddleware, completeRide);

@@ -5,12 +5,13 @@ const Cancellation = require('../models/Cancellation');
 const CancellationRule = require('../models/CancellationRule');
 const FareCalculator = require('../services/FareCalculator');
 const WalletService = require('../services/WalletService');
+const MatchingService = require('../services/MatchingService');
 
 // Generate 4-digit OTP
 const generateOTP = () => Math.floor(1000 + Math.random() * 9000).toString();
 
 // ============================================================
-// 1. REQUEST RIDE (Immediate or Scheduled)
+// 1. REQUEST RIDE (Immediate or Scheduled with Sequential Dispatch)
 // ============================================================
 const requestRide = async (req, res) => {
   try {
@@ -102,37 +103,11 @@ const requestRide = async (req, res) => {
     await booking.save();
     await booking.populate('customerId', 'name phone rating profileImage');
 
-    // 4. EMIT SOCKET EVENT to notify all online drivers
     const io = req.app.get('io');
-    if (io) {
-      io.emit('new-ride-available', {
-        bookingId: booking._id,
-        rideNumber: booking.rideNumber,
-        pickup: pickupLocation?.address || 'Pickup Location',
-        dropoff: dropoffLocation?.address || 'Dropoff Location',
-        pickupCoordinates: pickupLocation?.latitude ? {
-          lat: pickupLocation.latitude,
-          lng: pickupLocation.longitude
-        } : null,
-        dropoffCoordinates: dropoffLocation?.latitude ? {
-          lat: dropoffLocation.latitude,
-          lng: dropoffLocation.longitude
-        } : null,
-        fare: fareBreakdown.totalFare,
-        fareBreakdown,
-        distance: `${estimatedDistance} km`,
-        duration: `${estimatedDuration} min`,
-        vehicleType,
-        paymentMethod,
-        rideType: booking.rideType,
-        customer: {
-          name: booking.customerId?.name || 'Customer',
-          rating: booking.customerId?.rating || 5.0,
-          phone: booking.customerId?.phone
-        },
-        requestedAt: booking.requestedAt
-      });
-      console.log(`📢 Broadcasted new ride #${booking.rideNumber} (${booking._id}) to drivers`);
+
+    // 4. Start Sequential 30s Driver Dispatch if immediate ride
+    if (!isScheduled) {
+      MatchingService.startSequentialDispatch(booking._id, io);
     }
 
     res.status(201).json({
@@ -223,6 +198,9 @@ const acceptRide = async (req, res) => {
       });
     }
 
+    // Cancel sequential dispatch timer
+    MatchingService.cancelDispatch(bookingId);
+
     // Update driver status to online
     await User.findByIdAndUpdate(req.userId, { isOnline: true });
 
@@ -256,7 +234,23 @@ const acceptRide = async (req, res) => {
 };
 
 // ============================================================
-// 4. DRIVER ARRIVED AT PICKUP
+// 4. REJECT RIDE (Driver declines targeted request)
+// ============================================================
+const rejectRide = async (req, res) => {
+  try {
+    const { bookingId, reason = 'Driver declined' } = req.body;
+    const io = req.app.get('io');
+
+    await MatchingService.handleDriverRejection(bookingId, req.userId, reason, io);
+
+    res.json({ success: true, message: 'Ride request declined. Dispatched to next available driver.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error declining ride', error: error.message });
+  }
+};
+
+// ============================================================
+// 5. DRIVER ARRIVED AT PICKUP
 // ============================================================
 const driverArrived = async (req, res) => {
   try {
@@ -300,7 +294,7 @@ const driverArrived = async (req, res) => {
 };
 
 // ============================================================
-// 5. START RIDE (OTP Verification)
+// 6. START RIDE (OTP Verification)
 // ============================================================
 const startRide = async (req, res) => {
   try {
@@ -358,7 +352,7 @@ const startRide = async (req, res) => {
 };
 
 // ============================================================
-// 6. COMPLETE RIDE & DOUBLE-ENTRY FINANCIAL SETTLEMENT
+// 7. COMPLETE RIDE & DOUBLE-ENTRY FINANCIAL SETTLEMENT
 // ============================================================
 const completeRide = async (req, res) => {
   try {
@@ -489,7 +483,7 @@ const completeRide = async (req, res) => {
 };
 
 // ============================================================
-// 7. CANCEL RIDE (With Cancellation Fee Evaluation)
+// 8. CANCEL RIDE (With Cancellation Fee Evaluation & Dispatch Cancellation)
 // ============================================================
 const cancelRide = async (req, res) => {
   try {
@@ -510,6 +504,9 @@ const cancelRide = async (req, res) => {
     if (['CANCELLED_BY_RIDER', 'CANCELLED_BY_DRIVER', 'cancelled'].includes(booking.status)) {
       return res.status(400).json({ success: false, message: 'This ride is already cancelled.' });
     }
+
+    // Cancel any active sequential driver dispatch timer
+    MatchingService.cancelDispatch(bookingId);
 
     const previousStatus = booking.status;
     const newStatus = cancelledBy === 'driver' ? 'CANCELLED_BY_DRIVER' : 'CANCELLED_BY_RIDER';
@@ -577,7 +574,7 @@ const cancelRide = async (req, res) => {
 };
 
 // ============================================================
-// 8. RECORD GPS BREADCRUMB
+// 9. RECORD GPS BREADCRUMB
 // ============================================================
 const recordLocation = async (req, res) => {
   try {
@@ -606,7 +603,7 @@ const recordLocation = async (req, res) => {
 };
 
 // ============================================================
-// 9. GET USER BOOKINGS
+// 10. GET USER BOOKINGS
 // ============================================================
 const getUserBookings = async (req, res) => {
   try {
@@ -621,7 +618,7 @@ const getUserBookings = async (req, res) => {
 };
 
 // ============================================================
-// 10. GET DRIVER BOOKINGS
+// 11. GET DRIVER BOOKINGS
 // ============================================================
 const getDriverBookings = async (req, res) => {
   try {
@@ -636,7 +633,7 @@ const getDriverBookings = async (req, res) => {
 };
 
 // ============================================================
-// 11. RATE RIDE
+// 12. RATE RIDE
 // ============================================================
 const rateRide = async (req, res) => {
   try {
@@ -672,7 +669,7 @@ const rateRide = async (req, res) => {
 };
 
 // ============================================================
-// 12. GET ACTIVE RIDE
+// 13. GET ACTIVE RIDE
 // ============================================================
 const getActiveRide = async (req, res) => {
   try {
@@ -706,6 +703,7 @@ const getActiveRide = async (req, res) => {
 module.exports = {
   requestRide,
   acceptRide,
+  rejectRide,
   driverArrived,
   startRide,
   completeRide,
