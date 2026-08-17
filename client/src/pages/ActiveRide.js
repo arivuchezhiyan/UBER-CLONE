@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getActiveRide, cancelRide, completeRide, startRide, getDriverUpiId, confirmOnlinePayment } from '../services/api';
+import {
+  getActiveRide,
+  cancelRide,
+  completeRide,
+  startRide,
+  markDriverArrived,
+  getDriverUpiId,
+  confirmOnlinePayment
+} from '../services/api';
 import RideMap from '../components/Map/RideMap';
 import io from 'socket.io-client';
 import './ActiveRide.css';
@@ -11,11 +19,12 @@ function ActiveRide({ user }) {
   const navigate = useNavigate();
   const isDriver = user?.userType === 'driver';
   
-  const [rideStatus, setRideStatus] = useState(isDriver ? 'arriving' : 'searching');
+  const [rideStatus, setRideStatus] = useState(isDriver ? 'DRIVER_ARRIVING' : 'SEARCHING_DRIVER');
   const [eta, setEta] = useState(4);
   const [booking, setBooking] = useState(null);
   const [otp, setOtp] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
+  const [showFareBreakdown, setShowFareBreakdown] = useState(false);
   const [pickupCoords, setPickupCoords] = useState(null);
   const [dropoffCoords, setDropoffCoords] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -32,11 +41,11 @@ function ActiveRide({ user }) {
       if (response.data) {
         setBooking(prev => ({ ...prev, ...response.data }));
         const newStatus = response.data.status;
-        if (newStatus === 'cancelled') {
+        if (['CANCELLED_BY_RIDER', 'CANCELLED_BY_DRIVER', 'EXPIRED', 'cancelled'].includes(newStatus)) {
           alert('Ride has been cancelled');
           localStorage.removeItem('activeBooking');
           navigate('/');
-        } else if (newStatus === 'completed') {
+        } else if (['TRIP_COMPLETED', 'SETTLED', 'completed'].includes(newStatus)) {
           localStorage.removeItem('activeBooking');
           navigate('/history');
         } else if (newStatus !== rideStatus) {
@@ -54,14 +63,20 @@ function ActiveRide({ user }) {
     
     socket.on('ride-cancelled', (data) => {
       if (booking?._id === data.bookingId) {
-        alert(isDriver ? 'Customer cancelled' : 'Driver cancelled');
+        alert(isDriver ? 'Customer cancelled the ride' : 'Ride was cancelled');
         localStorage.removeItem('activeBooking');
         navigate('/');
       }
     });
     
+    socket.on('driver-arrived', (data) => {
+      if (booking?._id === data.bookingId) {
+        setRideStatus('DRIVER_ARRIVED');
+      }
+    });
+
     socket.on('ride-started', (data) => {
-      if (booking?._id === data.bookingId) setRideStatus('started');
+      if (booking?._id === data.bookingId) setRideStatus('TRIP_STARTED');
     });
     
     socket.on('ride-completed', (data) => {
@@ -71,10 +86,9 @@ function ActiveRide({ user }) {
       }
     });
     
-    socket.on('driver-assigned', (data) => {
+    socket.on('ride-taken', (data) => {
       if (booking?._id === data.bookingId && !isDriver) {
-        setBooking(prev => ({ ...prev, driverId: data.driver }));
-        setRideStatus('waiting');
+        setRideStatus('DRIVER_ASSIGNED');
       }
     });
     
@@ -94,7 +108,7 @@ function ActiveRide({ user }) {
       if (stored) {
         const parsed = JSON.parse(stored);
         setBooking(parsed);
-        setRideStatus(parsed.status || (isDriver ? 'arriving' : 'searching'));
+        setRideStatus(parsed.status || (isDriver ? 'DRIVER_ARRIVING' : 'SEARCHING_DRIVER'));
         if (parsed.pickupCoords) setPickupCoords(parsed.pickupCoords);
         else if (parsed.pickupLocation?.latitude) {
           setPickupCoords({ lat: parsed.pickupLocation.latitude, lng: parsed.pickupLocation.longitude });
@@ -108,7 +122,7 @@ function ActiveRide({ user }) {
           const response = await getActiveRide();
           if (response.data) {
             setBooking(response.data);
-            setRideStatus(response.data.status || (isDriver ? 'arriving' : 'searching'));
+            setRideStatus(response.data.status || (isDriver ? 'DRIVER_ARRIVING' : 'SEARCHING_DRIVER'));
             localStorage.setItem('activeBooking', JSON.stringify(response.data));
           } else {
             navigate('/');
@@ -129,6 +143,21 @@ function ActiveRide({ user }) {
     return () => clearInterval(timer);
   }, []);
 
+  const handleMarkArrived = async () => {
+    setLoading(true);
+    try {
+      const response = await markDriverArrived(booking._id);
+      if (response.data.success) {
+        setRideStatus('DRIVER_ARRIVED');
+        localStorage.setItem('activeBooking', JSON.stringify({ ...booking, status: 'DRIVER_ARRIVED' }));
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to mark arrival');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleStartRide = async () => {
     if (!otp) {
       setShowOtpInput(true);
@@ -138,9 +167,9 @@ function ActiveRide({ user }) {
     try {
       const response = await startRide(booking._id, otp);
       if (response.data.success) {
-        setRideStatus('started');
+        setRideStatus('TRIP_STARTED');
         setShowOtpInput(false);
-        localStorage.setItem('activeBooking', JSON.stringify({ ...booking, status: 'started' }));
+        localStorage.setItem('activeBooking', JSON.stringify({ ...booking, status: 'TRIP_STARTED' }));
       }
     } catch (err) {
       alert(err.response?.data?.message || 'Invalid OTP');
@@ -200,13 +229,20 @@ function ActiveRide({ user }) {
 
   const getStatusMessage = () => {
     switch(rideStatus) {
-      case 'searching': return 'Finding your driver...';
-      case 'accepted': return 'Driver assigned!';
-      case 'waiting': return `Driver arriving in ${eta} min`;
-      case 'arriving': return 'Arriving at pickup';
-      case 'arrived': return 'Driver has arrived';
-      case 'started': return 'Trip in progress';
-      default: return 'In progress';
+      case 'REQUESTED':
+      case 'SEARCHING_DRIVER':
+      case 'searching': return 'Matching nearest driver (30s sequential dispatch)...';
+      case 'DRIVER_ASSIGNED':
+      case 'accepted': return 'Driver assigned & accepted!';
+      case 'DRIVER_ARRIVING':
+      case 'waiting':
+      case 'arriving': return `Driver arriving at pickup in ~${eta} min`;
+      case 'DRIVER_ARRIVED':
+      case 'arrived': return 'Driver has arrived at pickup point!';
+      case 'TRIP_STARTED':
+      case 'started': return 'Trip in progress — GPS tracked';
+      case 'TRIP_COMPLETED': return 'Trip completed';
+      default: return 'Ride In Progress';
     }
   };
 
@@ -214,9 +250,12 @@ function ActiveRide({ user }) {
   const rideDetails = {
     pickup: booking?.pickupLocation?.address || 'Pickup',
     dropoff: booking?.dropoffLocation?.address || 'Dropoff',
-    fare: booking?.estimatedFare || 149,
-    otp: booking?.rideOTP
+    fare: booking?.actualFare || booking?.estimatedFare || 149,
+    otp: booking?.rideOTP,
+    breakdown: booking?.fareBreakdown
   };
+
+  const isTripActive = ['TRIP_STARTED', 'started'].includes(rideStatus);
 
   return (
     <div className="active-ride-app">
@@ -239,15 +278,17 @@ function ActiveRide({ user }) {
 
         {/* Status Pill */}
         <div className={`status-pill ${rideStatus}`}>
-          {rideStatus === 'searching' && <div className="searching-dots"><span></span><span></span><span></span></div>}
+          {['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
+            <div className="searching-dots"><span></span><span></span><span></span></div>
+          )}
           <span>{getStatusMessage()}</span>
         </div>
       </div>
 
       {/* OTP Banner for Customer */}
-      {!isDriver && rideDetails.otp && rideStatus !== 'started' && rideStatus !== 'searching' && (
+      {!isDriver && rideDetails.otp && !isTripActive && !['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
         <div className="otp-display">
-          <span className="otp-label">OTP for driver</span>
+          <span className="otp-label">Share 4-Digit Ride OTP with Driver:</span>
           <span className="otp-code">{rideDetails.otp}</span>
         </div>
       )}
@@ -260,29 +301,22 @@ function ActiveRide({ user }) {
         {!isDriver && (
           <>
             {/* Driver Info */}
-            {(rideStatus !== 'searching') && (
+            {!['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
               <div className="driver-card">
                 <div className="driver-avatar">
-                  {driver.name?.charAt(0) || '?'}
+                  {driver.name?.charAt(0) || '👨‍✈️'}
                 </div>
                 <div className="driver-info">
-                  <h3>{driver.name || 'Finding driver...'}</h3>
+                  <h3>{driver.name || 'Assigned Driver'}</h3>
                   <div className="driver-meta">
-                    <span className="rating">⭐ {driver.rating || 4.8}</span>
-                    <span className="vehicle">{driver.vehicleDetails?.model || 'Swift Dzire'}</span>
+                    <span className="rating">⭐ {driver.rating || 5.0}</span>
+                    <span className="vehicle">{driver.vehicleDetails?.model || booking?.vehicleType || 'Sedan'}</span>
                   </div>
-                  <span className="plate">{driver.vehicleDetails?.licensePlate || 'KA 01 XX 1234'}</span>
+                  <span className="plate">{driver.vehicleDetails?.licensePlate || 'KA 01 AB 1234'}</span>
                 </div>
                 <div className="contact-btns">
-                  <button className="contact-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0122 16.92z"/>
-                    </svg>
-                  </button>
-                  <button className="contact-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                    </svg>
+                  <button className="contact-btn" onClick={() => alert(`Calling driver at ${driver.phone || '+91 9876543210'}`)}>
+                    📞
                   </button>
                 </div>
               </div>
@@ -300,15 +334,46 @@ function ActiveRide({ user }) {
               </div>
             </div>
 
-            {/* Fare Info */}
-            <div className="fare-card">
+            {/* Fare Info & Itemized Breakdown */}
+            <div className="fare-card" onClick={() => setShowFareBreakdown(!showFareBreakdown)} style={{ cursor: 'pointer' }}>
               <div className="fare-row">
-                <span>Trip fare</span>
+                <span>Trip Fare {showFareBreakdown ? '▲' : '▼'}</span>
                 <span className="fare-amount">₹{rideDetails.fare}</span>
               </div>
               <div className="payment-method">
-                <span>💵 {booking?.paymentMethod || 'Cash'}</span>
+                <span>💵 {booking?.paymentMethod?.toUpperCase() || 'CASH'}</span>
+                {booking?.fareBreakdown?.surgeMultiplier > 1 && (
+                  <span style={{ color: '#f59e0b', fontSize: '11px', fontWeight: 600 }}>
+                    ⚡ {booking.fareBreakdown.surgeMultiplier}x Surge
+                  </span>
+                )}
               </div>
+
+              {/* Collapsible Itemized Fare Receipt */}
+              {showFareBreakdown && booking?.fareBreakdown && (
+                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #e2e8f0', fontSize: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span>Base Fare</span>
+                    <span>₹{booking.fareBreakdown.baseFare}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span>Distance Fare ({booking.estimatedDistance || 5} km)</span>
+                    <span>₹{booking.fareBreakdown.distanceFare}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span>Time Fare ({booking.estimatedDuration || 15} min)</span>
+                    <span>₹{booking.fareBreakdown.timeFare}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span>GST (5%)</span>
+                    <span>₹{booking.fareBreakdown.taxAmount}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, marginTop: '6px' }}>
+                    <span>Total Amount</span>
+                    <span>₹{booking.fareBreakdown.totalFare}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -319,15 +384,16 @@ function ActiveRide({ user }) {
             {/* Customer Info */}
             <div className="customer-card">
               <div className="customer-avatar">
-                {booking?.customerId?.name?.charAt(0) || 'C'}
+                {booking?.customerId?.name?.charAt(0) || '👤'}
               </div>
               <div className="customer-info">
                 <h3>{booking?.customerId?.name || 'Customer'}</h3>
-                <span className="rating">⭐ {booking?.customerId?.rating || 4.5}</span>
+                <span className="rating">⭐ {booking?.customerId?.rating || 5.0}</span>
               </div>
               <div className="contact-btns">
-                <button className="contact-btn">📞</button>
-                <button className="contact-btn">💬</button>
+                <button className="contact-btn" onClick={() => alert(`Calling customer at ${booking?.customerId?.phone || '+91 9000000001'}`)}>
+                  📞
+                </button>
               </div>
             </div>
 
@@ -346,24 +412,33 @@ function ActiveRide({ user }) {
             {/* Fare & Payment */}
             <div className="fare-card">
               <div className="fare-row">
-                <span>Fare</span>
-                <span className="fare-amount">₹{rideDetails.fare}</span>
+                <span>Estimated Earnings</span>
+                <span className="fare-amount text-success">
+                  ₹{booking?.fareBreakdown?.driverEarnings || Math.round(rideDetails.fare * 0.8)}
+                </span>
               </div>
               <div className="payment-method">
-                <span>💵 {booking?.paymentMethod || 'Cash'}</span>
+                <span>Payment: 💵 {booking?.paymentMethod?.toUpperCase() || 'CASH'}</span>
               </div>
             </div>
 
-            {/* Driver Actions */}
+            {/* Driver Actions: Arrived -> Start with OTP -> Complete */}
             <div className="driver-actions">
-              {(rideStatus === 'arriving' || rideStatus === 'arrived' || rideStatus === 'waiting') && (
-                <button className="action-btn primary" onClick={handleStartRide}>
-                  Start Ride
+              {['DRIVER_ASSIGNED', 'DRIVER_ARRIVING', 'accepted', 'arriving'].includes(rideStatus) && (
+                <button className="action-btn secondary" onClick={handleMarkArrived} disabled={loading} style={{ background: '#3b82f6' }}>
+                  Mark Arrived at Pickup
                 </button>
               )}
-              {rideStatus === 'started' && (
+
+              {['DRIVER_ARRIVED', 'arrived'].includes(rideStatus) && (
+                <button className="action-btn primary" onClick={handleStartRide} disabled={loading}>
+                  Verify OTP & Start Trip
+                </button>
+              )}
+
+              {isTripActive && (
                 <button className="action-btn complete" onClick={handleEndRide} disabled={loading}>
-                  {loading ? 'Completing...' : 'Complete Ride'}
+                  {loading ? 'Completing...' : 'Complete Trip'}
                 </button>
               )}
             </div>
@@ -371,7 +446,7 @@ function ActiveRide({ user }) {
         )}
 
         {/* Cancel Button */}
-        {rideStatus !== 'started' && (
+        {!isTripActive && (
           <button className="cancel-ride-btn" onClick={() => setShowCancelSheet(true)}>
             Cancel Ride
           </button>
@@ -382,17 +457,18 @@ function ActiveRide({ user }) {
       {showOtpInput && (
         <div className="modal-overlay">
           <div className="otp-modal">
-            <h3>Enter OTP</h3>
-            <p>Ask customer for the 4-digit code</p>
+            <h3>Enter Rider OTP</h3>
+            <p>Ask customer for their 4-digit verification code</p>
             <input
               type="text"
               maxLength={4}
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
               placeholder="• • • •"
+              style={{ fontSize: '28px', textAlign: 'center', letterSpacing: '8px' }}
             />
             <button className="verify-btn" onClick={handleStartRide} disabled={loading || otp.length !== 4}>
-              {loading ? 'Verifying...' : 'Start Ride'}
+              {loading ? 'Verifying...' : 'Verify & Start Trip'}
             </button>
             <button className="cancel-modal-btn" onClick={() => setShowOtpInput(false)}>Cancel</button>
           </div>
@@ -401,37 +477,30 @@ function ActiveRide({ user }) {
 
       {/* Cancel Confirmation Sheet */}
       {showCancelSheet && (
-        <div className="modal-overlay" onClick={() => setShowCancelSheet(false)}>
-          <div className="cancel-sheet" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay">
+          <div className="cancel-sheet">
             <h3>Cancel this ride?</h3>
-            <p>You may be charged a cancellation fee.</p>
-            <button className="cancel-confirm-btn" onClick={handleCancel} disabled={loading}>
+            <p>Are you sure you want to cancel? Cancellation fees may apply if driver is already en route.</p>
+            <button className="confirm-cancel-btn" onClick={handleCancel} disabled={loading}>
               {loading ? 'Cancelling...' : 'Yes, Cancel Ride'}
             </button>
-            <button className="keep-btn" onClick={() => setShowCancelSheet(false)}>Keep Ride</button>
+            <button className="keep-ride-btn" onClick={() => setShowCancelSheet(false)}>Keep Ride</button>
           </div>
         </div>
       )}
 
-      {/* UPI Payment Modal */}
+      {/* UPI Payment Modal for Driver */}
       {showUpiPayment && (
         <div className="modal-overlay">
           <div className="upi-modal">
             <h3>Collect Payment</h3>
-            <div className="upi-amount">₹{completedBooking?.actualFare || completedBooking?.estimatedFare}</div>
-            {driverUpiId && (
-              <div className="upi-info">
-                <p>Your UPI: {driverUpiId}</p>
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=${encodeURIComponent(driverUpiId)}&am=${completedBooking?.actualFare || completedBooking?.estimatedFare}`}
-                  alt="QR"
-                  className="qr-code"
-                />
-              </div>
-            )}
-            <button className="confirm-payment-btn" onClick={handlePaymentConfirmed}>Payment Received</button>
-            <button className="cash-btn" onClick={() => { localStorage.removeItem('activeBooking'); navigate('/history'); }}>
-              Paid in Cash
+            <p>Show this QR / UPI ID to customer</p>
+            <div className="upi-details">
+              <strong>₹{completedBooking?.actualFare || completedBooking?.estimatedFare}</strong>
+              <span>UPI: {driverUpiId || 'driver@upi'}</span>
+            </div>
+            <button className="verify-btn" onClick={handlePaymentConfirmed}>
+              Payment Received
             </button>
           </div>
         </div>

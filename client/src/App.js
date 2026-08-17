@@ -9,6 +9,7 @@ import BookRide from './pages/BookRide';
 import ActiveRide from './pages/ActiveRide';
 import RideHistory from './pages/RideHistory';
 import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -25,7 +26,20 @@ function App() {
       try {
         const booking = JSON.parse(activeBooking);
         // Check if booking is in an active state
-        const activeStatuses = ['searching', 'accepted', 'waiting', 'arriving', 'arrived', 'started'];
+        const activeStatuses = [
+          'REQUESTED',
+          'SEARCHING_DRIVER',
+          'DRIVER_ASSIGNED',
+          'DRIVER_ARRIVING',
+          'DRIVER_ARRIVED',
+          'TRIP_STARTED',
+          'searching',
+          'accepted',
+          'waiting',
+          'arriving',
+          'arrived',
+          'started'
+        ];
         if (activeStatuses.includes(booking.status)) {
           setHasActiveRide(true);
         } else {
@@ -65,6 +79,9 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Admin Route available to all authenticated users for testing/moderation */}
+        <Route path="/admin" element={<AdminDashboard user={user} />} />
+
         {user.userType === 'driver' ? (
           <>
             <Route path="/" element={

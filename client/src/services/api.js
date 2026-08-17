@@ -53,8 +53,8 @@ export const getAvailableVehicles = () => {
   return api.get('/vehicles');
 };
 
-export const getFareEstimate = (vehicleType, distance) => {
-  return api.get(`/vehicles/fare-estimate?vehicleType=${vehicleType}&distance=${distance}`);
+export const getFareEstimate = (vehicleType, distance, duration) => {
+  return api.get(`/vehicles/fare-estimate?vehicleType=${vehicleType}&distance=${distance}&duration=${duration || 15}`);
 };
 
 // ==================== BOOKING APIs ====================
@@ -70,8 +70,8 @@ export const getActiveRide = () => {
   return api.get('/bookings/active');
 };
 
-export const cancelRide = (bookingId, reason) => {
-  return api.post('/bookings/cancel', { bookingId, reason, cancelledBy: 'customer' });
+export const cancelRide = (bookingId, reason, cancelledBy = 'customer') => {
+  return api.post('/bookings/cancel', { bookingId, reason, cancelledBy });
 };
 
 export const rateRide = (bookingId, rating, feedback, ratingType) => {
@@ -91,12 +91,24 @@ export const acceptRide = (bookingId) => {
   return api.post('/bookings/accept', { bookingId });
 };
 
+export const rejectRide = (bookingId, reason) => {
+  return api.post('/bookings/reject', { bookingId, reason });
+};
+
+export const markDriverArrived = (bookingId) => {
+  return api.post('/bookings/arrived', { bookingId });
+};
+
 export const startRide = (bookingId, otp) => {
   return api.post('/bookings/start', { bookingId, otp });
 };
 
-export const completeRide = (bookingId, distance, duration) => {
-  return api.post('/bookings/complete', { bookingId, distance, duration });
+export const completeRide = (bookingId, distance, duration, waitingTimeMin, tollAmount, parkingAmount) => {
+  return api.post('/bookings/complete', { bookingId, distance, duration, waitingTimeMin, tollAmount, parkingAmount });
+};
+
+export const recordGPSBreadcrumb = (bookingId, latitude, longitude, heading, speed) => {
+  return api.post('/bookings/location', { bookingId, latitude, longitude, heading, speed });
 };
 
 // ==================== USER APIs ====================
@@ -181,6 +193,66 @@ export const getWithdrawalHistory = () => {
 
 export const confirmOnlinePayment = (bookingId, amount) => {
   return api.post('/payments/confirm-online-payment', { bookingId, amount });
+};
+
+// ==================== ADMIN APIs ====================
+export const getAdminDashboard = () => {
+  return api.get('/admin/dashboard');
+};
+
+export const getAdminDrivers = (status, search) => {
+  const params = new URLSearchParams();
+  if (status) params.append('status', status);
+  if (search) params.append('search', search);
+  return api.get(`/admin/drivers?${params.toString()}`);
+};
+
+export const updateAdminDriverStatus = (driverId, status, reason) => {
+  return api.put(`/admin/drivers/${driverId}/status`, { status, reason });
+};
+
+export const getAdminDriverDocuments = (driverId) => {
+  return api.get(`/admin/drivers/${driverId}/documents`);
+};
+
+export const verifyAdminDocument = (documentId, status, reason) => {
+  return api.put(`/admin/documents/${documentId}/verify`, { status, reason });
+};
+
+export const getAdminRides = (status, page = 1, limit = 20) => {
+  return api.get(`/admin/rides?status=${status || 'ALL'}&page=${page}&limit=${limit}`);
+};
+
+export const cancelAdminRide = (rideId, reason) => {
+  return api.post(`/admin/rides/${rideId}/cancel`, { reason });
+};
+
+export const getAdminPricing = () => {
+  return api.get('/admin/pricing');
+};
+
+export const saveAdminFareRule = (ruleData) => {
+  return api.post('/admin/pricing/rule', ruleData);
+};
+
+export const saveAdminFareModifier = (modifierData) => {
+  return api.post('/admin/pricing/modifier', modifierData);
+};
+
+export const getAdminFinance = () => {
+  return api.get('/admin/finance');
+};
+
+export const getAdminAuditLogs = () => {
+  return api.get('/admin/audit-logs');
+};
+
+export const getAdminSupportTickets = () => {
+  return api.get('/admin/tickets');
+};
+
+export const updateAdminSupportTicket = (ticketId, status, resolution) => {
+  return api.put(`/admin/tickets/${ticketId}`, { status, resolution });
 };
 
 export default api;
