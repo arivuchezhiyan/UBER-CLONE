@@ -6,40 +6,64 @@ import './CustomerHome.css';
 
 export const PLACES_DATABASE = [
   // Saved / Home / Work
-  { id: 's1', name: 'Home', address: 'Kelambakkam Junction, OMR', icon: '🏠', category: 'Saved', distanceKm: 1.2, isLongDistance: false, coords: { lat: 12.7871, lng: 80.2185 } },
-  { id: 's2', name: 'Work', address: 'Siruseri SIPCOT IT Park, TCS Main Gate', icon: '💼', category: 'Saved', distanceKm: 4.8, isLongDistance: false, coords: { lat: 12.8277, lng: 80.2188 } },
+  { id: 's1', name: 'Home', address: 'Kelambakkam Junction, OMR', icon: '🏠', category: 'Saved', type: 'saved', distanceKm: 1.2, isLongDistance: false, coords: { lat: 12.7871, lng: 80.2185 } },
+  { id: 's2', name: 'Work', address: 'Siruseri SIPCOT IT Park, TCS Gate', icon: '💼', category: 'Saved', type: 'tech_park', distanceKm: 4.8, isLongDistance: false, coords: { lat: 12.8277, lng: 80.2188 } },
 
-  // Chennai & OMR / ECR Regional Hotspots (Including Kelambakkam)
-  { id: 'c1', name: 'Kelambakkam Bus Stand', address: 'Rajiv Gandhi Salai, Kelambakkam Junction (OMR)', icon: '📍', category: 'Nearby', distanceKm: 0.5, isLongDistance: false, coords: { lat: 12.7871, lng: 80.2185 } },
-  { id: 'c2', name: 'Siruseri SIPCOT IT Park', address: 'TCS, CTS, Hexaware Campus, OMR', icon: '🏢', category: 'Nearby', distanceKm: 4.5, isLongDistance: false, coords: { lat: 12.8277, lng: 80.2188 } },
-  { id: 'c3', name: 'Navalur Vivira Mall', address: 'Rajiv Gandhi IT Expressway, Navalur (OMR)', icon: '🛍️', category: 'Nearby', distanceKm: 6.8, isLongDistance: false, coords: { lat: 12.8465, lng: 80.2260 } },
-  { id: 'c4', name: 'Sholinganallur Junction', address: 'OMR - ECR Link Road Junction, Chennai', icon: '📍', category: 'Nearby', distanceKm: 12.5, isLongDistance: false, coords: { lat: 12.9010, lng: 80.2279 } },
-  { id: 'c5', name: 'Thiruporur Murugan Temple', address: 'Old Mahabalipuram Road, Thiruporur', icon: '🛕', category: 'Nearby', distanceKm: 7.2, isLongDistance: false, coords: { lat: 12.7236, lng: 80.1878 } },
-  { id: 'c6', name: 'Kovalam Beach & Surf School', address: 'East Coast Road (ECR), Kovalam', icon: '🏖️', category: 'Nearby', distanceKm: 5.5, isLongDistance: false, coords: { lat: 12.7925, lng: 80.2514 } },
-  { id: 'c7', name: 'Mahabalipuram Shore Temple', address: 'UNESCO Heritage Site, ECR, Mamallapuram', icon: '🏛️', category: 'Nearby', distanceKm: 18.0, isLongDistance: false, coords: { lat: 12.6165, lng: 80.1983 } },
-  { id: 'c8', name: 'Velachery Phoenix Marketcity', address: 'Guru Nanak College Rd, Indira Gandhi Nagar, Chennai', icon: '🛍️', category: 'Nearby', distanceKm: 23.0, isLongDistance: false, coords: { lat: 12.9922, lng: 80.2173 } },
-  { id: 'c9', name: 'Guindy Kathipara Junction', address: 'Kathipara Cloverleaf Flyover & Metro, Chennai', icon: '🚇', category: 'Transit', distanceKm: 27.0, isLongDistance: false, coords: { lat: 13.0067, lng: 80.2030 } },
-  { id: 'c10', name: 'T. Nagar Panagal Park', address: 'Pondy Bazaar, Ranganathan St, Chennai', icon: '🛍️', category: 'Nearby', distanceKm: 31.0, isLongDistance: false, coords: { lat: 13.0418, lng: 80.2341 } },
-  { id: 'c11', name: 'Tambaram Railway Junction', address: 'GST Road, Tambaram Sanatorium (MEPZ)', icon: '🚆', category: 'Transit', distanceKm: 22.0, isLongDistance: false, coords: { lat: 12.9249, lng: 80.1000 } },
-  { id: 'c12', name: 'Chennai International Airport (MAA)', address: 'Terminal 1, 2 & 4, GST Road, Meenambakkam', icon: '✈️', category: 'Airport', distanceKm: 28.5, isLongDistance: false, coords: { lat: 12.9941, lng: 80.1709 } },
-  { id: 'c13', name: 'Chennai Central Railway Station', address: 'Puratchi Thalaivar Dr. M.G.R Central (MAS)', icon: '🚆', category: 'Transit', distanceKm: 36.0, isLongDistance: false, coords: { lat: 13.0827, lng: 80.2707 } },
+  // 🚇 METRO STATIONS
+  { id: 'm1', name: 'Guindy Metro Station', address: 'GST Road & Kathipara Junction, Chennai Metro Blue Line', icon: '🚇', category: 'Metro', type: 'metro', distanceKm: 27.0, isLongDistance: false, coords: { lat: 13.0067, lng: 80.2030 } },
+  { id: 'm2', name: 'Alandur Intermodal Metro Station', address: 'Kathipara Green/Blue Line Interchange, Chennai', icon: '🚇', category: 'Metro', type: 'metro', distanceKm: 28.0, isLongDistance: false, coords: { lat: 13.0040, lng: 80.2014 } },
+  { id: 'm3', name: 'Chennai International Airport Metro Station', address: 'Meenambakkam Terminal Airport Metro, Chennai', icon: '🚇', category: 'Metro', type: 'metro', distanceKm: 28.5, isLongDistance: false, coords: { lat: 12.9808, lng: 80.1636 } },
+  { id: 'm4', name: 'Chennai Central Metro Station', address: 'Puratchi Thalaivar Dr. M.G.R Underground Metro Hub', icon: '🚇', category: 'Metro', type: 'metro', distanceKm: 36.0, isLongDistance: false, coords: { lat: 13.0818, lng: 80.2730 } },
+  { id: 'm5', name: 'Little Mount Metro Station', address: 'Anna Salai, Saidapet / Guindy, Chennai', icon: '🚇', category: 'Metro', type: 'metro', distanceKm: 26.5, isLongDistance: false, coords: { lat: 13.0150, lng: 80.2207 } },
+  { id: 'm6', name: 'MG Road Metro Station', address: 'Mahatma Gandhi Road, Purple Line, Bengaluru Central', icon: '🚇', category: 'Metro', type: 'metro', distanceKm: 5.6, isLongDistance: false, coords: { lat: 12.9756, lng: 77.6066 } },
+  { id: 'm7', name: 'Indiranagar Metro Station', address: 'CMH Road / 100 Feet Rd, Purple Line, Bengaluru', icon: '🚇', category: 'Metro', type: 'metro', distanceKm: 4.2, isLongDistance: false, coords: { lat: 12.9783, lng: 77.6386 } },
+  { id: 'm8', name: 'Kempegowda Majestic Metro Station', address: 'Majestic Green/Purple Line Metro Interchange, Bengaluru', icon: '🚇', category: 'Metro', type: 'metro', distanceKm: 7.8, isLongDistance: false, coords: { lat: 12.9755, lng: 77.5728 } },
 
-  // Bangalore Hotspots
-  { id: 'n1', name: 'Koramangala Sony World Signal', address: '80 Feet Road, Koramangala 4th Block, Bengaluru', icon: '📍', category: 'Nearby', distanceKm: 0.8, isLongDistance: false, coords: { lat: 12.9344, lng: 77.6272 } },
-  { id: 'n2', name: 'Indiranagar 100 Feet Road', address: 'Near Toit & 12th Main Road Junction, Bengaluru', icon: '📍', category: 'Nearby', distanceKm: 4.2, isLongDistance: false, coords: { lat: 12.9719, lng: 77.6412 } },
-  { id: 'n3', name: 'MG Road Metro Station', address: 'Mahatma Gandhi Road, Bengaluru Central', icon: '🚇', category: 'Transit', distanceKm: 5.6, isLongDistance: false, coords: { lat: 12.9756, lng: 77.6066 } },
-  { id: 'n4', name: 'Whitefield Tech Park', address: 'ITPL Main Road, Prestige Shantiniketan', icon: '💼', category: 'Nearby', distanceKm: 14.5, isLongDistance: false, coords: { lat: 12.9698, lng: 77.7499 } },
-  { id: 'n5', name: 'Kempegowda International Airport (BLR)', address: 'Terminal 1 & Terminal 2, Devanahalli', icon: '✈️', category: 'Airport', distanceKm: 38.5, isLongDistance: false, coords: { lat: 13.1986, lng: 77.7066 } },
+  // 🚆 RAILWAY STATIONS
+  { id: 'r1', name: 'Tambaram Railway Station', address: 'GST Road, Tambaram Sanatorium / MEPZ (TBM)', icon: '🚆', category: 'Railway', type: 'railway', distanceKm: 22.0, isLongDistance: false, coords: { lat: 12.9249, lng: 80.1000 } },
+  { id: 'r2', name: 'Chennai Central Railway Station', address: 'Puratchi Thalaivar Dr. M.G.R Central (MAS)', icon: '🚆', category: 'Railway', type: 'railway', distanceKm: 36.0, isLongDistance: false, coords: { lat: 13.0827, lng: 80.2707 } },
+  { id: 'r3', name: 'Chennai Egmore Railway Station', address: 'Gandhi Irwin Road, Egmore (MS)', icon: '🚆', category: 'Railway', type: 'railway', distanceKm: 34.5, isLongDistance: false, coords: { lat: 13.0784, lng: 80.2612 } },
+  { id: 'r4', name: 'Mambalam Railway Station', address: 'Ranganathan Street, T. Nagar (MBM)', icon: '🚆', category: 'Railway', type: 'railway', distanceKm: 30.5, isLongDistance: false, coords: { lat: 13.0336, lng: 80.2285 } },
+  { id: 'r5', name: 'Chengalpattu Railway Junction', address: 'GST Road, Chengalpattu (CGL)', icon: '🚆', category: 'Railway', type: 'railway', distanceKm: 29.0, isLongDistance: false, coords: { lat: 12.6841, lng: 79.9776 } },
+  { id: 'r6', name: 'KSR Bengaluru City Railway Station', address: 'Kempegowda Majestic Junction (SBC)', icon: '🚆', category: 'Railway', type: 'railway', distanceKm: 7.9, isLongDistance: false, coords: { lat: 12.9781, lng: 77.5694 } },
+  { id: 'r7', name: 'Yeshwanthpur Junction Railway Station', address: 'Tumkur Road, Platform 1/6 (YPR)', icon: '🚆', category: 'Railway', type: 'railway', distanceKm: 13.2, isLongDistance: false, coords: { lat: 13.0234, lng: 77.5501 } },
+  { id: 'r8', name: 'Bangalore Cantonment Railway Station', address: 'Cantonment Station Road, Vasanth Nagar (BNC)', icon: '🚆', category: 'Railway', type: 'railway', distanceKm: 6.8, isLongDistance: false, coords: { lat: 12.9930, lng: 77.5985 } },
 
-  // Long Distance & Outstation Destinations
-  { id: 'l1', name: 'Pondicherry (Puducherry)', address: 'White Town French Quarter & Promenade Beach', icon: '🏖️', category: 'Outstation', distanceKm: 115.0, isLongDistance: true, coords: { lat: 11.9416, lng: 79.8083 } },
-  { id: 'l2', name: 'Tirupati Balaji Temple', address: 'Tirumala Hills, Andhra Pradesh', icon: '🛕', category: 'Outstation', distanceKm: 155.0, isLongDistance: true, coords: { lat: 13.6833, lng: 79.3500 } },
-  { id: 'l3', name: 'Vellore Golden Temple & Fort', address: 'Sripuram & Vellore Fort, Tamil Nadu', icon: '🛕', category: 'Outstation', distanceKm: 140.0, isLongDistance: true, coords: { lat: 12.8711, lng: 79.0888 } },
-  { id: 'l4', name: 'Nandi Hills', address: 'Chikkaballapur District (Hilltop Sunrise)', icon: '⛰️', category: 'Outstation', distanceKm: 62.0, isLongDistance: true, coords: { lat: 13.3702, lng: 77.6835 } },
-  { id: 'l5', name: 'Mysore Palace (Mysuru)', address: 'Sayyaji Rao Rd, Mysuru, Karnataka', icon: '🏰', category: 'Outstation', distanceKm: 145.0, isLongDistance: true, coords: { lat: 12.3052, lng: 76.6552 } },
-  { id: 'l6', name: 'Coorg (Madikeri Hills)', address: 'Kodagu Coffee Estates & Abbey Falls', icon: '☕', category: 'Outstation', distanceKm: 250.0, isLongDistance: true, coords: { lat: 12.4244, lng: 75.7382 } },
-  { id: 'l7', name: 'Ooty (Nilgiri Mountains)', address: 'Udhagamandalam, Tamil Nadu', icon: '🌲', category: 'Outstation', distanceKm: 275.0, isLongDistance: true, coords: { lat: 11.4102, lng: 76.6950 } },
-  { id: 'l8', name: 'Hyderabad (HITEC City)', address: 'Cyberabad IT Corridor, Telangana', icon: '🏙️', category: 'Outstation', distanceKm: 570.0, isLongDistance: true, coords: { lat: 17.4435, lng: 78.3772 } }
+  // ✈️ AIRPORTS
+  { id: 'a1', name: 'Chennai International Airport (MAA)', address: 'Terminal 1 (Domestic), T2 (Intl) & T4, Meenambakkam', icon: '✈️', category: 'Airport', type: 'airport', distanceKm: 28.5, isLongDistance: false, coords: { lat: 12.9941, lng: 80.1709 } },
+  { id: 'a2', name: 'Kempegowda International Airport (BLR)', address: 'Terminal 1 & Terminal 2, Devanahalli, Bengaluru', icon: '✈️', category: 'Airport', type: 'airport', distanceKm: 38.5, isLongDistance: false, coords: { lat: 13.1986, lng: 77.7066 } },
+
+  // 🚌 BUS STANDS & TERMINALS
+  { id: 'b1', name: 'Kelambakkam Bus Stand', address: 'Rajiv Gandhi Salai, Kelambakkam Junction (OMR)', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 0.5, isLongDistance: false, coords: { lat: 12.7871, lng: 80.2185 } },
+  { id: 'b2', name: 'Kilambakkam Kalaignar Centenary Bus Terminus (KCBT)', address: 'GST Road, Vandalur, Chennai Intercity Hub', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 19.5, isLongDistance: false, coords: { lat: 12.8718, lng: 80.0827 } },
+  { id: 'b3', name: 'CMBT Bus Terminus', address: 'Jawaharlal Nehru Road, Koyambedu, Chennai', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 33.0, isLongDistance: false, coords: { lat: 13.0694, lng: 80.2057 } },
+  { id: 'b4', name: 'Sholinganallur Junction Bus Stop', address: 'OMR - ECR Link Road Junction, Chennai', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 12.5, isLongDistance: false, coords: { lat: 12.9010, lng: 80.2279 } },
+  { id: 'b5', name: 'Majestic Kempegowda Bus Station', address: 'Subhash Nagar, Intercity & BMTC Hub, Bengaluru', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 7.9, isLongDistance: false, coords: { lat: 12.9767, lng: 77.5713 } },
+
+  // 🏥 HOSPITALS
+  { id: 'h1', name: 'Chettinad Health City Hospital', address: 'Rajiv Gandhi Salai (OMR), Kelambakkam', icon: '🏥', category: 'Hospital', type: 'hospital', distanceKm: 1.5, isLongDistance: false, coords: { lat: 12.7932, lng: 80.2198 } },
+  { id: 'h2', name: 'Apollo Speciality Hospitals OMR', address: '05/639, Old Mahabalipuram Rd, Perungudi, Chennai', icon: '🏥', category: 'Hospital', type: 'hospital', distanceKm: 19.0, isLongDistance: false, coords: { lat: 12.9634, lng: 80.2442 } },
+  { id: 'h3', name: 'Gleneagles Global Health City', address: '439, Cheran Nagar, Perumbakkam, Chennai', icon: '🏥', category: 'Hospital', type: 'hospital', distanceKm: 15.0, isLongDistance: false, coords: { lat: 12.9038, lng: 80.1911 } },
+  { id: 'h4', name: 'Apollo Hospitals Greams Road', address: '21 Greams Lane, Off Greams Road, Thousand Lights', icon: '🏥', category: 'Hospital', type: 'hospital', distanceKm: 34.0, isLongDistance: false, coords: { lat: 13.0604, lng: 80.2505 } },
+  { id: 'h5', name: 'Manipal Hospital HAL Airport Road', address: '98, HAL Old Airport Rd, Kodihalli, Bengaluru', icon: '🏥', category: 'Hospital', type: 'hospital', distanceKm: 5.5, isLongDistance: false, coords: { lat: 12.9592, lng: 77.6499 } },
+
+  // 🏢 TECH PARKS & HUBS
+  { id: 'tp1', name: 'Siruseri SIPCOT IT Park', address: 'TCS, Cognizant, Hexaware, Syntel Campuses, OMR', icon: '🏢', category: 'Tech Park', type: 'tech_park', distanceKm: 4.5, isLongDistance: false, coords: { lat: 12.8277, lng: 80.2188 } },
+  { id: 'tp2', name: 'Navalur Vivira Mall & Tech Zone', address: 'Rajiv Gandhi IT Expressway, Navalur (OMR)', icon: '🛍️', category: 'Tech Park', type: 'tech_park', distanceKm: 6.8, isLongDistance: false, coords: { lat: 12.8465, lng: 80.2260 } },
+  { id: 'tp3', name: 'Tidel Park & Ramanujan IT City', address: 'Rajiv Gandhi Salai, Taramani, Chennai', icon: '🏢', category: 'Tech Park', type: 'tech_park', distanceKm: 21.0, isLongDistance: false, coords: { lat: 12.9893, lng: 80.2475 } },
+  { id: 'tp4', name: 'Whitefield ITPL Tech Park', address: 'International Tech Park, Prestige Shantiniketan, BLR', icon: '🏢', category: 'Tech Park', type: 'tech_park', distanceKm: 14.5, isLongDistance: false, coords: { lat: 12.9698, lng: 77.7499 } },
+  { id: 'tp5', name: 'Electronic City Phase 1 Infosys Campus', address: 'Infosys Main Gate, Hosur Elevated Tollway, BLR', icon: '🏢', category: 'Tech Park', type: 'tech_park', distanceKm: 11.2, isLongDistance: false, coords: { lat: 12.8399, lng: 77.6770 } },
+  { id: 'tp6', name: 'Manyata Embassy Business Park', address: 'Outer Ring Road, Nagawara, Hebbal, Bengaluru', icon: '🏢', category: 'Tech Park', type: 'tech_park', distanceKm: 15.0, isLongDistance: false, coords: { lat: 13.0475, lng: 77.6200 } },
+
+  // ⛰️ OUTSTATIONS & TOURIST ATTRACTIONS
+  { id: 'l1', name: 'Mahabalipuram UNESCO Shore Temple', address: 'Shore Temple & Pancha Rathas, ECR, Mamallapuram', icon: '🏛️', category: 'Outstation', type: 'outstation', distanceKm: 18.0, isLongDistance: false, coords: { lat: 12.6165, lng: 80.1983 } },
+  { id: 'l2', name: 'Kovalam Beach & Surf School', address: 'East Coast Road (ECR), Kovalam, Chennai', icon: '🏖️', category: 'Outstation', type: 'outstation', distanceKm: 5.5, isLongDistance: false, coords: { lat: 12.7925, lng: 80.2514 } },
+  { id: 'l3', name: 'Pondicherry (Puducherry)', address: 'White Town French Quarter & Promenade Beach', icon: '🏖️', category: 'Outstation', type: 'outstation', distanceKm: 115.0, isLongDistance: true, coords: { lat: 11.9416, lng: 79.8083 } },
+  { id: 'l4', name: 'Tirupati Balaji Temple', address: 'Tirumala Hills, Andhra Pradesh', icon: '🛕', category: 'Outstation', type: 'outstation', distanceKm: 155.0, isLongDistance: true, coords: { lat: 13.6833, lng: 79.3500 } },
+  { id: 'l5', name: 'Vellore Golden Temple & Fort', address: 'Sripuram & Vellore Fort, Tamil Nadu', icon: '🛕', category: 'Outstation', type: 'outstation', distanceKm: 140.0, isLongDistance: true, coords: { lat: 12.8711, lng: 79.0888 } },
+  { id: 'l6', name: 'Nandi Hills', address: 'Chikkaballapur District (Hilltop Sunrise)', icon: '⛰️', category: 'Outstation', type: 'outstation', distanceKm: 62.0, isLongDistance: true, coords: { lat: 13.3702, lng: 77.6835 } },
+  { id: 'l7', name: 'Mysore Palace (Mysuru)', address: 'Sayyaji Rao Rd, Mysuru, Karnataka', icon: '🏰', category: 'Outstation', type: 'outstation', distanceKm: 145.0, isLongDistance: true, coords: { lat: 12.3052, lng: 76.6552 } },
+  { id: 'l8', name: 'Coorg (Madikeri Hills)', address: 'Kodagu Coffee Estates & Abbey Falls', icon: '☕', category: 'Outstation', type: 'outstation', distanceKm: 250.0, isLongDistance: true, coords: { lat: 12.4244, lng: 75.7382 } }
 ];
 
 export const reverseGeocode = async (lat, lng) => {
@@ -139,21 +163,34 @@ function CustomerHome({ user }) {
     );
   };
 
-  // Filtered Recommendations
+  // Filtered Recommendations with transit categorization
   const currentQuery = (activeField === 'pickup' ? pickup : dropoff) || '';
   const filteredPlaces = PLACES_DATABASE.filter(place => {
-    const matchesCategory = 
-      selectedFilterCategory === 'ALL' ||
-      (selectedFilterCategory === 'NEARBY' && !place.isLongDistance) ||
-      (selectedFilterCategory === 'OUTSTATION' && place.isLongDistance) ||
-      (selectedFilterCategory === 'TRANSIT' && (place.category === 'Airport' || place.category === 'Transit'));
+    let matchesCategory = true;
+    if (selectedFilterCategory === 'METRO') matchesCategory = place.type === 'metro';
+    else if (selectedFilterCategory === 'RAILWAY') matchesCategory = place.type === 'railway';
+    else if (selectedFilterCategory === 'AIRPORT') matchesCategory = place.type === 'airport';
+    else if (selectedFilterCategory === 'BUS') matchesCategory = place.type === 'bus';
+    else if (selectedFilterCategory === 'HOSPITAL') matchesCategory = place.type === 'hospital';
+    else if (selectedFilterCategory === 'TECH') matchesCategory = place.type === 'tech_park';
+    else if (selectedFilterCategory === 'OUTSTATION') matchesCategory = place.isLongDistance || place.type === 'outstation';
 
-    const matchesQuery = !currentQuery.trim() || 
-      place.name.toLowerCase().includes(currentQuery.toLowerCase()) ||
-      place.address.toLowerCase().includes(currentQuery.toLowerCase()) ||
-      place.category.toLowerCase().includes(currentQuery.toLowerCase());
+    if (!currentQuery.trim()) return matchesCategory;
 
-    return matchesCategory && matchesQuery;
+    const q = currentQuery.toLowerCase().trim();
+    const queryMatches = 
+      place.name.toLowerCase().includes(q) ||
+      place.address.toLowerCase().includes(q) ||
+      place.category.toLowerCase().includes(q) ||
+      (place.type && place.type.toLowerCase().includes(q)) ||
+      (q.includes('metro') && place.type === 'metro') ||
+      ((q.includes('rail') || q.includes('train') || q.includes('station')) && place.type === 'railway') ||
+      ((q.includes('airport') || q.includes('flight') || q.includes('terminal')) && place.type === 'airport') ||
+      ((q.includes('bus') || q.includes('stand') || q.includes('depot')) && place.type === 'bus') ||
+      ((q.includes('hospital') || q.includes('health') || q.includes('clinic') || q.includes('doctor')) && place.type === 'hospital') ||
+      ((q.includes('it') || q.includes('tech') || q.includes('park') || q.includes('campus') || q.includes('office')) && place.type === 'tech_park');
+
+    return matchesCategory && queryMatches;
   });
 
   const handlePlaceSelect = (place) => {
@@ -533,22 +570,46 @@ function CustomerHome({ user }) {
           🌟 All
         </button>
         <button 
-          className={`filter-pill ${selectedFilterCategory === 'NEARBY' ? 'active' : ''}`}
-          onClick={() => setSelectedFilterCategory('NEARBY')}
+          className={`filter-pill ${selectedFilterCategory === 'METRO' ? 'active' : ''}`}
+          onClick={() => setSelectedFilterCategory('METRO')}
         >
-          📍 Nearby
+          🚇 Nearby Metro
         </button>
         <button 
-          className={`filter-pill ${selectedFilterCategory === 'TRANSIT' ? 'active' : ''}`}
-          onClick={() => setSelectedFilterCategory('TRANSIT')}
+          className={`filter-pill ${selectedFilterCategory === 'RAILWAY' ? 'active' : ''}`}
+          onClick={() => setSelectedFilterCategory('RAILWAY')}
         >
-          ✈️ Airport & Transit
+          🚆 Railway Stations
+        </button>
+        <button 
+          className={`filter-pill ${selectedFilterCategory === 'AIRPORT' ? 'active' : ''}`}
+          onClick={() => setSelectedFilterCategory('AIRPORT')}
+        >
+          ✈️ Airports
+        </button>
+        <button 
+          className={`filter-pill ${selectedFilterCategory === 'BUS' ? 'active' : ''}`}
+          onClick={() => setSelectedFilterCategory('BUS')}
+        >
+          🚌 Bus Stands
+        </button>
+        <button 
+          className={`filter-pill ${selectedFilterCategory === 'HOSPITAL' ? 'active' : ''}`}
+          onClick={() => setSelectedFilterCategory('HOSPITAL')}
+        >
+          🏥 Hospitals
+        </button>
+        <button 
+          className={`filter-pill ${selectedFilterCategory === 'TECH' ? 'active' : ''}`}
+          onClick={() => setSelectedFilterCategory('TECH')}
+        >
+          🏢 IT Tech Parks
         </button>
         <button 
           className={`filter-pill ${selectedFilterCategory === 'OUTSTATION' ? 'active' : ''}`}
           onClick={() => setSelectedFilterCategory('OUTSTATION')}
         >
-          ⛰️ Long Distance
+          ⛰️ Outstations
         </button>
       </div>
 

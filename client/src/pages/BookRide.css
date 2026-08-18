@@ -163,6 +163,35 @@
   letter-spacing: 0.5px;
 }
 
+.dropdown-filter-chips {
+  display: flex;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #ffffff;
+  overflow-x: auto;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.chip-btn {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chip-btn.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
 .close-dropdown-btn {
   background: transparent;
   border: none;

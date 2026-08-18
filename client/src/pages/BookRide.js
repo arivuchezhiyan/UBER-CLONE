@@ -26,6 +26,7 @@ function BookRide({ user }) {
   
   // Location editing and autocomplete state
   const [activeEditingField, setActiveEditingField] = useState(null); // 'pickup' | 'dropoff' | null
+  const [selectedTransitFilter, setSelectedTransitFilter] = useState('ALL');
   const [locationAlert, setLocationAlert] = useState('');
 
   // Get coordinates on mount
@@ -217,15 +218,36 @@ function BookRide({ user }) {
   const editingQuery = (activeEditingField === 'pickup' ? pickup : dropoff) || '';
   const cleanQuery = editingQuery.trim().toLowerCase();
 
-  // 1. Filter places matching query (substring or token match)
+  // 1. Filter places matching transit category and typed query
   const matchedPlaces = PLACES_DATABASE.filter(place => {
-    if (!cleanQuery) return true;
+    let matchesCategory = true;
+    if (selectedTransitFilter === 'METRO') matchesCategory = place.type === 'metro';
+    else if (selectedTransitFilter === 'RAILWAY') matchesCategory = place.type === 'railway';
+    else if (selectedTransitFilter === 'AIRPORT') matchesCategory = place.type === 'airport';
+    else if (selectedTransitFilter === 'BUS') matchesCategory = place.type === 'bus';
+    else if (selectedTransitFilter === 'HOSPITAL') matchesCategory = place.type === 'hospital';
+    else if (selectedTransitFilter === 'TECH') matchesCategory = place.type === 'tech_park';
+    else if (selectedTransitFilter === 'OUTSTATION') matchesCategory = place.isLongDistance || place.type === 'outstation';
+
+    if (!cleanQuery) return matchesCategory;
+
     const nameMatch = place.name.toLowerCase().includes(cleanQuery);
     const addrMatch = place.address.toLowerCase().includes(cleanQuery);
     const catMatch = place.category.toLowerCase().includes(cleanQuery);
+    const typeMatch = place.type && place.type.toLowerCase().includes(cleanQuery);
     const words = cleanQuery.split(/[\s,]+/);
     const anyWordMatch = words.some(w => w.length >= 2 && (place.name.toLowerCase().includes(w) || place.address.toLowerCase().includes(w)));
-    return nameMatch || addrMatch || catMatch || anyWordMatch;
+    
+    // Keyword match
+    const keywordMatch = 
+      (cleanQuery.includes('metro') && place.type === 'metro') ||
+      ((cleanQuery.includes('rail') || cleanQuery.includes('train') || cleanQuery.includes('station')) && place.type === 'railway') ||
+      ((cleanQuery.includes('airport') || cleanQuery.includes('flight')) && place.type === 'airport') ||
+      ((cleanQuery.includes('bus') || cleanQuery.includes('stand')) && place.type === 'bus') ||
+      ((cleanQuery.includes('hospital') || cleanQuery.includes('health')) && place.type === 'hospital') ||
+      ((cleanQuery.includes('it') || cleanQuery.includes('tech')) && place.type === 'tech_park');
+
+    return matchesCategory && (nameMatch || addrMatch || catMatch || typeMatch || anyWordMatch || keywordMatch);
   });
 
   // 2. Custom typed location option
@@ -243,7 +265,7 @@ function BookRide({ user }) {
   const suggestionsToDisplay = [
     ...(customPlace ? [customPlace] : []),
     ...(matchedPlaces.length > 0 ? matchedPlaces : PLACES_DATABASE)
-  ].slice(0, 8);
+  ].slice(0, 10);
 
   const getPaymentIcon = () => {
     switch(paymentMethod) {
@@ -323,9 +345,70 @@ function BookRide({ user }) {
           {activeEditingField && (
             <div className="route-suggestions-dropdown">
               <div className="dropdown-header">
-                <span>Suggestions for {activeEditingField === 'pickup' ? 'Pickup' : 'Destination'}</span>
+                <span>Select {activeEditingField === 'pickup' ? 'Pickup' : 'Destination'}</span>
                 <button type="button" className="close-dropdown-btn" onClick={() => setActiveEditingField(null)}>✕</button>
               </div>
+
+              {/* Transit Category Filter Chips */}
+              <div className="dropdown-filter-chips">
+                <button 
+                  type="button"
+                  className={`chip-btn ${selectedTransitFilter === 'ALL' ? 'active' : ''}`}
+                  onMouseDown={(e) => { e.preventDefault(); setSelectedTransitFilter('ALL'); }}
+                >
+                  🌟 All
+                </button>
+                <button 
+                  type="button"
+                  className={`chip-btn ${selectedTransitFilter === 'METRO' ? 'active' : ''}`}
+                  onMouseDown={(e) => { e.preventDefault(); setSelectedTransitFilter('METRO'); }}
+                >
+                  🚇 Metro
+                </button>
+                <button 
+                  type="button"
+                  className={`chip-btn ${selectedTransitFilter === 'RAILWAY' ? 'active' : ''}`}
+                  onMouseDown={(e) => { e.preventDefault(); setSelectedTransitFilter('RAILWAY'); }}
+                >
+                  🚆 Railway
+                </button>
+                <button 
+                  type="button"
+                  className={`chip-btn ${selectedTransitFilter === 'AIRPORT' ? 'active' : ''}`}
+                  onMouseDown={(e) => { e.preventDefault(); setSelectedTransitFilter('AIRPORT'); }}
+                >
+                  ✈️ Airport
+                </button>
+                <button 
+                  type="button"
+                  className={`chip-btn ${selectedTransitFilter === 'BUS' ? 'active' : ''}`}
+                  onMouseDown={(e) => { e.preventDefault(); setSelectedTransitFilter('BUS'); }}
+                >
+                  🚌 Bus
+                </button>
+                <button 
+                  type="button"
+                  className={`chip-btn ${selectedTransitFilter === 'HOSPITAL' ? 'active' : ''}`}
+                  onMouseDown={(e) => { e.preventDefault(); setSelectedTransitFilter('HOSPITAL'); }}
+                >
+                  🏥 Hospital
+                </button>
+                <button 
+                  type="button"
+                  className={`chip-btn ${selectedTransitFilter === 'TECH' ? 'active' : ''}`}
+                  onMouseDown={(e) => { e.preventDefault(); setSelectedTransitFilter('TECH'); }}
+                >
+                  🏢 IT Park
+                </button>
+                <button 
+                  type="button"
+                  className={`chip-btn ${selectedTransitFilter === 'OUTSTATION' ? 'active' : ''}`}
+                  onMouseDown={(e) => { e.preventDefault(); setSelectedTransitFilter('OUTSTATION'); }}
+                >
+                  ⛰️ Outstation
+                </button>
+              </div>
+
               <div className="dropdown-list">
                 {suggestionsToDisplay.map(place => (
                   <div 
