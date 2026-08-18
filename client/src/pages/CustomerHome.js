@@ -4,6 +4,44 @@ import RideMap from '../components/Map/RideMap';
 import BackButton from '../components/BackButton/BackButton';
 import './CustomerHome.css';
 
+export const PLACES_DATABASE = [
+  // Saved / Home / Work
+  { id: 's1', name: 'Home', address: 'Koramangala 4th Block, Bengaluru', icon: '🏠', category: 'Saved', distanceKm: 1.2, isLongDistance: false },
+  { id: 's2', name: 'Work', address: 'Whitefield Tech Park, ITPL Main Rd', icon: '💼', category: 'Saved', distanceKm: 14.5, isLongDistance: false },
+
+  // Nearby City Spots & Hotspots
+  { id: 'n1', name: 'Koramangala Sony World Signal', address: '80 Feet Road, Koramangala 4th Block', icon: '📍', category: 'Nearby', distanceKm: 0.8, isLongDistance: false },
+  { id: 'n2', name: 'Indiranagar 100 Feet Road', address: 'Near Toit & 12th Main Road Junction', icon: '📍', category: 'Nearby', distanceKm: 4.2, isLongDistance: false },
+  { id: 'n3', name: 'MG Road Metro Station', address: 'Mahatma Gandhi Road, Bengaluru Central', icon: '🚇', category: 'Transit', distanceKm: 5.6, isLongDistance: false },
+  { id: 'n4', name: 'Brigade Road', address: 'Shanthala Nagar, Ashok Nagar, Bengaluru', icon: '🛍️', category: 'Nearby', distanceKm: 5.8, isLongDistance: false },
+  { id: 'n5', name: 'Church Street', address: 'Rest House Road Junction, Central BLR', icon: '☕', category: 'Nearby', distanceKm: 5.9, isLongDistance: false },
+  { id: 'n6', name: 'HSR Layout Sector 1', address: '27th Main Road, BDA Complex Area', icon: '📍', category: 'Nearby', distanceKm: 3.5, isLongDistance: false },
+  { id: 'n7', name: 'Electronic City Phase 1', address: 'Infosys Main Gate, Hosur Elevated Tollway', icon: '🏢', category: 'Nearby', distanceKm: 11.2, isLongDistance: false },
+  { id: 'n8', name: 'Manyata Tech Park', address: 'Outer Ring Road, Nagawara, Hebbal', icon: '🏢', category: 'Nearby', distanceKm: 15.0, isLongDistance: false },
+  { id: 'n9', name: 'Phoenix Marketcity', address: 'Whitefield Main Road, Mahadevapura', icon: '🛍️', category: 'Nearby', distanceKm: 10.4, isLongDistance: false },
+  { id: 'n10', name: 'Orion Mall', address: 'Brigade Gateway, Malleshwaram West', icon: '🛍️', category: 'Nearby', distanceKm: 11.8, isLongDistance: false },
+  { id: 'n11', name: 'Jayanagar 4th Block', address: 'Shopping Complex, 11th Main Road', icon: '📍', category: 'Nearby', distanceKm: 6.2, isLongDistance: false },
+
+  // Airports & Major Transit Hubs
+  { id: 't1', name: 'Kempegowda International Airport (BLR)', address: 'Terminal 1 & Terminal 2, Devanahalli', icon: '✈️', category: 'Airport', distanceKm: 38.5, isLongDistance: false },
+  { id: 't2', name: 'KSR Bengaluru Railway Station', address: 'Kempegowda Majestic Station (SBC)', icon: '🚆', category: 'Transit', distanceKm: 7.8, isLongDistance: false },
+  { id: 't3', name: 'Yeshwanthpur Junction', address: 'Platform 1 / 6, Tumkur Road (YPR)', icon: '🚆', category: 'Transit', distanceKm: 13.2, isLongDistance: false },
+  { id: 't4', name: 'Majestic Bus Stand', address: 'Kempegowda Bus Station Intercity Hub', icon: '🚌', category: 'Transit', distanceKm: 7.9, isLongDistance: false },
+
+  // Long Distance & Outstation Destinations
+  { id: 'l1', name: 'Nandi Hills', address: 'Chikkaballapur District (Hilltop Sunrise)', icon: '⛰️', category: 'Outstation', distanceKm: 62.0, isLongDistance: true },
+  { id: 'l2', name: 'Mysore Palace (Mysuru)', address: 'Sayyaji Rao Rd, Mysuru, Karnataka', icon: '🏰', category: 'Outstation', distanceKm: 145.0, isLongDistance: true },
+  { id: 'l3', name: 'Shivanasamudra Waterfalls', address: 'Mandya / Chamarajanagar Border', icon: '🌊', category: 'Outstation', distanceKm: 135.0, isLongDistance: true },
+  { id: 'l4', name: 'Coorg (Madikeri Hills)', address: 'Kodagu Coffee Estates & Abbey Falls', icon: '☕', category: 'Outstation', distanceKm: 250.0, isLongDistance: true },
+  { id: 'l5', name: 'Ooty (Nilgiri Mountains)', address: 'Udhagamandalam, Tamil Nadu', icon: '🌲', category: 'Outstation', distanceKm: 275.0, isLongDistance: true },
+  { id: 'l6', name: 'Chikmagalur', address: 'Mullayanagiri Peak & Coffee Valley', icon: '⛰️', category: 'Outstation', distanceKm: 240.0, isLongDistance: true },
+  { id: 'l7', name: 'Tirupati Balaji Temple', address: 'Tirumala Hills, Andhra Pradesh', icon: '🛕', category: 'Outstation', distanceKm: 250.0, isLongDistance: true },
+  { id: 'l8', name: 'Pondicherry (Puducherry)', address: 'White Town French Quarter & Beach', icon: '🏖️', category: 'Outstation', distanceKm: 310.0, isLongDistance: true },
+  { id: 'l9', name: 'Chennai Central', address: 'Puratchi Thalaivar Dr. M.G.R Station', icon: '🏙️', category: 'Outstation', distanceKm: 345.0, isLongDistance: true },
+  { id: 'l10', name: 'Hyderabad (HITEC City)', address: 'Cyberabad IT Corridor, Telangana', icon: '🏙️', category: 'Outstation', distanceKm: 570.0, isLongDistance: true },
+  { id: 'l11', name: 'Hosur SIPCOT Industrial Area', address: 'Hosur, Tamil Nadu (State Border)', icon: '🏭', category: 'Outstation', distanceKm: 38.0, isLongDistance: true }
+];
+
 function CustomerHome({ user }) {
   const navigate = useNavigate();
   const [currentLocation, setCurrentLocation] = useState(null);
@@ -11,6 +49,8 @@ function CustomerHome({ user }) {
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
   const [activeField, setActiveField] = useState('dropoff');
+  const [selectedFilterCategory, setSelectedFilterCategory] = useState('ALL');
+  const [locationAlert, setLocationAlert] = useState('');
 
   // Schedule Ride States
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -18,35 +58,77 @@ function CustomerHome({ user }) {
   const [scheduledTime, setScheduledTime] = useState('');
   const [isScheduled, setIsScheduled] = useState(false);
 
-  const suggestedPlaces = [
-    { id: 1, name: 'Home', address: 'Koramangala 4th Block', icon: '🏠', saved: true },
-    { id: 2, name: 'Work', address: 'Whitefield Tech Park', icon: '💼', saved: true },
-    { id: 3, name: 'Bangalore Airport', address: 'Kempegowda International Airport', icon: '✈️' },
-    { id: 4, name: 'MG Road', address: 'MG Road Metro Station', icon: '🚇' },
-    { id: 5, name: 'Indiranagar', address: '100 Feet Road, Indiranagar', icon: '📍' },
-    { id: 6, name: 'Koramangala', address: 'Sony World Signal', icon: '📍' },
-  ];
-
-  // Get current location
+  // Auto-fetch Current Location on Boot
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setCurrentLocation({
+          const coords = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude
-          });
+          };
+          setCurrentLocation(coords);
+          setPickup('Current location (GPS)');
         },
         () => {
           setCurrentLocation({ lat: 12.9716, lng: 77.5946 });
-        }
+          setPickup('Current location');
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
       );
+    } else {
+      setCurrentLocation({ lat: 12.9716, lng: 77.5946 });
+      setPickup('Current location');
     }
   }, []);
+
+  // GPS Locate Button Handler
+  const handleDetectGPSLocation = (e) => {
+    if (e) e.stopPropagation();
+    if (!navigator.geolocation) {
+      setLocationAlert('⚠️ Geolocation is not supported by your browser.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
+        setCurrentLocation(coords);
+        setPickup('Current location (GPS Detected)');
+        setActiveField('dropoff');
+      },
+      (err) => {
+        console.warn('GPS location request error:', err);
+        setLocationAlert('⚠️ Location Access Required: Please turn on your device GPS / location services and allow location permission in your browser to auto-fill your current pickup point.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  // Filtered Recommendations
+  const currentQuery = (activeField === 'pickup' ? pickup : dropoff) || '';
+  const filteredPlaces = PLACES_DATABASE.filter(place => {
+    const matchesCategory = 
+      selectedFilterCategory === 'ALL' ||
+      (selectedFilterCategory === 'NEARBY' && !place.isLongDistance) ||
+      (selectedFilterCategory === 'OUTSTATION' && place.isLongDistance) ||
+      (selectedFilterCategory === 'TRANSIT' && (place.category === 'Airport' || place.category === 'Transit'));
+
+    const matchesQuery = !currentQuery.trim() || 
+      place.name.toLowerCase().includes(currentQuery.toLowerCase()) ||
+      place.address.toLowerCase().includes(currentQuery.toLowerCase()) ||
+      place.category.toLowerCase().includes(currentQuery.toLowerCase());
+
+    return matchesCategory && matchesQuery;
+  });
 
   const handlePlaceSelect = (place) => {
     if (activeField === 'pickup') {
       setPickup(place.name);
+      setActiveField('dropoff');
     } else {
       setDropoff(place.name);
       // Navigate to booking when destination is selected
@@ -57,10 +139,11 @@ function CustomerHome({ user }) {
             dropoff: place.name,
             isScheduled,
             scheduledDate,
-            scheduledTime
+            scheduledTime,
+            estimatedDistance: place.distanceKm || 8
           }
         });
-      }, 200);
+      }, 150);
     }
   };
 
@@ -177,7 +260,7 @@ function CustomerHome({ user }) {
 
           {/* Quick Suggestions */}
           <div className="uber-suggestions">
-            {suggestedPlaces.slice(0, 2).map(place => (
+            {PLACES_DATABASE.slice(0, 2).map(place => (
               <div 
                 key={place.id} 
                 className="suggestion-item"
@@ -189,7 +272,8 @@ function CustomerHome({ user }) {
                       dropoff: place.name,
                       isScheduled,
                       scheduledDate,
-                      scheduledTime
+                      scheduledTime,
+                      estimatedDistance: place.distanceKm || 5
                     }
                   });
                 }}
@@ -369,13 +453,29 @@ function CustomerHome({ user }) {
               onFocus={() => setActiveField('pickup')}
               className={activeField === 'pickup' ? 'active' : ''}
             />
+            <button
+              type="button"
+              className="locate-gps-btn"
+              onClick={handleDetectGPSLocation}
+              title="Detect My GPS Location"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="7"/>
+                <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                <line x1="12" y1="2" x2="12" y2="5"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="5" y2="12"/>
+                <line x1="19" y1="12" x2="22" y2="12"/>
+              </svg>
+              <span>Locate</span>
+            </button>
           </div>
           <div className="input-connector"></div>
           <div className="input-row">
             <div className="input-dot dropoff"></div>
             <input
               type="text"
-              placeholder="Where to?"
+              placeholder="Where to? (e.g. Koramangala, Airport, Mysore...)"
               value={dropoff}
               onChange={(e) => setDropoff(e.target.value)}
               onFocus={() => setActiveField('dropoff')}
@@ -393,45 +493,85 @@ function CustomerHome({ user }) {
         </button>
       </div>
 
-      {/* Saved Places */}
-      <div className="search-content">
-        <div className="saved-section">
-          <h3>Saved places</h3>
-          <div className="saved-list">
-            {suggestedPlaces.filter(p => p.saved).map(place => (
-              <div key={place.id} className="place-item" onClick={() => handlePlaceSelect(place)}>
-                <div className="place-icon saved">{place.icon}</div>
-                <div className="place-details">
-                  <span className="place-name">{place.name}</span>
-                  <span className="place-address">{place.address}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Category Recommendation Filter Tabs */}
+      <div className="places-filter-bar">
+        <button 
+          className={`filter-pill ${selectedFilterCategory === 'ALL' ? 'active' : ''}`}
+          onClick={() => setSelectedFilterCategory('ALL')}
+        >
+          🌟 All
+        </button>
+        <button 
+          className={`filter-pill ${selectedFilterCategory === 'NEARBY' ? 'active' : ''}`}
+          onClick={() => setSelectedFilterCategory('NEARBY')}
+        >
+          📍 Nearby
+        </button>
+        <button 
+          className={`filter-pill ${selectedFilterCategory === 'TRANSIT' ? 'active' : ''}`}
+          onClick={() => setSelectedFilterCategory('TRANSIT')}
+        >
+          ✈️ Airport & Transit
+        </button>
+        <button 
+          className={`filter-pill ${selectedFilterCategory === 'OUTSTATION' ? 'active' : ''}`}
+          onClick={() => setSelectedFilterCategory('OUTSTATION')}
+        >
+          ⛰️ Long Distance
+        </button>
+      </div>
 
-        <div className="recent-section">
-          <h3>Recent</h3>
-          <div className="recent-list">
-            {suggestedPlaces.filter(p => !p.saved).map(place => (
-              <div key={place.id} className="place-item" onClick={() => handlePlaceSelect(place)}>
-                <div className="place-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                  </svg>
+      {/* Dynamic Filtered Places Recommendations */}
+      <div className="search-content">
+        <div className="recommendations-container">
+          <div className="recommendations-header">
+            <h3>
+              {currentQuery ? `Results for "${currentQuery}"` : 'Recommended Destinations'}
+            </h3>
+            <span className="places-count-badge">{filteredPlaces.length} places</span>
+          </div>
+
+          <div className="places-list">
+            {filteredPlaces.map(place => (
+              <div 
+                key={place.id} 
+                className={`place-item ${place.isLongDistance ? 'long-distance-item' : ''}`} 
+                onClick={() => handlePlaceSelect(place)}
+              >
+                <div className={`place-icon ${place.category.toLowerCase()}`}>
+                  {place.icon}
                 </div>
                 <div className="place-details">
-                  <span className="place-name">{place.name}</span>
+                  <div className="place-title-row">
+                    <span className="place-name">{place.name}</span>
+                    {place.isLongDistance ? (
+                      <span className="distance-badge outstation">Outstation • {place.distanceKm} km</span>
+                    ) : (
+                      <span className="distance-badge nearby">{place.distanceKm} km</span>
+                    )}
+                  </div>
                   <span className="place-address">{place.address}</span>
                 </div>
               </div>
             ))}
+
+            {filteredPlaces.length === 0 && (
+              <div 
+                className="place-item custom-address-item"
+                onClick={() => handlePlaceSelect({ name: currentQuery, address: 'Custom Specified Location', distanceKm: 12 })}
+              >
+                <div className="place-icon custom">📍</div>
+                <div className="place-details">
+                  <span className="place-name">Use "{currentQuery}"</span>
+                  <span className="place-address">Tap to set as {activeField} location</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Set location on map */}
-        <div className="map-option" onClick={() => navigate('/book', { state: { pickup, dropoff: 'Set on map' } })}>
+        <div className="map-option" onClick={() => navigate('/book', { state: { pickup: pickup || 'Current location', dropoff: dropoff || 'Set on map' } })}>
           <div className="map-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
@@ -442,11 +582,39 @@ function CustomerHome({ user }) {
         </div>
       </div>
 
+      {/* Location Service Alert Modal */}
+      {locationAlert && (
+        <div className="modal-overlay" style={{ zIndex: 9999999 }}>
+          <div className="location-permission-modal">
+            <div style={{ fontSize: '36px', marginBottom: '8px' }}>📡</div>
+            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800 }}>Location Services Required</h3>
+            <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, margin: '0 0 16px' }}>
+              {locationAlert}
+            </p>
+            <button 
+              className="btn-enable-location"
+              onClick={() => {
+                setLocationAlert('');
+                handleDetectGPSLocation();
+              }}
+            >
+              🔄 Try Again
+            </button>
+            <button 
+              className="btn-dismiss-location"
+              onClick={() => setLocationAlert('')}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Confirm Button */}
       {pickup && dropoff && (
         <div className="confirm-bar">
           <button className="confirm-btn" onClick={handleConfirm}>
-            Confirm
+            Confirm Ride ({pickup} → {dropoff})
           </button>
         </div>
       )}
