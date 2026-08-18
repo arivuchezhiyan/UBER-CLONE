@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { requestRide, getRideTypes } from '../services/api';
 import RideMap from '../components/Map/RideMap';
 import BackButton from '../components/BackButton/BackButton';
+import { PLACES_DATABASE, reverseGeocode } from './CustomerHome';
 import './BookRide.css';
 
 function BookRide({ user }) {
@@ -20,20 +21,43 @@ function BookRide({ user }) {
   const [rideOptions, setRideOptions] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [showPaymentSheet, setShowPaymentSheet] = useState(false);
-  const [estimatedDistance, setEstimatedDistance] = useState(5);
+  const [estimatedDistance, setEstimatedDistance] = useState(location.state?.estimatedDistance || 5);
   const [promoCode, setPromoCode] = useState('');
+  
+  // Location editing and autocomplete state
+  const [activeEditingField, setActiveEditingField] = useState(null); // 'pickup' | 'dropoff' | null
+  const [locationAlert, setLocationAlert] = useState('');
 
   // Get coordinates on mount
   useEffect(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        setPickupCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        // Simulate dropoff location
-        setDropoffCoords({ 
-          lat: pos.coords.latitude + 0.02, 
-          lng: pos.coords.longitude + 0.015 
-        });
-      });
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setPickupCoords({ lat, lng });
+          
+          if (!pickup || pickup === 'Current location' || pickup.includes('GPS')) {
+            const realName = await reverseGeocode(lat, lng);
+            setPickup(realName);
+          }
+
+          // Set dropoff coords based on place or offset
+          const matchedPlace = PLACES_DATABASE.find(p => p.name.toLowerCase() === (dropoff || '').toLowerCase());
+          if (matchedPlace && matchedPlace.coords) {
+            setDropoffCoords(matchedPlace.coords);
+          } else {
+            setDropoffCoords({ lat: lat + 0.025, lng: lng + 0.02 });
+          }
+        },
+        async () => {
+          const defaultLat = 12.9716;
+          const defaultLng = 77.5946;
+          setPickupCoords({ lat: defaultLat, lng: defaultLng });
+          if (!pickup) setPickup('Koramangala 4th Block, Bengaluru');
+          setDropoffCoords({ lat: defaultLat + 0.02, lng: defaultLng + 0.015 });
+        }
+      );
     } else {
       setPickupCoords({ lat: 12.9716, lng: 77.5946 });
       setDropoffCoords({ lat: 12.9916, lng: 77.6096 });
@@ -150,6 +174,56 @@ function BookRide({ user }) {
     }
   };
 
+  // Mini GPS Locate button inside BookRide page
+  const handleDetectCurrentGPS = (e) => {
+    if (e) e.stopPropagation();
+    if (!navigator.geolocation) {
+      setLocationAlert('⚠️ Geolocation is not supported by your browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setPickupCoords({ lat, lng });
+        const realName = await reverseGeocode(lat, lng);
+        setPickup(realName);
+        setActiveEditingField(null);
+      },
+      (err) => {
+        console.warn('GPS error in BookRide:', err);
+        setLocationAlert('⚠️ Location Access Required: Please turn on device location services and allow location permission in your browser to auto-detect your pickup point.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  // Select a suggestion on BookRide page
+  const handleSelectSuggestion = (place) => {
+    if (activeEditingField === 'pickup') {
+      setPickup(place.name);
+      if (place.coords) setPickupCoords(place.coords);
+      setActiveEditingField('dropoff');
+    } else {
+      setDropoff(place.name);
+      if (place.coords) setDropoffCoords(place.coords);
+      if (place.distanceKm) {
+        setEstimatedDistance(place.distanceKm);
+      }
+      setActiveEditingField(null);
+    }
+  };
+
+  const editingQuery = activeEditingField === 'pickup' ? pickup : dropoff;
+  const filteredSuggestions = PLACES_DATABASE.filter(place => {
+    if (!editingQuery || !editingQuery.trim()) return true;
+    return (
+      place.name.toLowerCase().includes(editingQuery.toLowerCase()) ||
+      place.address.toLowerCase().includes(editingQuery.toLowerCase()) ||
+      place.category.toLowerCase().includes(editingQuery.toLowerCase())
+    );
+  });
+
   const getPaymentIcon = () => {
     switch(paymentMethod) {
       case 'cash': return '💵';
@@ -177,19 +251,114 @@ function BookRide({ user }) {
         {/* Floating Universal Back Button */}
         <BackButton to="/" label="Back" className="floating" />
 
-        {/* Route Info Overlay */}
+        {/* Route Info Overlay with editable inputs and floating suggestions */}
         <div className="route-info-card">
           <div className="route-point">
             <div className="point-marker green"></div>
-            <span>{pickup || 'Current Location'}</span>
+            <input
+              type="text"
+              className="route-input"
+              value={pickup}
+              placeholder="Enter pickup location"
+              onChange={(e) => {
+                setPickup(e.target.value);
+                setActiveEditingField('pickup');
+              }}
+              onFocus={() => setActiveEditingField('pickup')}
+            />
+            <button
+              type="button"
+              className="btn-locate-mini"
+              onClick={handleDetectCurrentGPS}
+              title="Detect GPS Current Location"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="7"/>
+                <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                <line x1="12" y1="2" x2="12" y2="5"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="5" y2="12"/>
+                <line x1="19" y1="12" x2="22" y2="12"/>
+              </svg>
+            </button>
           </div>
           <div className="route-divider"></div>
           <div className="route-point">
             <div className="point-marker black"></div>
-            <span>{dropoff || 'Destination'}</span>
+            <input
+              type="text"
+              className="route-input"
+              value={dropoff}
+              placeholder="Where to? (Destination)"
+              onChange={(e) => {
+                setDropoff(e.target.value);
+                setActiveEditingField('dropoff');
+              }}
+              onFocus={() => setActiveEditingField('dropoff')}
+            />
           </div>
+
+          {/* Interactive Floating Suggestion Bar */}
+          {activeEditingField && (
+            <div className="route-suggestions-dropdown">
+              <div className="dropdown-header">
+                <span>Suggestions for {activeEditingField === 'pickup' ? 'Pickup' : 'Destination'}</span>
+                <button type="button" className="close-dropdown-btn" onClick={() => setActiveEditingField(null)}>✕</button>
+              </div>
+              <div className="dropdown-list">
+                {filteredSuggestions.slice(0, 8).map(place => (
+                  <div 
+                    key={place.id} 
+                    className="dropdown-item" 
+                    onMouseDown={() => handleSelectSuggestion(place)}
+                  >
+                    <span className="dropdown-icon">{place.icon}</span>
+                    <div className="dropdown-info">
+                      <div className="dropdown-title-row">
+                        <span className="dropdown-name">{place.name}</span>
+                        {place.isLongDistance ? (
+                          <span className="dropdown-badge outstation">Outstation • {place.distanceKm} km</span>
+                        ) : (
+                          <span className="dropdown-badge nearby">{place.distanceKm} km</span>
+                        )}
+                      </div>
+                      <span className="dropdown-address">{place.address}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Location Service Alert Modal */}
+      {locationAlert && (
+        <div className="modal-overlay" style={{ zIndex: 9999999 }}>
+          <div className="location-permission-modal">
+            <div style={{ fontSize: '36px', marginBottom: '8px' }}>📡</div>
+            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 800 }}>Location Access Required</h3>
+            <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, margin: '0 0 16px' }}>
+              {locationAlert}
+            </p>
+            <button 
+              className="btn-enable-location"
+              onClick={() => {
+                setLocationAlert('');
+                handleDetectCurrentGPS();
+              }}
+            >
+              🔄 Try Again
+            </button>
+            <button 
+              className="btn-dismiss-location"
+              onClick={() => setLocationAlert('')}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Sheet - Vehicle Selection */}
       <div className="vehicle-sheet">

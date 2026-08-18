@@ -42,6 +42,34 @@ export const PLACES_DATABASE = [
   { id: 'l11', name: 'Hosur SIPCOT Industrial Area', address: 'Hosur, Tamil Nadu (State Border)', icon: '🏭', category: 'Outstation', distanceKm: 38.0, isLongDistance: true }
 ];
 
+export const reverseGeocode = async (lat, lng) => {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+      headers: { 'Accept-Language': 'en' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const addr = data.address || {};
+      const mainName = addr.suburb || addr.neighbourhood || addr.road || addr.village || addr.town || addr.city_district || addr.city || (data.display_name ? data.display_name.split(',')[0] : '');
+      const city = addr.city || addr.state_district || addr.state || '';
+      if (mainName && city && !mainName.toLowerCase().includes(city.toLowerCase())) {
+        return `${mainName}, ${city}`;
+      } else if (mainName) {
+        return mainName;
+      }
+    }
+  } catch (e) {
+    console.warn('Reverse geocode fallback:', e);
+  }
+  // Realistic regional coordinates fallback
+  if (lat > 12.7 && lat < 12.95 && lng > 80.1 && lng < 80.35) {
+    return 'Kelambakkam, Chennai';
+  } else if (lat > 12.8 && lat < 13.1 && lng > 77.4 && lng < 77.8) {
+    return 'Koramangala 4th Block, Bengaluru';
+  }
+  return 'Current Location';
+};
+
 function CustomerHome({ user }) {
   const navigate = useNavigate();
   const [currentLocation, setCurrentLocation] = useState(null);
@@ -62,23 +90,25 @@ function CustomerHome({ user }) {
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        async (pos) => {
           const coords = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude
           };
           setCurrentLocation(coords);
-          setPickup('Current location (GPS)');
+          const placeName = await reverseGeocode(coords.lat, coords.lng);
+          setPickup(placeName);
         },
-        () => {
+        async () => {
           setCurrentLocation({ lat: 12.9716, lng: 77.5946 });
-          setPickup('Current location');
+          const placeName = await reverseGeocode(12.9716, 77.5946);
+          setPickup(placeName);
         },
         { enableHighAccuracy: true, timeout: 8000 }
       );
     } else {
       setCurrentLocation({ lat: 12.9716, lng: 77.5946 });
-      setPickup('Current location');
+      setPickup('Koramangala 4th Block, Bengaluru');
     }
   }, []);
 
@@ -91,13 +121,14 @@ function CustomerHome({ user }) {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const coords = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude
         };
         setCurrentLocation(coords);
-        setPickup('Current location (GPS Detected)');
+        const placeName = await reverseGeocode(coords.lat, coords.lng);
+        setPickup(placeName);
         setActiveField('dropoff');
       },
       (err) => {
