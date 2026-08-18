@@ -72,17 +72,18 @@ function ActiveRide({ user }) {
         const newStatus = response.data.status;
         
         if (newStatus === 'CANCELLED_BY_DRIVER' && !isDriver) {
+          localStorage.removeItem('activeBooking');
           setCancellationNotice({
             title: '⚠️ Captain Cancelled Your Ride',
             reason: response.data.cancellationReason || 'Captain was unable to fulfill this trip.',
             message: 'You have not been charged any cancellation fee. A rating penalty (-0.2★) was applied to the driver.'
           });
         } else if (['CANCELLED_BY_RIDER', 'CANCELLED_BY_DRIVER', 'EXPIRED', 'cancelled'].includes(newStatus)) {
-          if (isDriver && newStatus === 'CANCELLED_BY_RIDER') {
-            alert('Customer has cancelled this ride');
-            localStorage.removeItem('activeBooking');
-            navigate('/');
+          localStorage.removeItem('activeBooking');
+          if (isDriver) {
+            alert(newStatus === 'CANCELLED_BY_RIDER' ? 'Customer has cancelled this ride' : 'Ride has been cancelled.');
           }
+          navigate('/', { replace: true });
         } else if (['TRIP_COMPLETED', 'completed'].includes(newStatus) && !isDriver) {
           setRideStatus('TRIP_COMPLETED');
           setShowRatingModal(true);
@@ -106,6 +107,7 @@ function ActiveRide({ user }) {
     
     socket.on('ride-cancelled', (data) => {
       if (!currentId || currentId === data.bookingId) {
+        localStorage.removeItem('activeBooking');
         if (!isDriver && (data.cancelledBy === 'driver' || data.cancelledBy === 'DRIVER')) {
           setCancellationNotice({
             title: '⚠️ Captain Cancelled Your Ride',
@@ -114,17 +116,16 @@ function ActiveRide({ user }) {
           });
         } else if (isDriver && (data.cancelledBy === 'customer' || data.cancelledBy === 'RIDER')) {
           alert('Customer has cancelled the ride.');
-          localStorage.removeItem('activeBooking');
-          navigate('/');
+          navigate('/', { replace: true });
         } else {
-          localStorage.removeItem('activeBooking');
-          navigate('/');
+          navigate('/', { replace: true });
         }
       }
     });
 
     if (user?.id) {
       socket.on(`ride-cancelled-${user.id}`, (data) => {
+        localStorage.removeItem('activeBooking');
         setCancellationNotice({
           title: '⚠️ Captain Cancelled Your Ride',
           reason: data.reason || 'Captain was unable to fulfill this trip.',
@@ -219,7 +220,44 @@ function ActiveRide({ user }) {
     return () => clearInterval(timer);
   }, []);
 
+  // 15-Minute arrival constraint check for Futuristic/Scheduled Rides
+  const isScheduledRide = booking?.rideType === 'SCHEDULED' || !!booking?.scheduledRide?.scheduledDate;
+  let canMarkArrived = true;
+  let scheduledArrivalNotice = '';
+  let earliestAllowedTimeStr = '';
+
+  if (isScheduledRide && booking?.scheduledRide) {
+    let scheduledTarget = null;
+    if (booking.scheduledRide.scheduledAt) {
+      scheduledTarget = new Date(booking.scheduledRide.scheduledAt);
+    } else if (booking.scheduledRide.scheduledDate) {
+      const timePart = booking.scheduledRide.scheduledTime || '00:00:00';
+      const dateStr = typeof booking.scheduledRide.scheduledDate === 'string'
+        ? booking.scheduledRide.scheduledDate.split('T')[0]
+        : new Date(booking.scheduledRide.scheduledDate).toISOString().split('T')[0];
+      scheduledTarget = new Date(`${dateStr}T${timePart}`);
+    }
+
+    if (scheduledTarget && !isNaN(scheduledTarget.getTime())) {
+      const now = new Date();
+      const diffMinutes = Math.floor((scheduledTarget.getTime() - now.getTime()) / 60000);
+      const earliestTime = new Date(scheduledTarget.getTime() - 15 * 60000);
+      earliestAllowedTimeStr = earliestTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const targetDisplay = scheduledTarget.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+
+      if (diffMinutes > 15) {
+        canMarkArrived = false;
+        scheduledArrivalNotice = `⏳ Scheduled for ${targetDisplay}: You can mark 'Arrived' only 15 min before pickup (from ${earliestAllowedTimeStr}).`;
+      }
+    }
+  }
+
   const handleMarkArrived = async () => {
+    if (isScheduledRide && !canMarkArrived) {
+      alert(scheduledArrivalNotice || 'Arrival can only be marked 15 minutes before scheduled pickup time.');
+      return;
+    }
+
     const bookingId = booking?._id || booking?.id;
     if (!bookingId) return;
     setLoading(true);
@@ -360,32 +398,23 @@ function ActiveRide({ user }) {
   const handleCancel = async () => {
     setLoading(true);
     const targetBookingId = booking?._id || booking?.id || booking?.bookingId;
+    localStorage.removeItem('activeBooking');
+    setShowCancelSheet(false);
     
-    if (!targetBookingId) {
-      localStorage.removeItem('activeBooking');
-      setShowCancelSheet(false);
-      navigate('/');
-      setLoading(false);
-      return;
+    if (targetBookingId) {
+      try {
+        await cancelRide(
+          targetBookingId,
+          isDriver ? 'Captain cancelled trip' : 'Customer requested cancellation',
+          isDriver ? 'driver' : 'customer'
+        );
+      } catch (err) {
+        console.warn('Cancel request fallback:', err);
+      }
     }
-
-    try {
-      await cancelRide(
-        targetBookingId,
-        isDriver ? 'Captain cancelled trip' : 'Customer requested cancellation',
-        isDriver ? 'driver' : 'customer'
-      );
-      localStorage.removeItem('activeBooking');
-      setShowCancelSheet(false);
-      navigate('/');
-    } catch (err) {
-      console.warn('Cancel request fallback:', err);
-      localStorage.removeItem('activeBooking');
-      setShowCancelSheet(false);
-      navigate('/');
-    } finally {
-      setLoading(false);
-    }
+    
+    setLoading(false);
+    navigate('/', { replace: true });
   };
 
   const getStatusMessage = () => {
@@ -639,9 +668,37 @@ function ActiveRide({ user }) {
 
             {/* Driver Actions */}
             <div className="driver-actions">
+              {isScheduledRide && !canMarkArrived && (
+                <div style={{
+                  background: '#fffbeb',
+                  border: '1px solid #fef3c7',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  marginBottom: '10px',
+                  fontSize: '12px',
+                  color: '#b45309',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <span>📅</span>
+                  <span>{scheduledArrivalNotice}</span>
+                </div>
+              )}
+
               {['DRIVER_ASSIGNED', 'DRIVER_ARRIVING', 'accepted', 'arriving'].includes(rideStatus) && (
-                <button className="action-btn secondary" onClick={handleMarkArrived} disabled={loading} style={{ background: '#3b82f6' }}>
-                  Mark Arrived at Pickup
+                <button 
+                  className="action-btn secondary" 
+                  onClick={handleMarkArrived} 
+                  disabled={loading || (isScheduledRide && !canMarkArrived)} 
+                  style={{ 
+                    background: (isScheduledRide && !canMarkArrived) ? '#94a3b8' : '#3b82f6',
+                    cursor: (isScheduledRide && !canMarkArrived) ? 'not-allowed' : 'pointer'
+                  }}
+                  title={isScheduledRide && !canMarkArrived ? scheduledArrivalNotice : 'Mark Arrived at Pickup'}
+                >
+                  {isScheduledRide && !canMarkArrived ? `🔒 Arrive Opens at ${earliestAllowedTimeStr}` : 'Mark Arrived at Pickup'}
                 </button>
               )}
 

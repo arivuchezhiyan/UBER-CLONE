@@ -293,6 +293,38 @@ const driverArrived = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Active assigned booking not found' });
     }
 
+    // 15-minute arrival constraint for scheduled / futuristic rides
+    if (booking.rideType === 'SCHEDULED' && booking.scheduledRide) {
+      let targetTime = null;
+      if (booking.scheduledRide.scheduledAt) {
+        targetTime = new Date(booking.scheduledRide.scheduledAt);
+      } else if (booking.scheduledRide.scheduledDate) {
+        const timePart = booking.scheduledRide.scheduledTime || '00:00:00';
+        const dateStr = typeof booking.scheduledRide.scheduledDate === 'string'
+          ? booking.scheduledRide.scheduledDate.split('T')[0]
+          : booking.scheduledRide.scheduledDate.toISOString().split('T')[0];
+        targetTime = new Date(`${dateStr}T${timePart}`);
+      }
+
+      if (targetTime && !isNaN(targetTime.getTime())) {
+        const now = new Date();
+        const diffMinutes = Math.floor((targetTime.getTime() - now.getTime()) / 60000);
+
+        // If scheduled time is more than 15 minutes in the future, disallow arriving
+        if (diffMinutes > 15) {
+          const earliestTime = new Date(targetTime.getTime() - 15 * 60000);
+          const timeStr = earliestTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const scheduledStr = targetTime.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+          return res.status(400).json({
+            success: false,
+            message: `This is a scheduled ride for ${scheduledStr}. You can only mark 'Arrived at Pickup' 15 minutes before pickup (from ${timeStr}).`,
+            scheduledTime: targetTime,
+            allowedFrom: earliestTime
+          });
+        }
+      }
+    }
+
     booking.status = 'DRIVER_ARRIVED';
     booking.driverArrivedAt = new Date();
     booking.statusHistory.push({
