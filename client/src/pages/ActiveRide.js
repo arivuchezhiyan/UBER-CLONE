@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   getActiveRide,
   cancelRide,
   completeRide,
   startRide,
   markDriverArrived,
+  rateRide,
   getDriverUpiId,
   confirmOnlinePayment
 } from '../services/api';
 import RideMap from '../components/Map/RideMap';
+import SlideButton from '../components/SlideButton/SlideButton';
 import { processRazorpayPayment } from '../services/razorpay';
 import io from 'socket.io-client';
 import './ActiveRide.css';
@@ -30,9 +33,29 @@ function ActiveRide({ user }) {
   const [dropoffCoords, setDropoffCoords] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showCancelSheet, setShowCancelSheet] = useState(false);
-  const [showUpiPayment, setShowUpiPayment] = useState(false);
-  const [driverUpiId, setDriverUpiId] = useState('');
-  const [completedBooking, setCompletedBooking] = useState(null);
+
+  // Settlement & QR Payment State
+  const [showSettlementModal, setShowSettlementModal] = useState(false);
+  const [paymentMode, setPaymentMode] = useState('UPI_QR'); // 'UPI_QR', 'RAZORPAY', 'CASH'
+  const [driverUpiId, setDriverUpiId] = useState('uberclone.driver@upi');
+  const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(false);
+
+  // Rating & Review State (Customer)
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(5);
+  const [feedbackTags, setFeedbackTags] = useState([]);
+  const [feedbackText, setFeedbackText] = useState('');
+
+  // Fetch driver UPI ID on load
+  useEffect(() => {
+    if (isDriver) {
+      getDriverUpiId()
+        .then(res => {
+          if (res.data?.upiId) setDriverUpiId(res.data.upiId);
+        })
+        .catch(() => {});
+    }
+  }, [isDriver]);
 
   // Poll for ride status
   const pollRideStatus = useCallback(async () => {
@@ -46,9 +69,13 @@ function ActiveRide({ user }) {
           alert('Ride has been cancelled');
           localStorage.removeItem('activeBooking');
           navigate('/');
-        } else if (['TRIP_COMPLETED', 'SETTLED', 'completed'].includes(newStatus)) {
-          localStorage.removeItem('activeBooking');
-          navigate('/history');
+        } else if (['TRIP_COMPLETED', 'completed'].includes(newStatus) && !isDriver) {
+          setRideStatus('TRIP_COMPLETED');
+          setShowRatingModal(true);
+        } else if (['SETTLED'].includes(newStatus)) {
+          if (!isDriver) {
+            setShowRatingModal(true);
+          }
         } else if (newStatus !== rideStatus) {
           setRideStatus(newStatus);
         }
@@ -56,7 +83,7 @@ function ActiveRide({ user }) {
     } catch (err) {
       console.error('Poll error:', err);
     }
-  }, [booking?._id, navigate, rideStatus]);
+  }, [booking?._id, isDriver, navigate, rideStatus]);
 
   // Socket connection
   useEffect(() => {
@@ -82,8 +109,20 @@ function ActiveRide({ user }) {
     
     socket.on('ride-completed', (data) => {
       if (booking?._id === data.bookingId) {
-        localStorage.removeItem('activeBooking');
-        navigate('/history');
+        setRideStatus('TRIP_COMPLETED');
+        if (!isDriver) {
+          setShowRatingModal(true);
+        }
+      }
+    });
+
+    socket.on('payment-completed', (data) => {
+      if (booking?._id === data.bookingId) {
+        setIsPaymentConfirmed(true);
+        setRideStatus('SETTLED');
+        if (!isDriver) {
+          setShowRatingModal(true);
+        }
       }
     });
     
@@ -179,40 +218,92 @@ function ActiveRide({ user }) {
     }
   };
 
-  const handleEndRide = async () => {
+  // Driver Slides to End Ride
+  const handleSlideEndRide = async () => {
     setLoading(true);
     try {
-      const response = await completeRide(booking._id, booking.estimatedDistance, booking.estimatedDuration);
-      const paymentMethod = booking?.paymentMethod?.toLowerCase() || 'cash';
-      
-      if (isDriver && (paymentMethod === 'upi' || paymentMethod === 'online')) {
-        try {
-          const upiRes = await getDriverUpiId();
-          setDriverUpiId(upiRes.data.upiId || '');
-        } catch (e) {}
-        setCompletedBooking({
-          ...booking,
-          actualFare: response.data.booking?.actualFare || booking.estimatedFare
-        });
-        setShowUpiPayment(true);
-        setLoading(false);
-      } else {
-        localStorage.removeItem('activeBooking');
-        navigate('/history');
+      const response = await completeRide(
+        booking._id,
+        booking.estimatedDistance || 5,
+        booking.estimatedDuration || 15
+      );
+      if (response.data.success) {
+        setBooking(prev => ({
+          ...prev,
+          actualFare: response.data.fare,
+          fareBreakdown: response.data.fareBreakdown,
+          status: 'TRIP_COMPLETED'
+        }));
+        setRideStatus('TRIP_COMPLETED');
+        setShowSettlementModal(true);
       }
     } catch (err) {
-      alert('Failed to complete ride');
+      alert(err.response?.data?.message || 'Failed to complete trip');
+    } finally {
       setLoading(false);
     }
   };
 
-  const handlePaymentConfirmed = async () => {
+  // Driver Marks Payment Confirmed
+  const handleDriverConfirmPayment = async () => {
+    setLoading(true);
     try {
-      await confirmOnlinePayment(completedBooking._id, completedBooking.actualFare || completedBooking.estimatedFare);
+      await confirmOnlinePayment(booking._id, booking.actualFare || booking.estimatedFare);
+      setIsPaymentConfirmed(true);
+      alert('🎉 Payment Confirmed & Driver Wallet Credited!');
       localStorage.removeItem('activeBooking');
       navigate('/history');
     } catch (err) {
-      alert('Failed to confirm payment');
+      alert('Failed to settle payment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Customer Pays via Razorpay
+  const handlePayWithRazorpay = async () => {
+    setLoading(true);
+    try {
+      await processRazorpayPayment({
+        bookingId: booking._id,
+        amount: rideDetails.fare,
+        purpose: 'RIDE_PAYMENT',
+        customer: {
+          name: user?.name,
+          phone: user?.phone,
+          email: user?.email
+        },
+        onSuccess: (paymentInfo) => {
+          alert(`✅ Payment of ₹${paymentInfo.amount} successful via Razorpay! Payment ID: ${paymentInfo.paymentId}`);
+          setBooking(prev => ({ ...prev, paymentStatus: 'completed', paymentMethod: 'online', status: 'SETTLED' }));
+          setIsPaymentConfirmed(true);
+          setShowRatingModal(true);
+          setLoading(false);
+        },
+        onFailure: (err) => {
+          alert(`Payment: ${err.message}`);
+          setLoading(false);
+        }
+      });
+    } catch (err) {
+      alert(err.message);
+      setLoading(false);
+    }
+  };
+
+  // Customer Submit Rating
+  const handleSubmitRating = async () => {
+    setLoading(true);
+    try {
+      const fullFeedback = [feedbackTags.join(', '), feedbackText].filter(Boolean).join(' - ');
+      await rateRide(booking._id, selectedRating, fullFeedback, 'driver');
+      alert('⭐ Thank you for your feedback!');
+      localStorage.removeItem('activeBooking');
+      navigate('/history');
+    } catch (err) {
+      alert('Failed to submit rating');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -228,63 +319,38 @@ function ActiveRide({ user }) {
     }
   };
 
-  const handlePayWithRazorpay = async () => {
-    setLoading(true);
-    try {
-      await processRazorpayPayment({
-        bookingId: booking._id,
-        amount: rideDetails.fare,
-        purpose: 'RIDE_PAYMENT',
-        customer: {
-          name: user?.name,
-          phone: user?.phone,
-          email: user?.email
-        },
-        onSuccess: (paymentInfo) => {
-          alert(`✅ Payment of ₹${paymentInfo.amount} received! Payment ID: ${paymentInfo.paymentId}`);
-          setBooking(prev => ({ ...prev, paymentStatus: 'completed', paymentMethod: 'online' }));
-          setLoading(false);
-        },
-        onFailure: (err) => {
-          alert(`Payment: ${err.message}`);
-          setLoading(false);
-        }
-      });
-    } catch (err) {
-      alert(err.message);
-      setLoading(false);
-    }
-  };
-
   const getStatusMessage = () => {
     switch(rideStatus) {
       case 'REQUESTED':
       case 'SEARCHING_DRIVER':
-      case 'searching': return 'Matching nearest driver (30s sequential dispatch)...';
+      case 'searching': return 'Finding Captain (30s sequential matching)...';
       case 'DRIVER_ASSIGNED':
-      case 'accepted': return 'Driver assigned & accepted!';
+      case 'accepted': return 'Captain assigned & accepted!';
       case 'DRIVER_ARRIVING':
       case 'waiting':
-      case 'arriving': return `Driver arriving at pickup in ~${eta} min`;
+      case 'arriving': return `Captain arriving in ~${eta} min`;
       case 'DRIVER_ARRIVED':
-      case 'arrived': return 'Driver has arrived at pickup point!';
+      case 'arrived': return 'Captain has arrived at pickup point!';
       case 'TRIP_STARTED':
       case 'started': return 'Trip in progress — GPS tracked';
-      case 'TRIP_COMPLETED': return 'Trip completed';
+      case 'TRIP_COMPLETED': return 'Trip Completed — Payment Pending';
+      case 'SETTLED': return 'Payment Complete & Settled';
       default: return 'Ride In Progress';
     }
   };
 
   const driver = booking?.driverId || {};
+  const fareAmount = booking?.actualFare || booking?.estimatedFare || 149;
   const rideDetails = {
-    pickup: booking?.pickupLocation?.address || 'Pickup',
-    dropoff: booking?.dropoffLocation?.address || 'Dropoff',
-    fare: booking?.actualFare || booking?.estimatedFare || 149,
+    pickup: booking?.pickupLocation?.address || 'Pickup Location',
+    dropoff: booking?.dropoffLocation?.address || 'Dropoff Location',
+    fare: fareAmount,
     otp: booking?.rideOTP,
     breakdown: booking?.fareBreakdown
   };
 
   const isTripActive = ['TRIP_STARTED', 'started'].includes(rideStatus);
+  const upiQrString = `upi://pay?pa=${driverUpiId || 'driver@upi'}&pn=${encodeURIComponent(driver.name || 'Uber Driver')}&am=${fareAmount}&cu=INR&tn=Ride-${booking?.rideNumber || booking?._id || 'Payment'}`;
 
   return (
     <div className="active-ride-app">
@@ -299,11 +365,13 @@ function ActiveRide({ user }) {
         />
         
         {/* Back/Close Button */}
-        <button className="close-btn" onClick={() => setShowCancelSheet(true)}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </button>
+        {!isTripActive && rideStatus !== 'TRIP_COMPLETED' && (
+          <button className="close-btn" onClick={() => setShowCancelSheet(true)}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        )}
 
         {/* Status Pill */}
         <div className={`status-pill ${rideStatus}`}>
@@ -315,9 +383,9 @@ function ActiveRide({ user }) {
       </div>
 
       {/* OTP Banner for Customer */}
-      {!isDriver && rideDetails.otp && !isTripActive && !['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
+      {!isDriver && rideDetails.otp && !isTripActive && !['SEARCHING_DRIVER', 'searching', 'REQUESTED', 'TRIP_COMPLETED', 'SETTLED'].includes(rideStatus) && (
         <div className="otp-display">
-          <span className="otp-label">Share 4-Digit Ride OTP with Driver:</span>
+          <span className="otp-label">Share 4-Digit Ride OTP with Captain:</span>
           <span className="otp-code">{rideDetails.otp}</span>
         </div>
       )}
@@ -336,7 +404,7 @@ function ActiveRide({ user }) {
                   {driver.name?.charAt(0) || '👨‍✈️'}
                 </div>
                 <div className="driver-info">
-                  <h3>{driver.name || 'Assigned Driver'}</h3>
+                  <h3>{driver.name || 'Captain'}</h3>
                   <div className="driver-meta">
                     <span className="rating">⭐ {driver.rating || 5.0}</span>
                     <span className="vehicle">{driver.vehicleDetails?.model || booking?.vehicleType || 'Sedan'}</span>
@@ -344,7 +412,7 @@ function ActiveRide({ user }) {
                   <span className="plate">{driver.vehicleDetails?.licensePlate || 'KA 01 AB 1234'}</span>
                 </div>
                 <div className="contact-btns">
-                  <button className="contact-btn" onClick={() => alert(`Calling driver at ${driver.phone || '+91 9876543210'}`)}>
+                  <button className="contact-btn" onClick={() => alert(`Calling Captain at ${driver.phone || '+91 9876543210'}`)}>
                     📞
                   </button>
                 </div>
@@ -405,7 +473,7 @@ function ActiveRide({ user }) {
               )}
             </div>
 
-            {/* Pay with Razorpay Online */}
+            {/* Pay with Razorpay Online Button for Customer */}
             {booking?.paymentStatus !== 'completed' && !['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
               <button 
                 className="action-btn primary" 
@@ -421,7 +489,7 @@ function ActiveRide({ user }) {
                   gap: '8px' 
                 }}
               >
-                <span>💳 Pay ₹{rideDetails.fare} with Razorpay (UPI / Card)</span>
+                <span>💳 Pay ₹{rideDetails.fare} Online (UPI / Card / NetBanking)</span>
               </button>
             )}
           </>
@@ -461,17 +529,17 @@ function ActiveRide({ user }) {
             {/* Fare & Payment */}
             <div className="fare-card">
               <div className="fare-row">
-                <span>Estimated Earnings</span>
+                <span>Your Net Earnings</span>
                 <span className="fare-amount text-success">
                   ₹{booking?.fareBreakdown?.driverEarnings || Math.round(rideDetails.fare * 0.8)}
                 </span>
               </div>
               <div className="payment-method">
-                <span>Payment: 💵 {booking?.paymentMethod?.toUpperCase() || 'CASH'}</span>
+                <span>Trip Fare: ₹{rideDetails.fare} ({booking?.paymentMethod?.toUpperCase() || 'CASH'})</span>
               </div>
             </div>
 
-            {/* Driver Actions: Arrived -> Start with OTP -> Complete */}
+            {/* Driver Actions */}
             <div className="driver-actions">
               {['DRIVER_ASSIGNED', 'DRIVER_ARRIVING', 'accepted', 'arriving'].includes(rideStatus) && (
                 <button className="action-btn secondary" onClick={handleMarkArrived} disabled={loading} style={{ background: '#3b82f6' }}>
@@ -485,9 +553,22 @@ function ActiveRide({ user }) {
                 </button>
               )}
 
+              {/* SLIDE BUTTON TO COMPLETE RIDE */}
               {isTripActive && (
-                <button className="action-btn complete" onClick={handleEndRide} disabled={loading}>
-                  {loading ? 'Completing...' : 'Complete Trip'}
+                <SlideButton
+                  onSlideComplete={handleSlideEndRide}
+                  text="👉 Slide to End Trip"
+                  disabled={loading}
+                />
+              )}
+
+              {rideStatus === 'TRIP_COMPLETED' && (
+                <button 
+                  className="action-btn primary" 
+                  onClick={() => setShowSettlementModal(true)}
+                  style={{ background: '#10b981' }}
+                >
+                  ⚡ Open Payment QR & Settle (₹{rideDetails.fare})
                 </button>
               )}
             </div>
@@ -495,7 +576,7 @@ function ActiveRide({ user }) {
         )}
 
         {/* Cancel Button */}
-        {!isTripActive && (
+        {!isTripActive && rideStatus !== 'TRIP_COMPLETED' && rideStatus !== 'SETTLED' && (
           <button className="cancel-ride-btn" onClick={() => setShowCancelSheet(true)}>
             Cancel Ride
           </button>
@@ -524,6 +605,155 @@ function ActiveRide({ user }) {
         </div>
       )}
 
+      {/* DRIVER / CAPTAIN SETTLEMENT & QR CODE MODAL */}
+      {showSettlementModal && (
+        <div className="modal-overlay">
+          <div className="settlement-modal">
+            <div className="settlement-header">
+              <h2>Trip Ended</h2>
+              <span className="fare-badge">Collect ₹{rideDetails.fare}</span>
+            </div>
+
+            {/* Payment Mode Selector */}
+            <div className="payment-mode-tabs">
+              <button 
+                className={`tab-btn ${paymentMode === 'UPI_QR' ? 'active' : ''}`}
+                onClick={() => setPaymentMode('UPI_QR')}
+              >
+                ⚡ UPI QR Code
+              </button>
+              <button 
+                className={`tab-btn ${paymentMode === 'RAZORPAY' ? 'active' : ''}`}
+                onClick={() => setPaymentMode('RAZORPAY')}
+              >
+                💳 Cards / Online
+              </button>
+              <button 
+                className={`tab-btn ${paymentMode === 'CASH' ? 'active' : ''}`}
+                onClick={() => setPaymentMode('CASH')}
+              >
+                💵 Cash
+              </button>
+            </div>
+
+            {/* TAB 1: DYNAMIC UPI QR CODE */}
+            {paymentMode === 'UPI_QR' && (
+              <div className="qr-container">
+                <p className="qr-instruction">Scan with any UPI app (GPay / PhonePe / Paytm):</p>
+                <div className="qr-code-wrapper">
+                  <QRCodeSVG 
+                    value={upiQrString}
+                    size={200}
+                    level="H"
+                    includeMargin={true}
+                  />
+                </div>
+                <span className="upi-id-label">UPI ID: {driverUpiId}</span>
+                <div className="supported-apps">
+                  <span>🟢 PhonePe</span>
+                  <span>🔵 Google Pay</span>
+                  <span>🟦 Paytm</span>
+                  <span>🟠 BHIM</span>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: RAZORPAY ONLINE CHECKOUT */}
+            {paymentMode === 'RAZORPAY' && (
+              <div className="razorpay-online-pane">
+                <p>Accept Cards (Debit / Credit), NetBanking, and Wallets via Razorpay Gateway:</p>
+                <button className="btn-razorpay-checkout" onClick={handlePayWithRazorpay} disabled={loading}>
+                  💳 Launch Razorpay Checkout (₹{rideDetails.fare})
+                </button>
+              </div>
+            )}
+
+            {/* TAB 3: CASH COLLECTION */}
+            {paymentMode === 'CASH' && (
+              <div className="cash-pane">
+                <div className="cash-icon">💵</div>
+                <h3>Collect Cash from Customer</h3>
+                <div className="cash-amount-box">
+                  <span className="label">Amount to Collect:</span>
+                  <span className="value">₹{rideDetails.fare}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Confirmation & Completion Button */}
+            {isPaymentConfirmed && (
+              <div style={{ background: '#dcfce7', color: '#15803d', padding: '10px', borderRadius: '8px', marginBottom: '10px', fontWeight: 'bold' }}>
+                🎉 Payment Settled Online!
+              </div>
+            )}
+            <button 
+              className="btn-confirm-settlement" 
+              onClick={handleDriverConfirmPayment}
+              disabled={loading}
+            >
+              {isPaymentConfirmed ? 'Finish & Return Home' : '✅ Payment Received (Finish Ride)'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CUSTOMER RATING & REVIEW MODAL */}
+      {showRatingModal && (
+        <div className="modal-overlay">
+          <div className="rating-modal">
+            <div className="rating-header">
+              <h2>🎉 Trip Completed!</h2>
+              <p>How was your ride with {driver.name || 'your Captain'}?</p>
+            </div>
+
+            {/* Star Rating */}
+            <div className="stars-row">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span 
+                  key={star} 
+                  className={`star-btn ${star <= selectedRating ? 'filled' : ''}`}
+                  onClick={() => setSelectedRating(star)}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+
+            {/* Compliment Chips */}
+            <div className="compliments-list">
+              {['Polite Captain', 'Smooth Driving', 'Clean Vehicle', 'Great Route', 'On-Time'].map((tag) => (
+                <button
+                  key={tag}
+                  className={`compliment-chip ${feedbackTags.includes(tag) ? 'selected' : ''}`}
+                  onClick={() => {
+                    if (feedbackTags.includes(tag)) {
+                      setFeedbackTags(feedbackTags.filter(t => t !== tag));
+                    } else {
+                      setFeedbackTags([...feedbackTags, tag]);
+                    }
+                  }}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+
+            {/* Feedback textarea */}
+            <textarea
+              className="feedback-input"
+              placeholder="Leave an optional compliment or note..."
+              value={feedbackText}
+              onChange={(e) => setFeedbackText(e.target.value)}
+              rows={3}
+            />
+
+            <button className="btn-submit-rating" onClick={handleSubmitRating} disabled={loading}>
+              Submit Rating & Finish
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Cancel Confirmation Sheet */}
       {showCancelSheet && (
         <div className="modal-overlay">
@@ -534,23 +764,6 @@ function ActiveRide({ user }) {
               {loading ? 'Cancelling...' : 'Yes, Cancel Ride'}
             </button>
             <button className="keep-ride-btn" onClick={() => setShowCancelSheet(false)}>Keep Ride</button>
-          </div>
-        </div>
-      )}
-
-      {/* UPI Payment Modal for Driver */}
-      {showUpiPayment && (
-        <div className="modal-overlay">
-          <div className="upi-modal">
-            <h3>Collect Payment</h3>
-            <p>Show this QR / UPI ID to customer</p>
-            <div className="upi-details">
-              <strong>₹{completedBooking?.actualFare || completedBooking?.estimatedFare}</strong>
-              <span>UPI: {driverUpiId || 'driver@upi'}</span>
-            </div>
-            <button className="verify-btn" onClick={handlePaymentConfirmed}>
-              Payment Received
-            </button>
           </div>
         </div>
       )}
