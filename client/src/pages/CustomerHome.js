@@ -67,6 +67,21 @@ export const PLACES_DATABASE = [
 ];
 
 export const reverseGeocode = async (lat, lng) => {
+  if (!lat || !lng) return 'Current Location';
+
+  // 1. Proximity check against PLACES_DATABASE (within 1.5 km, use clean prominent name)
+  for (const place of PLACES_DATABASE) {
+    if (place.coords) {
+      const dLat = (lat - place.coords.lat) * 111;
+      const dLng = (lng - place.coords.lng) * 105;
+      const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+      if (dist <= 1.2) {
+        return place.name;
+      }
+    }
+  }
+
+  // 2. Query Nominatim with detailed address structure
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
       headers: { 'Accept-Language': 'en' }
@@ -74,20 +89,46 @@ export const reverseGeocode = async (lat, lng) => {
     if (res.ok) {
       const data = await res.json();
       const addr = data.address || {};
-      const mainName = addr.suburb || addr.neighbourhood || addr.road || addr.village || addr.town || addr.city_district || addr.city || (data.display_name ? data.display_name.split(',')[0] : '');
-      const city = addr.city || addr.state_district || addr.state || '';
-      if (mainName && city && !mainName.toLowerCase().includes(city.toLowerCase())) {
-        return `${mainName}, ${city}`;
-      } else if (mainName) {
-        return mainName;
+      
+      const locality = addr.suburb || addr.neighbourhood || addr.quarter || addr.village || addr.town || addr.hamlet || addr.residential;
+      let road = addr.road || '';
+      // Clean long highway strings like "Rajiv Gandhi Road (Chennai - Thiruporur Road)"
+      if (road.includes('(')) {
+        road = road.split('(')[0].trim();
+      }
+      if (road.toLowerCase().includes('rajiv gandhi')) {
+        road = 'OMR Expressway';
+      }
+
+      const landmark = addr.amenity || addr.building || addr.shop || addr.office;
+      const city = addr.city || addr.state_district || addr.county || 'Chennai';
+
+      if (landmark && locality) {
+        return `${landmark}, ${locality}`;
+      } else if (road && locality && !road.toLowerCase().includes(locality.toLowerCase())) {
+        return `${road}, ${locality}`;
+      } else if (locality) {
+        return `${locality}, ${city}`;
+      } else if (road) {
+        return `${road}, ${city}`;
+      } else if (data.display_name) {
+        const parts = data.display_name.split(',').map(s => s.trim());
+        return parts.slice(0, 2).join(', ');
       }
     }
   } catch (e) {
     console.warn('Reverse geocode fallback:', e);
   }
-  // Realistic regional coordinates fallback
-  if (lat > 12.7 && lat < 12.95 && lng > 80.1 && lng < 80.35) {
-    return 'Kelambakkam, Chennai';
+
+  // 3. Realistic regional coordinate lookup fallback
+  if (lat >= 12.68 && lat <= 12.75) {
+    return 'Thiruporur, Chennai';
+  } else if (lat > 12.75 && lat <= 12.82) {
+    return 'Kelambakkam Junction, Chennai';
+  } else if (lat > 12.82 && lat <= 12.87) {
+    return 'Navalur OMR, Chennai';
+  } else if (lat > 12.87 && lat <= 12.94) {
+    return 'Sholinganallur, Chennai';
   } else if (lat > 12.8 && lat < 13.1 && lng > 77.4 && lng < 77.8) {
     return 'Koramangala 4th Block, Bengaluru';
   }
@@ -96,11 +137,9 @@ export const reverseGeocode = async (lat, lng) => {
 
 // Snap coordinates to the nearest real drivable road on land
 export const snapToNearestRoad = async (lat, lng) => {
-  // Ensure we are strictly on land (prevent east ocean placement in coastal zones)
   let safeLng = lng;
   let safeLat = lat;
   if (lat > 12.5 && lat < 13.3) {
-    // East coast boundary (sea begins at ~80.245) - clamp safely inland to OMR/GST
     if (safeLng > 80.235) {
       safeLng = 80.222;
     }
@@ -135,18 +174,19 @@ export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185
 
   const cleanQ = query.toLowerCase().trim();
 
-  // 1. Keyword / Amenity Resolver for real-world popular spots
+  // 1. Proximity-aware Amenity & Food Resolver (Finds closest real spot relative to user's GPS!)
   if (cleanQ.includes('briyani') || cleanQ.includes('biryani') || cleanQ.includes('food') || cleanQ.includes('restaurant') || cleanQ.includes('hotel')) {
-    if (baseLat > 12.6 && baseLat < 13.2) {
-      // Chennai / OMR Biryani Hotspots
-      if (cleanQ.includes('irfan') || cleanQ.includes('thalappakatti') || cleanQ.includes('nearby')) {
-        return { lat: 12.8480, lng: 80.2268 }; // Navalur OMR Food Hub
-      } else if (cleanQ.includes('aasife') || cleanQ.includes('kelambakkam')) {
-        return { lat: 12.7885, lng: 80.2201 }; // Kelambakkam Junction
-      } else if (cleanQ.includes('hyderabad') || cleanQ.includes('sholinganallur')) {
-        return { lat: 12.8985, lng: 80.2260 }; // Sholinganallur OMR
+    if (baseLat > 12.5 && baseLat < 13.3) {
+      // Localized Biryani Hotspots in Chennai OMR/South
+      if (baseLat <= 12.75) {
+        return { lat: 12.7285, lng: 80.1980 }; // Thiruporur Food Junction (~1 km from Thiruporur)
+      } else if (baseLat <= 12.81) {
+        return { lat: 12.7885, lng: 80.2201 }; // Kelambakkam Junction Biryani Spot
+      } else if (baseLat <= 12.87) {
+        return { lat: 12.8480, lng: 80.2268 }; // Navalur OMR Thalappakatti & Food Street
+      } else {
+        return { lat: 12.8985, lng: 80.2260 }; // Sholinganallur SS Hyderabad Biryani
       }
-      return { lat: 12.8465, lng: 80.2260 }; // Navalur OMR
     } else {
       // Bangalore Biryani Hotspots
       return { lat: 12.9344, lng: 77.6272 }; // Koramangala
@@ -154,15 +194,18 @@ export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185
   }
 
   if (cleanQ.includes('coffee') || cleanQ.includes('cafe') || cleanQ.includes('tea') || cleanQ.includes('bakery')) {
-    if (baseLat > 12.6 && baseLat < 13.2) {
-      return { lat: 12.8465, lng: 80.2260 }; // Vivira Mall OMR
+    if (baseLat > 12.5 && baseLat < 13.3) {
+      if (baseLat <= 12.81) {
+        return { lat: 12.7875, lng: 80.2195 }; // Kelambakkam Chai Point
+      }
+      return { lat: 12.8465, lng: 80.2260 }; // Vivira Mall Cafe
     } else {
       return { lat: 12.9719, lng: 77.6412 }; // Indiranagar
     }
   }
 
   if (cleanQ.includes('cinema') || cleanQ.includes('movie') || cleanQ.includes('theater') || cleanQ.includes('mall') || cleanQ.includes('shopping')) {
-    if (baseLat > 12.6 && baseLat < 13.2) {
+    if (baseLat > 12.5 && baseLat < 13.3) {
       return { lat: 12.8465, lng: 80.2260 }; // AGS Cinemas Vivira Mall OMR
     } else {
       return { lat: 12.9959, lng: 77.6964 }; // Phoenix Marketcity Bangalore
@@ -170,16 +213,18 @@ export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185
   }
 
   if (cleanQ.includes('atm') || cleanQ.includes('bank')) {
-    if (baseLat > 12.6 && baseLat < 13.2) {
-      return { lat: 12.7871, lng: 80.2185 }; // Kelambakkam Junction
+    if (baseLat > 12.5 && baseLat < 13.3) {
+      if (baseLat <= 12.75) return { lat: 12.7265, lng: 80.1970 }; // Thiruporur SBI ATM
+      return { lat: 12.7871, lng: 80.2185 }; // Kelambakkam Junction HDFC
     } else {
       return { lat: 12.9756, lng: 77.6066 }; // MG Road
     }
   }
 
   if (cleanQ.includes('petrol') || cleanQ.includes('fuel') || cleanQ.includes('diesel') || cleanQ.includes('gas')) {
-    if (baseLat > 12.6 && baseLat < 13.2) {
-      return { lat: 12.7890, lng: 80.2195 }; // OMR Kelambakkam Bunk
+    if (baseLat > 12.5 && baseLat < 13.3) {
+      if (baseLat <= 12.75) return { lat: 12.7290, lng: 80.1985 }; // Thiruporur HP Bunk
+      return { lat: 12.7890, lng: 80.2195 }; // OMR Kelambakkam Indian Oil
     } else {
       return { lat: 12.9344, lng: 77.6272 };
     }
