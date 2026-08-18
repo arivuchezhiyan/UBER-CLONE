@@ -68,14 +68,67 @@ function CustomerHome({ user }) {
         </div>
 
         {/* Top Bar */}
-        <div className="uber-top-bar">
-          <button className="uber-menu-btn" onClick={() => navigate('/profile')}>
+        <div className="uber-top-bar" style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          right: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 100
+        }}>
+          <button className="uber-menu-btn" onClick={() => navigate('/profile')} title="My Profile">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="3" y1="6" x2="21" y2="6"/>
               <line x1="3" y1="12" x2="21" y2="12"/>
               <line x1="3" y1="18" x2="21" y2="18"/>
             </svg>
           </button>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => navigate('/history')}
+              style={{
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '20px',
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#0f172a',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <span>🚗</span>
+              <span>Trips</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/admin')}
+              style={{
+                background: '#3b82f6',
+                border: 'none',
+                borderRadius: '20px',
+                padding: '6px 14px',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: '#ffffff',
+                boxShadow: '0 2px 8px rgba(59,130,246,0.3)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <span>⚙️</span>
+              <span>Admin</span>
+            </button>
+          </div>
         </div>
 
         {/* Bottom Card */}

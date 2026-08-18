@@ -113,6 +113,91 @@ async function seedInitialData() {
       });
       console.log('🛡️ Default cancellation policy rule seeded');
     }
+
+    // 4. Seed Demo Users (Rider, Car Captain, Auto Captain, Admin)
+    const bcrypt = require('bcryptjs');
+    const User = require('./models/User');
+    const hashedPassword = await bcrypt.hash('password123', 10);
+    const adminHashedPassword = await bcrypt.hash('adminpassword123', 10);
+
+    // Rider
+    let rider = await User.findOne({ phone: '9000000001' });
+    if (!rider) {
+      await User.create({
+        name: 'Alex Rider',
+        email: 'rider@uberclone.com',
+        phone: '9000000001',
+        password: hashedPassword,
+        userType: 'customer',
+        walletBalance: 500,
+        rating: 4.9
+      });
+      console.log('👤 Demo Rider seeded: 9000000001 / password123');
+    }
+
+    // Car Captain (Approved)
+    let driver1 = await User.findOne({ phone: '9000000002' });
+    if (!driver1) {
+      await User.create({
+        name: 'Captain Vikram (Car)',
+        email: 'driver.vikram@uberclone.com',
+        phone: '9000000002',
+        password: hashedPassword,
+        userType: 'driver',
+        approvalStatus: 'APPROVED',
+        rating: 4.9,
+        vehicleDetails: {
+          vehicleType: 'UberGo',
+          model: 'Maruti Swift Dzire',
+          licensePlate: 'KA 01 AB 1234',
+          color: 'Pearl White',
+          year: 2023,
+          vehiclePhoto: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=500'
+        },
+        documents: {
+          drivingLicense: { documentNumber: 'DL-KA01-2022001', status: 'APPROVED' },
+          vehicleRC: { documentNumber: 'RC-KA01-AB1234', status: 'APPROVED' },
+          vehicleInsurance: { documentNumber: 'INS-HDFC-9921', status: 'APPROVED' }
+        }
+      });
+      console.log('🚗 Demo Car Captain seeded: 9000000002 / password123 (Approved)');
+    }
+
+    // Auto Captain (Approved)
+    let driver2 = await User.findOne({ phone: '9000000003' });
+    if (!driver2) {
+      await User.create({
+        name: 'Captain Suresh (Auto)',
+        email: 'driver.suresh@uberclone.com',
+        phone: '9000000003',
+        password: hashedPassword,
+        userType: 'driver',
+        approvalStatus: 'APPROVED',
+        rating: 4.8,
+        vehicleDetails: {
+          vehicleType: 'Uber Auto',
+          model: 'Bajaj Compact Auto',
+          licensePlate: 'KA 01 AC 5678',
+          color: 'Yellow-Green',
+          year: 2022
+        }
+      });
+      console.log('🛺 Demo Auto Captain seeded: 9000000003 / password123 (Approved)');
+    }
+
+    // Admin
+    let admin = await User.findOne({ phone: '9000000000' });
+    if (!admin) {
+      await User.create({
+        name: 'Super Admin',
+        email: 'admin@uberclone.com',
+        phone: '9000000000',
+        password: adminHashedPassword,
+        userType: 'admin',
+        role: 'SUPER_ADMIN'
+      });
+      console.log('👑 Demo Admin seeded: 9000000000 / adminpassword123');
+    }
   } catch (err) {
     console.error('Seed data error:', err.message);
   }

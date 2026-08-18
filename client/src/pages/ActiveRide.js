@@ -428,21 +428,54 @@ function ActiveRide({ user }) {
           height="100%"
         />
         
-        {/* Back/Close Button */}
-        {!isTripActive && rideStatus !== 'TRIP_COMPLETED' && (
-          <button className="close-btn" onClick={() => setShowCancelSheet(true)} title="Cancel ride">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+        {/* Top Floating Navigation Bar */}
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          right: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          zIndex: 1000,
+          pointerEvents: 'none'
+        }}>
+          <button
+            onClick={() => {
+              if (['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus)) {
+                setShowCancelSheet(true);
+              } else {
+                navigate('/');
+              }
+            }}
+            title="Go Back"
+            style={{
+              pointerEvents: 'auto',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              borderRadius: '24px',
+              padding: '8px 16px',
+              fontSize: '13px',
+              fontWeight: 800,
+              color: '#0f172a',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>←</span>
+            <span>Back</span>
           </button>
-        )}
 
-        {/* Status Pill */}
-        <div className={`status-pill ${rideStatus}`}>
-          {['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
-            <div className="searching-dots"><span></span><span></span><span></span></div>
-          )}
-          <span>{getStatusMessage()}</span>
+          {/* Status Pill */}
+          <div className={`status-pill ${rideStatus}`} style={{ pointerEvents: 'auto', position: 'static', margin: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+            {['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
+              <div className="searching-dots"><span></span><span></span><span></span></div>
+            )}
+            <span>{getStatusMessage()}</span>
+          </div>
         </div>
       </div>
 

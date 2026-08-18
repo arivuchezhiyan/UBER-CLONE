@@ -72,6 +72,21 @@ function LoginPage({ onLogin }) {
     }
   };
 
+  const handleQuickDemoLogin = async (demoPhone, demoPassword) => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await loginUser({ phone: demoPhone, password: demoPassword });
+      const { token, user } = response.data;
+      localStorage.setItem('token', token);
+      onLogin(user);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Quick login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="login-app">
       <div className="login-content">
@@ -118,12 +133,51 @@ function LoginPage({ onLogin }) {
               Continue with Google
             </button>
 
-            <button className="social-btn apple">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
-              </svg>
-              Continue with Apple
-            </button>
+            {/* Instant Demo Accounts Selector */}
+            <div className="demo-accounts-card" style={{ marginTop: '16px', padding: '14px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #cbd5e1' }}>
+              <div style={{ fontWeight: 800, fontSize: '12px', color: '#0f172a', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>⚡</span>
+                <span>Instant 1-Click Demo Login:</span>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => handleQuickDemoLogin('9000000001', 'password123')}
+                  disabled={loading}
+                  style={{ padding: '10px 8px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  👤 Demo Rider
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickDemoLogin('9000000002', 'password123')}
+                  disabled={loading}
+                  style={{ padding: '10px 8px', background: '#16a34a', color: 'white', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  🚗 Car Captain
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickDemoLogin('9000000003', 'password123')}
+                  disabled={loading}
+                  style={{ padding: '10px 8px', background: '#d97706', color: 'white', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  🛺 Auto Captain
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickDemoLogin('9000000000', 'adminpassword123')}
+                  disabled={loading}
+                  style={{ padding: '10px 8px', background: '#475569', color: 'white', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  👑 Super Admin
+                </button>
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '8px', textAlign: 'center' }}>
+                Password for Rider/Captains: <strong>password123</strong>
+              </div>
+            </div>
 
             <p className="register-link">
               Don't have an account? <Link to="/register">Sign up</Link>
