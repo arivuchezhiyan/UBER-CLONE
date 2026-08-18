@@ -12,6 +12,12 @@ function CustomerHome({ user }) {
   const [dropoff, setDropoff] = useState('');
   const [activeField, setActiveField] = useState('dropoff');
 
+  // Schedule Ride States
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
+  const [isScheduled, setIsScheduled] = useState(false);
+
   const suggestedPlaces = [
     { id: 1, name: 'Home', address: 'Koramangala 4th Block', icon: '🏠', saved: true },
     { id: 2, name: 'Work', address: 'Whitefield Tech Park', icon: '💼', saved: true },
@@ -21,16 +27,18 @@ function CustomerHome({ user }) {
     { id: 6, name: 'Koramangala', address: 'Sony World Signal', icon: '📍' },
   ];
 
+  // Get current location
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setCurrentLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setPickup('Current location');
+          setCurrentLocation({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          });
         },
         () => {
           setCurrentLocation({ lat: 12.9716, lng: 77.5946 });
-          setPickup('Current location');
         }
       );
     }
@@ -43,14 +51,30 @@ function CustomerHome({ user }) {
       setDropoff(place.name);
       // Navigate to booking when destination is selected
       setTimeout(() => {
-        navigate('/book', { state: { pickup: pickup || 'Current location', dropoff: place.name } });
+        navigate('/book', {
+          state: {
+            pickup: pickup || 'Current location',
+            dropoff: place.name,
+            isScheduled,
+            scheduledDate,
+            scheduledTime
+          }
+        });
       }, 200);
     }
   };
 
   const handleConfirm = () => {
     if (pickup && dropoff) {
-      navigate('/book', { state: { pickup, dropoff } });
+      navigate('/book', {
+        state: {
+          pickup,
+          dropoff,
+          isScheduled,
+          scheduledDate,
+          scheduledTime
+        }
+      });
     }
   };
 
@@ -131,12 +155,20 @@ function CustomerHome({ user }) {
             </div>
             <span className="search-placeholder">Where to?</span>
             <div className="search-divider"></div>
-            <button className="search-now-btn">
+            <button 
+              className={`search-now-btn ${isScheduled ? 'scheduled-active' : ''}`}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowScheduleModal(true);
+              }}
+              title="Schedule a Ride for Future"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"/>
                 <polyline points="12 6 12 12 16 14"/>
               </svg>
-              Now
+              <span>{isScheduled ? `${scheduledTime || 'Scheduled'}` : 'Now'}</span>
               <svg viewBox="0 0 24 24" fill="currentColor" width="12">
                 <path d="M7 10l5 5 5-5z"/>
               </svg>
@@ -151,7 +183,15 @@ function CustomerHome({ user }) {
                 className="suggestion-item"
                 onClick={() => {
                   setDropoff(place.name);
-                  navigate('/book', { state: { pickup: pickup || 'Current location', dropoff: place.name } });
+                  navigate('/book', {
+                    state: {
+                      pickup: pickup || 'Current location',
+                      dropoff: place.name,
+                      isScheduled,
+                      scheduledDate,
+                      scheduledTime
+                    }
+                  });
                 }}
               >
                 <div className="suggestion-icon">{place.icon}</div>
@@ -171,21 +211,19 @@ function CustomerHome({ user }) {
               </div>
               <span>Ride</span>
             </div>
-            <div className="service-item">
+            <div className="service-item" onClick={() => setShowSearch(true)}>
               <div className="service-icon-wrapper">
                 <img src="https://d1a3f4spazzrp4.cloudfront.net/car-types/haloProductImages/v1.1/Moto.png" alt="Two Wheeler" className="service-img"/>
               </div>
               <span>Two Wheeler</span>
             </div>
-            <div className="service-item">
-              <div className="service-icon-wrapper package">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-                </svg>
+            <div className="service-item" onClick={() => setShowScheduleModal(true)}>
+              <div className="service-icon-wrapper package" style={{ background: '#2563eb' }}>
+                <span style={{ fontSize: '24px' }}>🕒</span>
               </div>
-              <span>Package</span>
+              <span>Reserve</span>
             </div>
-            <div className="service-item">
+            <div className="service-item" onClick={() => setShowSearch(true)}>
               <div className="service-icon-wrapper rentals">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
@@ -221,6 +259,90 @@ function CustomerHome({ user }) {
             <span>Account</span>
           </div>
         </nav>
+
+        {/* SCHEDULE RIDE MODAL */}
+        {showScheduleModal && (
+          <div className="modal-overlay" style={{ zIndex: 999999 }}>
+            <div className="schedule-ride-modal">
+              <div className="schedule-modal-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '22px' }}>🕒</span>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Schedule a Ride</h3>
+                </div>
+                <button 
+                  type="button" 
+                  className="close-schedule-btn" 
+                  onClick={() => setShowScheduleModal(false)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <p className="schedule-modal-subtext">
+                Choose your exact pickup date and time in advance. A captain will arrive right on schedule.
+              </p>
+
+              {/* Date Selection */}
+              <div className="schedule-field-group">
+                <label>Pickup Date</label>
+                <input 
+                  type="date" 
+                  className="schedule-input"
+                  min={new Date().toISOString().split('T')[0]}
+                  value={scheduledDate || new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setScheduledDate(e.target.value)}
+                />
+              </div>
+
+              {/* Time Selection */}
+              <div className="schedule-field-group">
+                <label>Pickup Time</label>
+                <input 
+                  type="time" 
+                  className="schedule-input"
+                  value={scheduledTime || '10:00'}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                />
+              </div>
+
+              <div className="schedule-info-box">
+                <span>💡</span>
+                <p>Extra wait time included to meet your ride. Free cancellation up to 60 min before pickup.</p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="schedule-actions-row">
+                <button 
+                  type="button" 
+                  className="btn-clear-schedule"
+                  onClick={() => {
+                    setIsScheduled(false);
+                    setScheduledDate('');
+                    setScheduledTime('');
+                    setShowScheduleModal(false);
+                  }}
+                >
+                  Ride Now
+                </button>
+                <button 
+                  type="button" 
+                  className="btn-confirm-schedule"
+                  onClick={() => {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const chosenDate = scheduledDate || todayStr;
+                    const chosenTime = scheduledTime || '10:00';
+                    setScheduledDate(chosenDate);
+                    setScheduledTime(chosenTime);
+                    setIsScheduled(true);
+                    setShowScheduleModal(false);
+                  }}
+                >
+                  Set Pickup Time
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

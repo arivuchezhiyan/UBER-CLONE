@@ -10,6 +10,9 @@ function BookRide({ user }) {
   const location = useLocation();
   const [pickup, setPickup] = useState(location.state?.pickup || '');
   const [dropoff, setDropoff] = useState(location.state?.dropoff || '');
+  const isScheduled = location.state?.isScheduled || false;
+  const scheduledDate = location.state?.scheduledDate || '';
+  const scheduledTime = location.state?.scheduledTime || '';
   const [pickupCoords, setPickupCoords] = useState(null);
   const [dropoffCoords, setDropoffCoords] = useState(null);
   const [selectedRide, setSelectedRide] = useState(null);
@@ -126,7 +129,10 @@ function BookRide({ user }) {
         vehicleType: selectedRide.name,
         estimatedDistance,
         estimatedDuration: Math.round(estimatedDistance * 3),
-        paymentMethod
+        paymentMethod,
+        isScheduled,
+        scheduledDate,
+        scheduledTime
       });
       
       if (response.data.success) {
@@ -189,6 +195,24 @@ function BookRide({ user }) {
       <div className="vehicle-sheet">
         <div className="sheet-header">
           <div className="drag-indicator"></div>
+          {isScheduled && (
+            <div style={{
+              background: '#eff6ff',
+              border: '1.5px solid #93c5fd',
+              color: '#1d4ed8',
+              borderRadius: '20px',
+              padding: '6px 14px',
+              fontSize: '12px',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginBottom: '8px'
+            }}>
+              <span>🕒</span>
+              <span>Scheduled for {scheduledDate || 'Today'} at {scheduledTime || '10:00'}</span>
+            </div>
+          )}
           <div className="trip-info">
             <span className="distance">{estimatedDistance} km</span>
             <span className="separator">•</span>
@@ -251,17 +275,18 @@ function BookRide({ user }) {
           </svg>
         </div>
 
-        {/* Confirm Button */}
+        {/* Confirm / Schedule Button */}
         <button 
           className="confirm-ride-btn"
           onClick={handleConfirmRide}
           disabled={!selectedRide || loading}
+          style={isScheduled ? { background: '#2563eb' } : {}}
         >
           {loading ? (
             <div className="loading-spinner"></div>
           ) : (
             <>
-              <span>Confirm {selectedRide?.name || 'Ride'}</span>
+              <span>{isScheduled ? `Schedule ${selectedRide?.name || 'Ride'}` : `Confirm ${selectedRide?.name || 'Ride'}`}</span>
               <span className="btn-price">₹{selectedRide ? calculateFare(selectedRide) : 0}</span>
             </>
           )}
