@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDriverUpiId, updateDriverUpiId, getDriverWallet, requestWithdrawal, updateUserProfile } from '../services/api';
+import { getDriverUpiId, updateDriverUpiId, getDriverWallet, requestWithdrawal, updateUserProfile, getWalletBalance } from '../services/api';
 import BackButton from '../components/BackButton/BackButton';
 import './Profile.css';
 
@@ -14,6 +14,7 @@ function Profile({ user, onLogout }) {
   const [upiId, setUpiId] = useState('');
   const [newUpiId, setNewUpiId] = useState('');
   const [driverWallet, setDriverWallet] = useState(0);
+  const [customerWallet, setCustomerWallet] = useState(user?.walletBalance || 0);
   const [withdrawals, setWithdrawals] = useState([]);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawPhone, setWithdrawPhone] = useState('');
@@ -26,10 +27,18 @@ function Profile({ user, onLogout }) {
 
   const isDriver = user?.userType === 'driver';
 
-  // Fetch driver data
+  // Fetch wallet & profile data
   useEffect(() => {
     if (isDriver) {
       fetchDriverData();
+    } else {
+      getWalletBalance()
+        .then(res => {
+          if (res.data?.success) {
+            setCustomerWallet(res.data.balance || 0);
+          }
+        })
+        .catch(() => {});
     }
   }, [isDriver]);
 
@@ -39,10 +48,10 @@ function Profile({ user, onLogout }) {
         getDriverUpiId(),
         getDriverWallet()
       ]);
-      setUpiId(upiRes.data.upiId || '');
-      setNewUpiId(upiRes.data.upiId || '');
-      setDriverWallet(walletRes.data.balance || 0);
-      setWithdrawals(walletRes.data.withdrawals || []);
+      setUpiId(upiRes.data?.upiId || '');
+      setNewUpiId(upiRes.data?.upiId || '');
+      setDriverWallet(walletRes.data?.balance || 0);
+      setWithdrawals(walletRes.data?.withdrawals || []);
     } catch (err) {
       console.error('Failed to fetch driver data:', err);
     }
@@ -110,9 +119,11 @@ function Profile({ user, onLogout }) {
   const menuItems = [
     { icon: '🚗', label: 'My Trips', action: () => navigate('/history') },
     ...(isDriver ? [
-      { icon: '📄', label: 'Vehicle & KYC Documents', action: () => navigate('/driver/documents') },
-      { icon: '💰', label: 'Wallet & Earnings', action: () => setShowWalletModal(true) }
-    ] : []),
+      { icon: '💰', label: `Driver Wallet (₹${driverWallet})`, action: () => setShowWalletModal(true) },
+      { icon: '📄', label: 'Vehicle & KYC Documents', action: () => navigate('/driver/documents') }
+    ] : [
+      { icon: '💳', label: `Uber Cash Wallet (₹${customerWallet})`, action: () => alert(`Your Uber Cash Balance is ₹${customerWallet}`) }
+    ]),
     ...(user?.userType === 'admin' || user?.role === 'ADMIN' ? [
       { icon: '⚙️', label: 'Admin Portal', action: () => navigate('/admin') }
     ] : []),

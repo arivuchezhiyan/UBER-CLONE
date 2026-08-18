@@ -353,6 +353,71 @@ router.post('/wallet/add', auth, async (req, res) => {
   }
 });
 
+// Confirm Online / QR / Cash Payment & Settle Driver Wallet
+router.post('/confirm-online-payment', auth, async (req, res) => {
+  try {
+    const { bookingId, amount, paymentMethod = 'upi' } = req.body;
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    booking.paymentStatus = 'completed';
+    booking.paymentMethod = paymentMethod;
+    booking.status = 'SETTLED';
+    await booking.save();
+
+    const driverEarnings = booking.fareBreakdown?.driverEarnings || Math.round((Number(amount) || booking.actualFare || 100) * 0.8);
+
+    // 1. Credit Driver Wallet in double-entry ledger
+    await WalletService.creditRideEarnings(
+      booking.driverId || req.userId,
+      booking._id,
+      driverEarnings,
+      booking.rideNumber || 'PAYMENT'
+    );
+
+    // 2. Increment driver wallet & earnings on User model
+    await User.findByIdAndUpdate(booking.driverId || req.userId, {
+      $inc: {
+        driverWallet: driverEarnings,
+        'earnings.today': driverEarnings,
+        'earnings.weekly': driverEarnings,
+        'earnings.total': driverEarnings,
+        totalTrips: 1
+      }
+    });
+
+    // 3. Emit real-time payment-completed event to all listeners
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('payment-completed', {
+        bookingId: booking._id,
+        status: 'SETTLED',
+        amount: amount || booking.actualFare,
+        driverEarnings
+      });
+      if (booking.customerId) {
+        io.emit(`payment-completed-${booking.customerId}`, {
+          bookingId: booking._id,
+          status: 'SETTLED',
+          amount: amount || booking.actualFare
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Payment confirmed & driver wallet credited successfully',
+      booking,
+      driverEarnings
+    });
+  } catch (err) {
+    console.error('Error confirming payment:', err);
+    res.status(500).json({ success: false, message: 'Failed to confirm payment', error: err.message });
+  }
+});
+
 // Get customer & driver wallet balance
 router.get('/wallet/balance', auth, async (req, res) => {
   try {
@@ -362,7 +427,7 @@ router.get('/wallet/balance', auth, async (req, res) => {
     res.json({ 
       success: true, 
       balance: user?.walletBalance || 0,
-      driverWallet: ledgerDetails.wallet.balance,
+      driverWallet: ledgerDetails?.wallet?.balance || user?.driverWallet || 0,
       ledger: ledgerDetails
     });
   } catch (err) {

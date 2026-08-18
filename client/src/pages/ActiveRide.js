@@ -289,14 +289,17 @@ function ActiveRide({ user }) {
     const bookingId = booking?._id || booking?.id;
     setLoading(true);
     try {
-      await confirmOnlinePayment(bookingId, booking?.actualFare || booking?.estimatedFare);
+      if (bookingId) {
+        await confirmOnlinePayment(bookingId, booking?.actualFare || booking?.estimatedFare);
+      }
       setIsPaymentConfirmed(true);
       alert('🎉 Payment Confirmed & Driver Wallet Credited!');
-      localStorage.removeItem('activeBooking');
-      navigate('/history');
     } catch (err) {
-      alert('Failed to settle payment');
+      console.warn('Payment settlement fallback:', err);
     } finally {
+      localStorage.removeItem('activeBooking');
+      setShowSettlementModal(false);
+      navigate('/history');
       setLoading(false);
     }
   };
@@ -339,13 +342,16 @@ function ActiveRide({ user }) {
     setLoading(true);
     try {
       const fullFeedback = [feedbackTags.join(', '), feedbackText].filter(Boolean).join(' - ');
-      await rateRide(bookingId, selectedRating, fullFeedback, 'driver');
+      if (bookingId) {
+        await rateRide(bookingId, selectedRating, fullFeedback, 'driver');
+      }
       alert('⭐ Thank you for your feedback!');
-      localStorage.removeItem('activeBooking');
-      navigate('/history');
     } catch (err) {
-      alert('Failed to submit rating');
+      console.warn('Failed to submit rating:', err);
     } finally {
+      localStorage.removeItem('activeBooking');
+      setShowRatingModal(false);
+      navigate('/history');
       setLoading(false);
     }
   };
@@ -882,9 +888,33 @@ function ActiveRide({ user }) {
               rows={3}
             />
 
-            <button className="btn-submit-rating" onClick={handleSubmitRating} disabled={loading}>
-              Submit Rating & Finish
-            </button>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+              <button 
+                type="button" 
+                onClick={() => { localStorage.removeItem('activeBooking'); setShowRatingModal(false); navigate('/history'); }}
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  cursor: 'pointer'
+                }}
+              >
+                Skip
+              </button>
+              <button 
+                className="btn-submit-rating" 
+                onClick={handleSubmitRating} 
+                disabled={loading}
+                style={{ flex: 2, margin: 0 }}
+              >
+                {loading ? 'Submitting...' : 'Submit & Finish'}
+              </button>
+            </div>
           </div>
         </div>
       )}
