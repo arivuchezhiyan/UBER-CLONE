@@ -514,7 +514,9 @@ const completeRide = async (req, res) => {
 // ============================================================
 const cancelRide = async (req, res) => {
   try {
-    const { bookingId, reason = 'No reason specified', reasonCode = 'OTHER', cancelledBy = 'customer' } = req.body;
+    const { bookingId, reason = 'No reason specified', reasonCode = 'OTHER' } = req.body;
+    const rawCancelledBy = (req.body.cancelledBy || 'customer').toString().toLowerCase();
+    const cancelledBy = ['driver', 'customer', 'admin'].includes(rawCancelledBy) ? rawCancelledBy : 'customer';
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {
