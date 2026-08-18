@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { registerUser } from '../services/api';
+import BackButton from '../components/BackButton/BackButton';
 import './RegisterPage.css';
 
 function RegisterPage({ onLogin }) {
@@ -68,9 +69,15 @@ function RegisterPage({ onLogin }) {
   return (
     <div className="register-app">
       <div className="register-content">
-        {/* Logo */}
-        <div className="logo-section">
-          <h1 className="logo">Uber</h1>
+        {/* Top Header with Back Navigation */}
+        <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {step === 1 ? (
+            <BackButton to="/login" label="Login" />
+          ) : (
+            <BackButton onClick={() => setStep(step - 1)} label="Back" />
+          )}
+          <h1 className="logo" style={{ margin: 0 }}>Uber</h1>
+          <div style={{ width: '60px' }}></div>
         </div>
 
         {/* Progress */}
@@ -105,11 +112,6 @@ function RegisterPage({ onLogin }) {
         {/* Step 2: Name */}
         {step === 2 && (
           <div className="register-form">
-            <button className="back-btn" onClick={() => setStep(1)}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
             <h2>What's your name?</h2>
             <input
               type="text"
@@ -134,11 +136,6 @@ function RegisterPage({ onLogin }) {
         {/* Step 3: Email */}
         {step === 3 && (
           <div className="register-form">
-            <button className="back-btn" onClick={() => setStep(2)}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
             <h2>What's your email?</h2>
             <input
               type="email"
@@ -156,11 +153,6 @@ function RegisterPage({ onLogin }) {
         {/* Step 4: Password */}
         {step === 4 && (
           <div className="register-form">
-            <button className="back-btn" onClick={() => setStep(3)}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
             <h2>Create a password</h2>
             <input
               type="password"
@@ -178,11 +170,6 @@ function RegisterPage({ onLogin }) {
         {/* Step 5: User Type */}
         {step === 5 && (
           <div className="register-form">
-            <button className="back-btn" onClick={() => setStep(4)}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
             <h2>How will you use Uber?</h2>
             
             <div 

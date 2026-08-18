@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RideMap from '../components/Map/RideMap';
+import BackButton from '../components/BackButton/BackButton';
 import './CustomerHome.css';
 
 function CustomerHome({ user }) {
@@ -227,14 +228,14 @@ function CustomerHome({ user }) {
   // Search screen
   return (
     <div className="uber-search-screen">
-      {/* Header */}
-      <div className="search-header">
-        <button className="back-btn" onClick={() => setShowSearch(false)}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-        </button>
-        
+      {/* Search Header */}
+      <div className="search-top-bar">
+        <BackButton onClick={() => setShowSearch(false)} label="Back" />
+        <span className="search-screen-title">Where to?</span>
+        <div style={{ width: '60px' }}></div>
+      </div>
+
+      <div className="search-inputs-card">
         <div className="location-inputs">
           <div className="input-row">
             <div className="input-dot pickup"></div>
@@ -262,7 +263,7 @@ function CustomerHome({ user }) {
           </div>
         </div>
 
-        <button className="add-stop-btn">
+        <button className="add-stop-btn" title="Add Stop">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="12" y1="5" x2="12" y2="19"/>
             <line x1="5" y1="12" x2="19" y2="12"/>
