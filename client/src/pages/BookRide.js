@@ -289,6 +289,11 @@ function BookRide({ user }) {
           dropoff={dropoffCoords ? [dropoffCoords.lat, dropoffCoords.lng] : null}
           showRoute={true}
           height="100%"
+          onRouteCalculated={({ distanceKm }) => {
+            if (distanceKm && distanceKm > 0) {
+              setEstimatedDistance(distanceKm);
+            }
+          }}
         />
         
         {/* Floating Universal Back Button - Icon Only */}

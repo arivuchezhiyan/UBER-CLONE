@@ -27,11 +27,9 @@ const pickupIcon = L.divIcon({
 const dropoffIcon = L.divIcon({
   className: 'uber-marker',
   html: `<div class="uber-dropoff-marker"></div>`,
-  iconSize: [12, 12],
-  iconAnchor: [6, 6],
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
 });
-
-// Car icon is created dynamically in AnimatedCar for rotation
 
 // User location icon (blue dot like Google Maps)
 const userLocationIcon = L.divIcon({
@@ -44,18 +42,21 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [12, 12],
 });
 
-// Component to fit bounds when positions change
-function FitBounds({ pickup, dropoff }) {
+// Component to fit bounds when positions or road path changes
+function FitBounds({ pickup, dropoff, routePath }) {
   const map = useMap();
   
   useEffect(() => {
-    if (pickup && dropoff) {
+    if (routePath && routePath.length > 1) {
+      const bounds = L.latLngBounds(routePath);
+      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 16 });
+    } else if (pickup && dropoff) {
       const bounds = L.latLngBounds([pickup, dropoff]);
-      map.fitBounds(bounds, { padding: [80, 80], maxZoom: 16 });
+      map.fitBounds(bounds, { padding: [70, 70], maxZoom: 16 });
     } else if (pickup) {
       map.setView(pickup, 16);
     }
-  }, [map, pickup, dropoff]);
+  }, [map, pickup, dropoff, routePath]);
   
   return null;
 }
@@ -69,18 +70,18 @@ function MapControls({ onLocateUser }) {
   
   return (
     <div className="uber-map-controls">
-      <button className="uber-map-btn" onClick={handleZoomIn}>
+      <button className="uber-map-btn" onClick={handleZoomIn} title="Zoom In">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
       </button>
-      <button className="uber-map-btn" onClick={handleZoomOut}>
+      <button className="uber-map-btn" onClick={handleZoomOut} title="Zoom Out">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
       </button>
-      <button className="uber-map-btn locate" onClick={onLocateUser}>
+      <button className="uber-map-btn locate" onClick={onLocateUser} title="My Location">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="3"></circle>
           <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
@@ -90,22 +91,33 @@ function MapControls({ onLocateUser }) {
   );
 }
 
-// Animated car marker
-function AnimatedCar({ from, to, progress }) {
-  const [position, setPosition] = useState(from);
+// Animated car marker that follows the exact road waypoints
+function AnimatedCar({ path, progress = 0 }) {
+  const [position, setPosition] = useState(null);
   const [rotation, setRotation] = useState(0);
   
   useEffect(() => {
-    if (from && to) {
-      const lat = from[0] + (to[0] - from[0]) * progress;
-      const lng = from[1] + (to[1] - from[1]) * progress;
-      setPosition([lat, lng]);
-      
-      // Calculate rotation angle
-      const angle = Math.atan2(to[1] - from[1], to[0] - from[0]) * (180 / Math.PI);
-      setRotation(angle);
-    }
-  }, [from, to, progress]);
+    if (!path || path.length < 2) return;
+    
+    // Interpolate along the array of road waypoints
+    const totalSegments = path.length - 1;
+    const clampedProgress = Math.max(0, Math.min(1, progress));
+    const targetIndex = clampedProgress * totalSegments;
+    const lowerIndex = Math.floor(targetIndex);
+    const upperIndex = Math.min(lowerIndex + 1, totalSegments);
+    const segmentProgress = targetIndex - lowerIndex;
+
+    const fromPt = path[lowerIndex];
+    const toPt = path[upperIndex] || fromPt;
+
+    const lat = fromPt[0] + (toPt[0] - fromPt[0]) * segmentProgress;
+    const lng = fromPt[1] + (toPt[1] - fromPt[1]) * segmentProgress;
+    setPosition([lat, lng]);
+
+    // Compute heading / bearing angle
+    const angle = Math.atan2(toPt[1] - fromPt[1], toPt[0] - fromPt[0]) * (180 / Math.PI);
+    setRotation(angle);
+  }, [path, progress]);
   
   if (!position) return null;
   
@@ -113,7 +125,7 @@ function AnimatedCar({ from, to, progress }) {
     className: 'uber-marker',
     html: `<div class="uber-car-marker" style="transform: rotate(${rotation}deg)">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H6.5C5.84 5 5.29 5.42 5.08 6.01L3 12V20C3 20.55 3.45 21 4 21H5C5.55 21 6 20.55 6 20V19H18V20C18 20.55 18.45 21 19 21H20C20.55 21 21 20.55 21 20V12L18.92 6.01ZM6.5 16C5.67 16 5 15.33 5 14.5S5.67 13 6.5 13 8 13.67 8 14.5 7.33 16 6.5 16ZM17.5 16C16.67 16 16 15.33 16 14.5S16.67 13 17.5 13 19 13.67 19 14.5 18.33 16 17.5 16ZM5 11L6.5 6.5H17.5L19 11H5Z" fill="black"/>
+        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5H6.5C5.84 5 5.29 5.42 5.08 6.01L3 12V20C3 20.55 3.45 21 4 21H5C5.55 21 6 20.55 6 20V19H18V20C18 20.55 18.45 21 19 21H20C20.55 21 21 20.55 21 20V12L18.92 6.01ZM6.5 16C5.67 16 5 15.33 5 14.5S5.67 13 6.5 13 8 13.67 8 14.5 7.33 16 6.5 16ZM17.5 16C16.67 16 16 15.33 16 14.5S16.67 13 17.5 13 19 13.67 19 14.5 18.33 16 17.5 16ZM5 11L6.5 6.5H17.5L19 11H5Z" fill="#0f172a"/>
       </svg>
     </div>`,
     iconSize: [32, 32],
@@ -121,6 +133,23 @@ function AnimatedCar({ from, to, progress }) {
   });
   
   return <Marker position={position} icon={rotatedCarIcon} />;
+}
+
+// Fallback generator for realistic Manhattan road turns if OSRM is unreachable
+function generateRoadNetworkFallback(start, end) {
+  if (!start || !end) return [];
+  const startLat = start[0];
+  const startLng = start[1];
+  const endLat = end[0];
+  const endLng = end[1];
+
+  // Creates realistic 90-degree road grid waypoints
+  const midPoint = [startLat, endLng];
+  return [
+    [startLat, startLng],
+    midPoint,
+    [endLat, endLng]
+  ];
 }
 
 function RideMap({ 
@@ -131,13 +160,15 @@ function RideMap({
   carProgress = 0,
   height = '100%',
   onMapClick,
+  onRouteCalculated,
   interactive = true
 }) {
   const mapRef = useRef(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [roadPath, setRoadPath] = useState([]);
   
-  // Default center (Bangalore)
-  const defaultCenter = [12.9716, 77.5946];
+  // Default center (Kelambakkam / Bangalore fallback)
+  const defaultCenter = [12.7871, 80.2185];
   
   // Get user's location
   useEffect(() => {
@@ -153,6 +184,59 @@ function RideMap({
       );
     }
   }, []);
+
+  // Fetch real road driving route from OSRM
+  useEffect(() => {
+    let isMounted = true;
+    if (pickup && dropoff && showRoute) {
+      const fetchRoadRoute = async () => {
+        try {
+          const startLat = pickup[0];
+          const startLng = pickup[1];
+          const endLat = dropoff[0];
+          const endLng = dropoff[1];
+
+          const res = await fetch(
+            `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`
+          );
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.routes && data.routes.length > 0) {
+              const route = data.routes[0];
+              // Convert GeoJSON [lng, lat] to Leaflet [lat, lng]
+              const coords = route.geometry.coordinates.map(pt => [pt[1], pt[0]]);
+              if (isMounted) {
+                setRoadPath(coords);
+              }
+              const distKm = +(route.distance / 1000).toFixed(1);
+              const durationMin = Math.max(1, Math.round(route.duration / 60));
+              if (onRouteCalculated) {
+                onRouteCalculated({ distanceKm: distKm, durationMin, routePath: coords });
+              }
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('OSRM router fallback:', err);
+        }
+
+        // Fallback road path
+        if (isMounted) {
+          const fallback = generateRoadNetworkFallback(pickup, dropoff);
+          setRoadPath(fallback);
+        }
+      };
+
+      fetchRoadRoute();
+    } else {
+      setRoadPath([]);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pickup?.[0], pickup?.[1], dropoff?.[0], dropoff?.[1], showRoute]);
   
   const handleLocateUser = () => {
     if (navigator.geolocation) {
@@ -172,30 +256,6 @@ function RideMap({
   
   const center = pickup || userLocation || defaultCenter;
   
-  // Generate curved route path for more realistic look
-  const generateCurvedRoute = (start, end) => {
-    if (!start || !end) return [];
-    
-    const points = [];
-    const numPoints = 20;
-    
-    // Add slight curve offset
-    const midLat = (start[0] + end[0]) / 2;
-    const midLng = (start[1] + end[1]) / 2;
-    const offset = 0.002; // Small offset for curve
-    
-    for (let i = 0; i <= numPoints; i++) {
-      const t = i / numPoints;
-      // Quadratic bezier curve
-      const lat = (1-t)*(1-t)*start[0] + 2*(1-t)*t*(midLat + offset) + t*t*end[0];
-      const lng = (1-t)*(1-t)*start[1] + 2*(1-t)*t*(midLng + offset) + t*t*end[1];
-      points.push([lat, lng]);
-    }
-    return points;
-  };
-  
-  const routePath = pickup && dropoff ? generateCurvedRoute(pickup, dropoff) : [];
-  
   return (
     <div className="uber-map-container" style={{ height }}>
       <MapContainer
@@ -210,33 +270,33 @@ function RideMap({
         scrollWheelZoom={interactive}
         attributionControl={false}
       >
-        {/* OpenStreetMap with labels - like Google Maps */}
+        {/* OpenStreetMap with road labels */}
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
         />
         
-        <FitBounds pickup={pickup} dropoff={dropoff} />
+        <FitBounds pickup={pickup} dropoff={dropoff} routePath={roadPath} />
         <MapControls onLocateUser={handleLocateUser} />
         
-        {/* Route Line - Uber style black line */}
-        {showRoute && routePath.length > 0 && (
+        {/* Real Road Driving Route Line */}
+        {showRoute && roadPath.length > 0 && (
           <>
-            {/* Shadow/outline */}
+            {/* Road border / highlight */}
             <Polyline
-              positions={routePath}
-              color="#000"
-              weight={6}
-              opacity={0.3}
+              positions={roadPath}
+              color="#2563eb"
+              weight={7}
+              opacity={0.35}
               lineCap="round"
               lineJoin="round"
             />
-            {/* Main route line */}
+            {/* Main high-contrast road line */}
             <Polyline
-              positions={routePath}
-              color="#000"
-              weight={4}
-              opacity={1}
+              positions={roadPath}
+              color="#0f172a"
+              weight={4.5}
+              opacity={0.95}
               lineCap="round"
               lineJoin="round"
             />
@@ -253,9 +313,9 @@ function RideMap({
           <Marker position={dropoff} icon={dropoffIcon} />
         )}
         
-        {/* Animated Car */}
-        {showCar && pickup && dropoff && (
-          <AnimatedCar from={pickup} to={dropoff} progress={carProgress} />
+        {/* Animated Car following exact road waypoints */}
+        {showCar && roadPath.length > 1 && (
+          <AnimatedCar path={roadPath} progress={carProgress} />
         )}
         
         {/* User Location - blue dot */}
