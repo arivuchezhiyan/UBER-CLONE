@@ -14,12 +14,13 @@ const userSchema = new mongoose.Schema({
   rating: { type: Number, default: 5.0, min: 1, max: 5 },
   numberOfRatings: { type: Number, default: 0 },
   totalTrips: { type: Number, default: 0 },
+  cancellationCount: { type: Number, default: 0 },
   
   // Driver specific fields & Approval Workflow
   approvalStatus: { 
     type: String, 
     enum: ['PENDING', 'APPROVED', 'REJECTED', 'SUSPENDED'], 
-    default: 'APPROVED' // Default approved for backward compatibility, new drivers will be pending
+    default: 'PENDING' // New drivers require KYC approval
   },
   approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   approvedAt: Date,
@@ -33,9 +34,18 @@ const userSchema = new mongoose.Schema({
     lastUpdated: Date
   },
   vehicleDetails: {
-    model: String,
-    licensePlate: String,
-    color: String
+    vehicleType: { type: String, enum: ['UberGo', 'Premier', 'UberXL', 'Auto', 'Moto', 'Sedan', 'SUV', 'Bike', 'Uber Auto', 'Uber Moto'], default: 'UberGo' },
+    model: { type: String, default: 'Swift Dzire' },
+    licensePlate: { type: String, default: 'KA 01 XX 1234' },
+    color: { type: String, default: 'White' },
+    year: { type: Number, default: 2022 },
+    vehiclePhoto: String // Base64 or image URL
+  },
+  documents: {
+    drivingLicense: { documentNumber: String, fileUrl: String, status: { type: String, default: 'PENDING' } },
+    vehicleRC: { documentNumber: String, fileUrl: String, status: { type: String, default: 'PENDING' } },
+    vehicleInsurance: { documentNumber: String, fileUrl: String, status: { type: String, default: 'PENDING' } },
+    vehiclePhoto: { fileUrl: String, status: { type: String, default: 'PENDING' } }
   },
   earnings: {
     today: { type: Number, default: 0 },
@@ -103,7 +113,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.index({ phone: 1 }, { unique: true });
 userSchema.index({ email: 1 }, { sparse: true });
-userSchema.index({ userType: 1, isOnline: 1 });
-userSchema.index({ approvalStatus: 1 });
+userSchema.index({ userType: 1, isOnline: 1, approvalStatus: 1 });
+userSchema.index({ 'vehicleDetails.vehicleType': 1 });
 
 module.exports = mongoose.model('User', userSchema);

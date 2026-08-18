@@ -23,21 +23,38 @@ class MatchingService {
     return Math.round(R * c * 100) / 100; // round to 2 decimals
   }
 
+  static isVehicleMatch(requestedType, driverVehicleType) {
+    if (!requestedType || !driverVehicleType) return true;
+    const req = requestedType.toLowerCase().replace(/\s+/g, '');
+    const drv = driverVehicleType.toLowerCase().replace(/\s+/g, '');
+
+    if (req === drv) return true;
+    if (req.includes('auto') && drv.includes('auto')) return true;
+    if ((req.includes('moto') || req.includes('bike')) && (drv.includes('moto') || drv.includes('bike'))) return true;
+    if ((req.includes('xl') || req.includes('suv')) && (drv.includes('xl') || drv.includes('suv'))) return true;
+    if ((req.includes('go') || req.includes('premier') || req.includes('sedan')) && 
+        (drv.includes('go') || drv.includes('premier') || drv.includes('sedan') || !drv)) return true;
+
+    return false;
+  }
+
   /**
    * Find and rank online nearby drivers based on distance, rating, and acceptance rate
    */
-  static async findRankedDrivers({ pickupLocation, vehicleType, excludeDriverIds = [], maxRadiusKm = 10 }) {
+  static async findRankedDrivers({ pickupLocation, vehicleType, excludeDriverIds = [], maxRadiusKm = 15 }) {
     const pickupLat = pickupLocation?.latitude || 12.9716;
     const pickupLng = pickupLocation?.longitude || 77.5946;
 
-    // 1. Fetch online drivers not in exclude list
+    // 1. Fetch online APPROVED drivers not in exclude list
     const candidateDrivers = await User.find({
       userType: 'driver',
       isOnline: true,
+      approvalStatus: { $in: ['APPROVED', 'approved'] },
+      isBlocked: { $ne: true },
       _id: { $nin: excludeDriverIds }
-    }).select('name phone rating acceptanceRate currentLocation vehicleDetails profileImage');
+    }).select('name phone rating acceptanceRate currentLocation vehicleDetails profileImage approvalStatus');
 
-    // 2. Filter out drivers currently assigned to active rides
+    // 2. Filter out drivers currently assigned to active rides and vehicle type mismatch
     const busyDriverIds = await Booking.find({
       status: {
         $in: [
@@ -55,9 +72,10 @@ class MatchingService {
 
     const busySet = new Set(busyDriverIds.map(id => id.toString()));
 
-    const availableDrivers = candidateDrivers.filter(
-      d => !busySet.has(d._id.toString())
-    );
+    const availableDrivers = candidateDrivers.filter(d => {
+      if (busySet.has(d._id.toString())) return false;
+      return this.isVehicleMatch(vehicleType, d.vehicleDetails?.vehicleType);
+    });
 
     // 3. Compute distance and ranking score for each driver
     const rankedList = [];

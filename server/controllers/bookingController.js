@@ -126,6 +126,13 @@ const requestRide = async (req, res) => {
 // ============================================================
 const getPendingRides = async (req, res) => {
   try {
+    const driverUser = await User.findById(req.userId);
+    if (!driverUser || driverUser.approvalStatus !== 'APPROVED') {
+      return res.json([]);
+    }
+
+    const driverVehicleType = driverUser.vehicleDetails?.vehicleType;
+
     const rides = await Booking.find({
       status: { $in: ['SEARCHING_DRIVER', 'searching'] }
     })
@@ -133,7 +140,8 @@ const getPendingRides = async (req, res) => {
       .sort({ requestedAt: -1 })
       .limit(15);
 
-    res.json(rides);
+    const filtered = rides.filter(r => MatchingService.isVehicleMatch(r.vehicleType, driverVehicleType));
+    res.json(filtered);
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error fetching rides', error: error.message });
   }
@@ -146,6 +154,16 @@ const acceptRide = async (req, res) => {
   try {
     const { bookingId } = req.body;
 
+    // Check if driver is verified and approved
+    const driverUser = await User.findById(req.userId);
+    if (!driverUser || driverUser.approvalStatus !== 'APPROVED') {
+      return res.status(403).json({
+        success: false,
+        message: 'Your driver account is pending verification. Please complete KYC and wait for admin approval.',
+        approvalStatus: driverUser?.approvalStatus || 'PENDING'
+      });
+    }
+
     // Check if driver is already on another active ride
     const driverActiveRide = await Booking.findOne({
       driverId: req.userId,
@@ -156,6 +174,15 @@ const acceptRide = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'You already have an active assigned ride. Complete it before accepting a new one.'
+      });
+    }
+
+    // Verify vehicle type match
+    const targetBooking = await Booking.findById(bookingId);
+    if (targetBooking && !MatchingService.isVehicleMatch(targetBooking.vehicleType, driverUser.vehicleDetails?.vehicleType)) {
+      return res.status(400).json({
+        success: false,
+        message: `Your registered vehicle (${driverUser.vehicleDetails?.vehicleType || 'Sedan'}) does not match the requested category (${targetBooking.vehicleType}).`
       });
     }
 

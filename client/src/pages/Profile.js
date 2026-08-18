@@ -108,13 +108,14 @@ function Profile({ user, onLogout }) {
 
   const menuItems = [
     { icon: '🚗', label: 'My Trips', action: () => navigate('/history') },
-    { icon: '💳', label: 'Payment', action: () => {} },
-    ...(isDriver ? [{ icon: '💰', label: 'Wallet & Earnings', action: () => setShowWalletModal(true) }] : []),
+    ...(isDriver ? [
+      { icon: '📄', label: 'Vehicle & KYC Documents', action: () => navigate('/driver/documents') },
+      { icon: '💰', label: 'Wallet & Earnings', action: () => setShowWalletModal(true) }
+    ] : []),
+    { icon: '⚙️', label: 'Admin Portal', action: () => navigate('/admin') },
     { icon: '🎁', label: 'Promotions', action: () => {} },
     { icon: '⭐', label: 'Rate us', action: () => {} },
     { icon: '❓', label: 'Help', action: () => {} },
-    { icon: '⚙️', label: 'Settings', action: () => {} },
-    { icon: '📋', label: 'Legal', action: () => {} },
   ];
 
   const handleLogout = () => {

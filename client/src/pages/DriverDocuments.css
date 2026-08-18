@@ -1,0 +1,365 @@
+.driver-docs-page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+}
+
+.docs-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.docs-top-bar h2 {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+  color: #0f172a;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: #e2e8f0;
+}
+
+.back-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.docs-toast {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 999;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.docs-toast.success { background: #10b981; color: white; }
+.docs-toast.error { background: #ef4444; color: white; }
+.docs-toast.info { background: #3b82f6; color: white; }
+
+.docs-content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Status Card */
+.status-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.status-card.approved {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.status-card.pending {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.status-card.rejected {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.status-card-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.status-icon {
+  font-size: 28px;
+}
+
+.status-card-header h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.status-card-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.btn-quick-fill {
+  margin-top: 14px;
+  background: #0f172a;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Form Sections */
+.form-section {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: #0f172a;
+}
+
+.section-subtext {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 16px;
+}
+
+.vehicle-type-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vehicle-type-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vehicle-type-card:hover {
+  border-color: #94a3b8;
+}
+
+.vehicle-type-card.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.vehicle-card-radio {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #cbd5e1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.vehicle-type-card.selected .vehicle-card-radio {
+  border-color: #2563eb;
+}
+
+.radio-dot {
+  width: 10px;
+  height: 10px;
+  background: #2563eb;
+  border-radius: 50%;
+}
+
+.vehicle-card-info h4 {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.vehicle-card-info p {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 500px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.form-group input {
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+}
+
+.form-group input:focus {
+  border-color: #2563eb;
+}
+
+.file-upload-box {
+  margin-top: 10px;
+}
+
+.upload-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.upload-dropzone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.upload-dropzone.small {
+  padding: 10px;
+}
+
+.file-input-label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563eb;
+  padding: 12px;
+}
+
+.file-input-label input[type="file"] {
+  display: none;
+}
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-preview-img {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-remove-photo {
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.doc-upload-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.doc-upload-item h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.submit-section {
+  position: sticky;
+  bottom: 0;
+  background: #ffffff;
+  padding: 16px;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+}
+
+.btn-submit-docs {
+  width: 100%;
+  padding: 16px;
+  background: #0f172a;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-submit-docs:hover {
+  background: #1e293b;
+}

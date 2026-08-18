@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPendingRides, acceptRide, updateDriverStatus, getDriverBookings } from '../services/api';
+import { getPendingRides, acceptRide, rejectRide, updateDriverStatus, getDriverBookings, getDriverDocuments } from '../services/api';
 import RideMap from '../components/Map/RideMap';
 import io from 'socket.io-client';
 import './DriverHome.css';
@@ -14,6 +14,9 @@ function DriverHome({ user }) {
   const [loading, setLoading] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(null);
   const [countdown, setCountdown] = useState(30);
+  const [approvalStatus, setApprovalStatus] = useState('APPROVED');
+  const [driverVehicle, setDriverVehicle] = useState(null);
+
   const socketRef = useRef(null);
   const declinedRidesRef = useRef(new Set());
   const isOnlineRef = useRef(false);
@@ -27,6 +30,18 @@ function DriverHome({ user }) {
     isOnlineRef.current = isOnline;
   }, [isOnline]);
 
+  // Load driver KYC & vehicle verification status
+  useEffect(() => {
+    getDriverDocuments()
+      .then(res => {
+        if (res.data?.success) {
+          setApprovalStatus(res.data.approvalStatus || 'APPROVED');
+          setDriverVehicle(res.data.vehicleDetails);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Socket connection
   useEffect(() => {
     socketRef.current = io(SOCKET_URL, {
@@ -35,13 +50,12 @@ function DriverHome({ user }) {
     });
 
     socketRef.current.on('connect', () => {
-      console.log('Socket connected');
       if (user?.id) {
         socketRef.current.emit('driver-online', user.id);
       }
     });
 
-    socketRef.current.on('new-ride-available', (rideData) => {
+    const handleNewRide = (rideData) => {
       if (isOnlineRef.current && !declinedRidesRef.current.has(rideData.bookingId)) {
         setRideRequest({
           id: rideData.bookingId,
@@ -53,11 +67,17 @@ function DriverHome({ user }) {
           distance: rideData.distance,
           duration: rideData.duration,
           paymentMethod: rideData.paymentMethod,
-          customer: rideData.customer
+          customer: rideData.customer,
+          vehicleType: rideData.vehicleType
         });
-        setCountdown(30);
+        setCountdown(rideData.timeoutSec || 30);
       }
-    });
+    };
+
+    socketRef.current.on('new-ride-available', handleNewRide);
+    if (user?.id) {
+      socketRef.current.on(`ride-request-driver-${user.id}`, handleNewRide);
+    }
 
     socketRef.current.on('ride-taken', (data) => {
       setRideRequest(prev => prev?.id === data.bookingId ? null : prev);
@@ -76,6 +96,20 @@ function DriverHome({ user }) {
     }
   }, []);
 
+  // Periodic heartbeat
+  useEffect(() => {
+    let hbInterval;
+    if (isOnline && currentLocation) {
+      hbInterval = setInterval(() => {
+        socketRef.current?.emit('driver-heartbeat', {
+          latitude: currentLocation.lat,
+          longitude: currentLocation.lng
+        });
+      }, 30000);
+    }
+    return () => clearInterval(hbInterval);
+  }, [isOnline, currentLocation]);
+
   // Fetch earnings
   useEffect(() => {
     const fetchEarnings = async () => {
@@ -85,10 +119,10 @@ function DriverHome({ user }) {
           const today = new Date();
           today.setHours(0, 0, 0, 0);
           const todayBookings = response.data.filter(b => 
-            b.status === 'completed' && new Date(b.completedAt) >= today
+            (b.status === 'completed' || b.status === 'SETTLED') && new Date(b.completedAt) >= today
           );
           setEarnings({
-            today: todayBookings.reduce((sum, b) => sum + (b.actualFare || b.estimatedFare || 0), 0),
+            today: todayBookings.reduce((sum, b) => sum + (b.fareBreakdown?.driverEarnings || b.actualFare || b.estimatedFare || 0), 0),
             trips: todayBookings.length
           });
         }
@@ -124,7 +158,8 @@ function DriverHome({ user }) {
             duration: `${availableRide.estimatedDuration || 15} min`,
             fare: availableRide.estimatedFare || 149,
             customerName: availableRide.customerId?.name || 'Customer',
-            paymentMethod: availableRide.paymentMethod || 'Cash'
+            paymentMethod: availableRide.paymentMethod || 'Cash',
+            vehicleType: availableRide.vehicleType
           });
           setCountdown(30);
         }
@@ -161,8 +196,14 @@ function DriverHome({ user }) {
     return () => clearInterval(timer);
   }, [rideRequest, countdown]);
 
-  // Toggle online status - FIXED
+  // Toggle online status with strict verification check
   const toggleOnlineStatus = async () => {
+    if (approvalStatus !== 'APPROVED') {
+      alert('⚠️ Verification Required: You must complete your KYC and vehicle verification before going online.');
+      navigate('/driver/documents');
+      return;
+    }
+
     setLoading(true);
     try {
       const newStatus = !isOnline;
@@ -175,19 +216,13 @@ function DriverHome({ user }) {
         } else {
           socketRef.current?.emit('driver-online', user?.id);
         }
-      } else {
-        // If no success field, assume it worked based on the newStatus
-        setIsOnline(newStatus);
-        if (newStatus) {
-          socketRef.current?.emit('driver-online', user?.id);
-        } else {
-          setRideRequest(null);
-        }
       }
     } catch (err) {
-      console.error('Status update error:', err);
-      // Toggle anyway for demo purposes
-      setIsOnline(prev => !prev);
+      if (err.response?.data?.approvalStatus) {
+        setApprovalStatus(err.response.data.approvalStatus);
+      }
+      alert(err.response?.data?.message || 'Verification required to go online.');
+      navigate('/driver/documents');
     } finally {
       setLoading(false);
     }
@@ -215,9 +250,16 @@ function DriverHome({ user }) {
     }
   };
 
-  const handleDeclineRide = () => {
+  const handleDeclineRide = async () => {
     if (rideRequest?.id) {
       declinedRidesRef.current.add(rideRequest.id);
+      socketRef.current?.emit('driver-reject-ride', {
+        bookingId: rideRequest.id,
+        reason: 'Driver declined request'
+      });
+      try {
+        await rejectRide(rideRequest.id, 'Driver declined request');
+      } catch (e) {}
       setTimeout(() => declinedRidesRef.current.delete(rideRequest.id), 5 * 60 * 1000);
     }
     setRideRequest(null);
@@ -238,7 +280,7 @@ function DriverHome({ user }) {
 
       {/* Top Header */}
       <div className="driver-header">
-        <button className="menu-btn" onClick={() => navigate('/profile')}>
+        <button className="menu-btn" onClick={() => navigate('/profile')} title="My Profile">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="3" y1="6" x2="21" y2="6"/>
             <line x1="3" y1="12" x2="21" y2="12"/>
@@ -247,18 +289,86 @@ function DriverHome({ user }) {
         </button>
         
         {/* Online Status Pill */}
-        <div className={`status-pill ${isOnline ? 'online' : 'offline'}`}>
+        <div 
+          className={`status-pill ${isOnline ? 'online' : 'offline'}`}
+          onClick={toggleOnlineStatus}
+          style={{ cursor: 'pointer' }}
+          title={isOnline ? 'Tap to go Offline' : 'Tap to go Online'}
+        >
           <div className="status-dot"></div>
           <span>{isOnline ? 'Online' : 'Offline'}</span>
         </div>
 
-        <button className="notif-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 01-3.46 0"/>
-          </svg>
-        </button>
+        {/* Shortcuts */}
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button 
+            onClick={() => navigate('/driver/documents')} 
+            style={{ 
+              background: '#0f172a', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '20px', 
+              padding: '6px 12px', 
+              fontSize: '12px', 
+              fontWeight: 700, 
+              cursor: 'pointer' 
+            }}
+            title="Vehicle & KYC Documents"
+          >
+            📄 KYC
+          </button>
+          <button 
+            onClick={() => navigate('/admin')} 
+            style={{ 
+              background: '#3b82f6', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '20px', 
+              padding: '6px 12px', 
+              fontSize: '12px', 
+              fontWeight: 700, 
+              cursor: 'pointer' 
+            }}
+            title="Admin Portal"
+          >
+            ⚙️ Admin
+          </button>
+        </div>
       </div>
+
+      {/* KYC Alert Banner if not verified */}
+      {approvalStatus !== 'APPROVED' && (
+        <div 
+          onClick={() => navigate('/driver/documents')}
+          style={{
+            position: 'absolute',
+            top: '75px',
+            left: '16px',
+            right: '16px',
+            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            color: 'white',
+            padding: '12px 16px',
+            borderRadius: '16px',
+            boxShadow: '0 8px 20px rgba(217, 119, 6, 0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            zIndex: 99,
+            cursor: 'pointer'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '24px' }}>⚠️</span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '13px' }}>KYC & Vehicle Verification Required</div>
+              <div style={{ fontSize: '11px', opacity: 0.9 }}>Upload vehicle photo, DL & RC to go online</div>
+            </div>
+          </div>
+          <span style={{ background: 'white', color: '#b45309', padding: '6px 12px', borderRadius: '12px', fontWeight: 800, fontSize: '12px' }}>
+            Verify →
+          </span>
+        </div>
+      )}
 
       {/* Ride Request Modal */}
       {rideRequest && (
@@ -282,10 +392,15 @@ function DriverHome({ user }) {
             </div>
 
             <h2>New Trip Request</h2>
+            {rideRequest.vehicleType && (
+              <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 700 }}>
+                {rideRequest.vehicleType}
+              </span>
+            )}
             
             <div className="fare-display">
               <span className="fare-amount">₹{rideRequest.fare}</span>
-              <span className="fare-type">{rideRequest.paymentMethod}</span>
+              <span className="fare-type">{rideRequest.paymentMethod?.toUpperCase()}</span>
             </div>
 
             <div className="trip-details">
@@ -299,130 +414,70 @@ function DriverHome({ user }) {
               </div>
             </div>
 
-            <div className="route-preview">
-              <div className="route-point">
-                <div className="point-dot pickup"></div>
-                <div className="point-text">
-                  <span className="point-label">PICKUP</span>
-                  <span className="point-address">{rideRequest.pickup}</span>
+            <div className="route-details">
+              <div className="route-item">
+                <div className="route-dot pickup"></div>
+                <div className="route-text">
+                  <span className="route-label">PICKUP</span>
+                  <span className="route-address">{rideRequest.pickup}</span>
                 </div>
               </div>
               <div className="route-line"></div>
-              <div className="route-point">
-                <div className="point-dot dropoff"></div>
-                <div className="point-text">
-                  <span className="point-label">DROP-OFF</span>
-                  <span className="point-address">{rideRequest.dropoff}</span>
+              <div className="route-item">
+                <div className="route-dot dropoff"></div>
+                <div className="route-text">
+                  <span className="route-label">DROPOFF</span>
+                  <span className="route-address">{rideRequest.dropoff}</span>
                 </div>
               </div>
             </div>
 
             <div className="request-actions">
-              <button className="decline-btn" onClick={handleDeclineRide}>
+              <button 
+                className="decline-btn"
+                onClick={handleDeclineRide}
+              >
                 Decline
               </button>
-              <button className="accept-btn" onClick={handleAcceptRide} disabled={loading}>
-                {loading ? 'Accepting...' : 'Accept'}
+              <button 
+                className="accept-btn"
+                onClick={handleAcceptRide}
+                disabled={loading}
+              >
+                {loading ? 'Accepting...' : 'Accept Trip'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Bottom Panel */}
-      <div className="driver-bottom">
-        {!isOnline ? (
-          /* Offline State */
-          <div className="offline-card">
-            <div className="offline-info">
-              <h3>You're offline</h3>
-              <p>Go online to start earning</p>
-            </div>
-            <button 
-              className="go-online-btn"
-              onClick={toggleOnlineStatus}
-              disabled={loading}
-            >
-              <span className="btn-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              </span>
-              {loading ? 'Please wait...' : 'GO'}
-            </button>
+      {/* Bottom Floating Bar */}
+      <div className="driver-bottom-bar">
+        <div className="earnings-summary">
+          <div className="earnings-item">
+            <span className="earnings-label">Today's Earnings</span>
+            <span className="earnings-value">₹{earnings.today}</span>
           </div>
-        ) : !rideRequest ? (
-          /* Online - Searching */
-          <div className="online-card">
-            <div className="searching-indicator">
-              <div className="search-ripple"></div>
-              <div className="search-ripple delay-1"></div>
-              <div className="search-ripple delay-2"></div>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
-              </svg>
-            </div>
-            <div className="searching-text">
-              <h3>Looking for trips...</h3>
-              <p>You'll see trip requests here</p>
-            </div>
-            <button className="go-offline-btn" onClick={toggleOnlineStatus} disabled={loading}>
-              {loading ? 'Please wait...' : 'Go Offline'}
-            </button>
+          <div className="earnings-item">
+            <span className="earnings-label">Trips</span>
+            <span className="earnings-value">{earnings.trips}</span>
           </div>
-        ) : null}
+          <div className="earnings-item">
+            <span className="earnings-label">Vehicle</span>
+            <span className="earnings-value" style={{ fontSize: '13px' }}>
+              {driverVehicle?.vehicleType || 'UberGo'}
+            </span>
+          </div>
+        </div>
 
-        {/* Earnings Bar */}
-        {isOnline && !rideRequest && (
-          <div className="earnings-bar">
-            <div className="earning-item">
-              <span className="earning-value">₹{earnings.today}</span>
-              <span className="earning-label">Today</span>
-            </div>
-            <div className="earning-divider"></div>
-            <div className="earning-item">
-              <span className="earning-value">{earnings.trips}</span>
-              <span className="earning-label">Trips</span>
-            </div>
-            <div className="earning-divider"></div>
-            <div className="earning-item">
-              <span className="earning-value">4.92</span>
-              <span className="earning-label">Rating</span>
-            </div>
-          </div>
-        )}
+        <button 
+          className={`go-btn ${isOnline ? 'offline' : 'online'}`}
+          onClick={toggleOnlineStatus}
+          disabled={loading}
+        >
+          {loading ? '...' : isOnline ? 'GO OFFLINE' : 'GO ONLINE'}
+        </button>
       </div>
-
-      {/* Bottom Nav */}
-      <nav className="driver-nav">
-        <div className="nav-item active">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-          </svg>
-          <span>Home</span>
-        </div>
-        <div className="nav-item" onClick={() => navigate('/history')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
-          </svg>
-          <span>Earnings</span>
-        </div>
-        <div className="nav-item" onClick={() => navigate('/history')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <span>Activity</span>
-        </div>
-        <div className="nav-item" onClick={() => navigate('/profile')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-          <span>Account</span>
-        </div>
-      </nav>
     </div>
   );
 }

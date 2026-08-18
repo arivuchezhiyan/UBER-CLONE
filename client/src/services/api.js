@@ -128,6 +128,14 @@ export const updateDriverLocation = (latitude, longitude) => {
   return api.put('/users/location', { latitude, longitude });
 };
 
+export const getDriverDocuments = () => {
+  return api.get('/users/driver/documents');
+};
+
+export const uploadDriverDocuments = (documentData) => {
+  return api.post('/users/driver/documents', documentData);
+};
+
 // ==================== RATING APIs ====================
 export const addRating = (ratingData) => {
   return api.post('/ratings', ratingData);

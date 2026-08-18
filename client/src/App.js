@@ -10,6 +10,7 @@ import ActiveRide from './pages/ActiveRide';
 import RideHistory from './pages/RideHistory';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
+import DriverDocuments from './pages/DriverDocuments';
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -79,8 +80,10 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Admin Route available to all authenticated users for testing/moderation */}
+        {/* Admin & Documents Route */}
         <Route path="/admin" element={<AdminDashboard user={user} />} />
+        <Route path="/driver/documents" element={<DriverDocuments user={user} />} />
+        <Route path="/documents" element={<DriverDocuments user={user} />} />
 
         {user.userType === 'driver' ? (
           <>

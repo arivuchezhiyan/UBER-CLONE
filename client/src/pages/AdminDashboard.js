@@ -347,7 +347,14 @@ function AdminDashboard({ user }) {
                         <tr key={d._id}>
                           <td><strong>{d.name}</strong></td>
                           <td>{d.phone}</td>
-                          <td>{d.vehicleDetails?.model || 'N/A'} ({d.vehicleDetails?.licensePlate || 'N/A'})</td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <span style={{ fontWeight: 700 }}>{d.vehicleDetails?.model || 'Swift Dzire'}</span>
+                              <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: 600 }}>
+                                🚗 {d.vehicleDetails?.vehicleType || 'UberGo'} · {d.vehicleDetails?.licensePlate || 'KA 01 XX 1234'}
+                              </span>
+                            </div>
+                          </td>
                           <td>⭐ {d.rating || 5.0}</td>
                           <td><span className={`status-pill ${d.approvalStatus}`}>{d.approvalStatus || 'APPROVED'}</span></td>
                           <td>
