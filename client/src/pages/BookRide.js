@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { requestRide, getRideTypes } from '../services/api';
 import RideMap from '../components/Map/RideMap';
 import BackButton from '../components/BackButton/BackButton';
-import { PLACES_DATABASE, reverseGeocode } from './CustomerHome';
+import { PLACES_DATABASE, reverseGeocode, geocodeAddress } from './CustomerHome';
 import './BookRide.css';
 
 function BookRide({ user }) {
@@ -28,6 +28,46 @@ function BookRide({ user }) {
   const [activeEditingField, setActiveEditingField] = useState(null); // 'pickup' | 'dropoff' | null
   const [selectedTransitFilter, setSelectedTransitFilter] = useState('ALL');
   const [locationAlert, setLocationAlert] = useState('');
+
+  // Live dynamic geocoding for dropoff when typed or changed
+  useEffect(() => {
+    if (!dropoff || !dropoff.trim()) return;
+    const baseLat = pickupCoords?.lat || 12.7871;
+    const baseLng = pickupCoords?.lng || 80.2185;
+    
+    // Check if dropoff matches any known place immediately
+    const matchedPlace = PLACES_DATABASE.find(p => p.name.toLowerCase() === dropoff.toLowerCase());
+    if (matchedPlace && matchedPlace.coords) {
+      setDropoffCoords(matchedPlace.coords);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      const coords = await geocodeAddress(dropoff, baseLat, baseLng);
+      if (coords) {
+        setDropoffCoords(coords);
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [dropoff, pickupCoords?.lat, pickupCoords?.lng]);
+
+  // Live dynamic geocoding for pickup when typed or changed
+  useEffect(() => {
+    if (!pickup || !pickup.trim() || pickup.includes('Current location') || pickup.includes('GPS')) return;
+    const matchedPlace = PLACES_DATABASE.find(p => p.name.toLowerCase() === pickup.toLowerCase());
+    if (matchedPlace && matchedPlace.coords) {
+      setPickupCoords(matchedPlace.coords);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      const coords = await geocodeAddress(pickup);
+      if (coords) {
+        setPickupCoords(coords);
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [pickup]);
 
   // Get coordinates on mount
   useEffect(() => {
@@ -200,14 +240,26 @@ function BookRide({ user }) {
   };
 
   // Select a suggestion on BookRide page
-  const handleSelectSuggestion = (place) => {
+  const handleSelectSuggestion = async (place) => {
     if (activeEditingField === 'pickup') {
       setPickup(place.name);
-      if (place.coords) setPickupCoords(place.coords);
+      if (place.coords) {
+        setPickupCoords(place.coords);
+      } else {
+        const coords = await geocodeAddress(place.name);
+        if (coords) setPickupCoords(coords);
+      }
       setActiveEditingField('dropoff');
     } else {
       setDropoff(place.name);
-      if (place.coords) setDropoffCoords(place.coords);
+      if (place.coords) {
+        setDropoffCoords(place.coords);
+      } else {
+        const baseLat = pickupCoords?.lat || 12.7871;
+        const baseLng = pickupCoords?.lng || 80.2185;
+        const coords = await geocodeAddress(place.name, baseLat, baseLng);
+        if (coords) setDropoffCoords(coords);
+      }
       if (place.distanceKm) {
         setEstimatedDistance(place.distanceKm);
       }

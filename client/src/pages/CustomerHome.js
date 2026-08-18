@@ -94,6 +94,54 @@ export const reverseGeocode = async (lat, lng) => {
   return 'Current Location';
 };
 
+export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185) => {
+  if (!query || !query.trim()) return null;
+
+  const cleanQ = query.toLowerCase().trim();
+  // 1. Exact or partial match in PLACES_DATABASE
+  const matchedPlace = PLACES_DATABASE.find(p => 
+    p.name.toLowerCase() === cleanQ || 
+    p.address.toLowerCase().includes(cleanQ) ||
+    cleanQ.includes(p.name.toLowerCase())
+  );
+  if (matchedPlace && matchedPlace.coords) {
+    return matchedPlace.coords;
+  }
+
+  // 2. Query OpenStreetMap Nominatim for real-world lat/lng
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+      { headers: { 'Accept-Language': 'en' } }
+    );
+    if (res.ok) {
+      const results = await res.json();
+      if (results && results.length > 0) {
+        return {
+          lat: parseFloat(results[0].lat),
+          lng: parseFloat(results[0].lon)
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Geocoding search fallback:', err);
+  }
+
+  // 3. Deterministic regional offset based on string hash for custom locations
+  let hash = 0;
+  for (let i = 0; i < query.length; i++) {
+    hash = ((hash << 5) - hash) + query.charCodeAt(i);
+    hash |= 0;
+  }
+  const offsetLat = ((Math.abs(hash) % 35) + 12) * 0.001 * (hash % 2 === 0 ? 1 : -1);
+  const offsetLng = ((Math.abs(hash >> 2) % 35) + 12) * 0.001 * (hash % 3 === 0 ? 1 : -1);
+
+  return {
+    lat: baseLat + offsetLat,
+    lng: baseLng + offsetLng
+  };
+};
+
 function CustomerHome({ user }) {
   const navigate = useNavigate();
   const [currentLocation, setCurrentLocation] = useState(null);
