@@ -278,122 +278,54 @@ function DriverHome({ user }) {
         )}
       </div>
 
-      {/* Top Header */}
-      <div className="driver-header" style={{
-        position: 'absolute',
-        top: '16px',
-        left: '16px',
-        right: '16px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        zIndex: 100
-      }}>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            onClick={() => navigate('/profile')}
-            style={{
-              background: '#ffffff',
-              border: '1px solid #cbd5e1',
-              borderRadius: '24px',
-              padding: '8px 14px',
-              fontSize: '13px',
-              fontWeight: 800,
-              color: '#0f172a',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-            title="My Profile & Settings"
-          >
-            <span>👤</span>
-            <span>Profile</span>
-          </button>
+      {/* Top Header Navigation */}
+      <header className="driver-top-nav">
+        <button className="nav-profile-btn" onClick={() => navigate('/profile')} title="My Profile & Settings">
+          <span className="avatar-icon">👤</span>
+          <span className="profile-text">Profile</span>
+        </button>
 
-          {/* Online Status Pill */}
-          <div 
-            className={`status-pill ${isOnline ? 'online' : 'offline'}`}
-            onClick={toggleOnlineStatus}
-            style={{ cursor: 'pointer', margin: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
-            title={isOnline ? 'Tap to go Offline' : 'Tap to go Online'}
-          >
-            <div className="status-dot"></div>
-            <span>{isOnline ? 'Online' : 'Offline'}</span>
-          </div>
-        </div>
+        {/* Online Status Toggle Pill */}
+        <button 
+          className={`driver-status-toggle ${isOnline ? 'online' : 'offline'}`}
+          onClick={toggleOnlineStatus}
+          disabled={loading}
+          title={isOnline ? 'Tap to go Offline' : 'Tap to go Online'}
+        >
+          <span className="status-live-dot"></span>
+          <span className="status-label">{isOnline ? 'Online' : 'Offline'}</span>
+        </button>
 
         {/* Shortcuts */}
-        <div style={{ display: 'flex', gap: '6px' }}>
+        <div className="nav-actions-group">
           <button 
+            className="nav-action-pill earnings"
             onClick={() => navigate('/history')} 
-            style={{ 
-              background: '#ffffff', 
-              color: '#0f172a', 
-              border: '1px solid #cbd5e1', 
-              borderRadius: '20px', 
-              padding: '6px 12px', 
-              fontSize: '12px', 
-              fontWeight: 700, 
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}
             title="Earnings & Trip History"
           >
             💰 Earnings
           </button>
           <button 
+            className="nav-action-pill kyc"
             onClick={() => navigate('/driver/documents')} 
-            style={{ 
-              background: '#0f172a', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '20px', 
-              padding: '6px 12px', 
-              fontSize: '12px', 
-              fontWeight: 700, 
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}
             title="Vehicle & KYC Documents"
           >
             📄 KYC
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* KYC Alert Banner if not verified */}
+      {/* KYC Alert Banner if not verified - Cleanly anchored below top nav */}
       {approvalStatus !== 'APPROVED' && (
-        <div 
-          onClick={() => navigate('/driver/documents')}
-          style={{
-            position: 'absolute',
-            top: '75px',
-            left: '16px',
-            right: '16px',
-            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-            color: 'white',
-            padding: '12px 16px',
-            borderRadius: '16px',
-            boxShadow: '0 8px 20px rgba(217, 119, 6, 0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            zIndex: 99,
-            cursor: 'pointer'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '24px' }}>⚠️</span>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '13px' }}>KYC & Vehicle Verification Required</div>
-              <div style={{ fontSize: '11px', opacity: 0.9 }}>Upload vehicle photo, DL & RC to go online</div>
+        <div className="driver-kyc-floating-banner" onClick={() => navigate('/driver/documents')}>
+          <div className="kyc-banner-left">
+            <span className="banner-alert-icon">⚠️</span>
+            <div className="banner-text-col">
+              <span className="banner-heading">Verification Required to Go Online</span>
+              <span className="banner-subtext">Register vehicle category, upload photos & documents</span>
             </div>
           </div>
-          <span style={{ background: 'white', color: '#b45309', padding: '6px 12px', borderRadius: '12px', fontWeight: 800, fontSize: '12px' }}>
-            Verify →
-          </span>
+          <button className="banner-btn-verify">Verify →</button>
         </div>
       )}
 
