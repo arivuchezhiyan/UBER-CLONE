@@ -554,16 +554,40 @@ const cancelRide = async (req, res) => {
     });
     await cancellationRecord.save();
 
+    // Apply driver penalty if driver cancels an active assignment
+    if (cancelledBy === 'driver' && booking.driverId) {
+      const driverUser = await User.findById(booking.driverId);
+      if (driverUser) {
+        const currentRating = driverUser.rating || 5.0;
+        const newRating = Math.max(1.0, parseFloat((currentRating - 0.2).toFixed(1)));
+        driverUser.rating = newRating;
+        driverUser.cancellationCount = (driverUser.cancellationCount || 0) + 1;
+        await driverUser.save();
+      }
+    }
+
     const io = req.app.get('io');
     if (io) {
       io.emit('ride-cancelled', {
         bookingId: booking._id,
         cancelledBy,
-        reason,
+        reason: reason || (cancelledBy === 'driver' ? 'Captain cancelled the ride' : 'Customer cancelled'),
         fee,
         customerId: booking.customerId,
-        driverId: booking.driverId
+        driverId: booking.driverId,
+        message: cancelledBy === 'driver' 
+          ? 'Your Captain has cancelled this ride. You will not be charged any fee.' 
+          : 'Ride has been cancelled.'
       });
+
+      if (booking.customerId) {
+        io.emit(`ride-cancelled-${booking.customerId}`, {
+          bookingId: booking._id,
+          cancelledBy: 'driver',
+          reason: reason || 'Captain was unable to fulfill this trip.',
+          message: 'Your Captain has cancelled the ride. A rating penalty was applied to the driver.'
+        });
+      }
     }
 
     res.json({ success: true, booking, cancellationFee: fee });

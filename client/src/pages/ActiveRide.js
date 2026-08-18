@@ -34,6 +34,9 @@ function ActiveRide({ user }) {
   const [loading, setLoading] = useState(false);
   const [showCancelSheet, setShowCancelSheet] = useState(false);
 
+  // Driver Cancellation Alert Popup
+  const [cancellationNotice, setCancellationNotice] = useState(null);
+
   // Settlement & QR Payment State
   const [showSettlementModal, setShowSettlementModal] = useState(false);
   const [paymentMode, setPaymentMode] = useState('UPI_QR'); // 'UPI_QR', 'RAZORPAY', 'CASH'
@@ -65,10 +68,19 @@ function ActiveRide({ user }) {
       if (response.data) {
         setBooking(prev => ({ ...prev, ...response.data }));
         const newStatus = response.data.status;
-        if (['CANCELLED_BY_RIDER', 'CANCELLED_BY_DRIVER', 'EXPIRED', 'cancelled'].includes(newStatus)) {
-          alert('Ride has been cancelled');
-          localStorage.removeItem('activeBooking');
-          navigate('/');
+        
+        if (newStatus === 'CANCELLED_BY_DRIVER' && !isDriver) {
+          setCancellationNotice({
+            title: '⚠️ Captain Cancelled Your Ride',
+            reason: response.data.cancellationReason || 'Captain was unable to fulfill this trip.',
+            message: 'You have not been charged any cancellation fee. A rating penalty (-0.2★) was applied to the driver.'
+          });
+        } else if (['CANCELLED_BY_RIDER', 'CANCELLED_BY_DRIVER', 'EXPIRED', 'cancelled'].includes(newStatus)) {
+          if (isDriver && newStatus === 'CANCELLED_BY_RIDER') {
+            alert('Customer has cancelled this ride');
+            localStorage.removeItem('activeBooking');
+            navigate('/');
+          }
         } else if (['TRIP_COMPLETED', 'completed'].includes(newStatus) && !isDriver) {
           setRideStatus('TRIP_COMPLETED');
           setShowRatingModal(true);
@@ -91,11 +103,32 @@ function ActiveRide({ user }) {
     
     socket.on('ride-cancelled', (data) => {
       if (booking?._id === data.bookingId) {
-        alert(isDriver ? 'Customer cancelled the ride' : 'Ride was cancelled');
-        localStorage.removeItem('activeBooking');
-        navigate('/');
+        if (!isDriver && (data.cancelledBy === 'driver' || data.cancelledBy === 'DRIVER')) {
+          setCancellationNotice({
+            title: '⚠️ Captain Cancelled Your Ride',
+            reason: data.reason || 'Captain was unable to fulfill this trip.',
+            message: 'You have not been charged any cancellation fee. A rating penalty (-0.2★) was applied to the driver.'
+          });
+        } else if (isDriver && data.cancelledBy === 'customer') {
+          alert('Customer has cancelled the ride.');
+          localStorage.removeItem('activeBooking');
+          navigate('/');
+        } else {
+          localStorage.removeItem('activeBooking');
+          navigate('/');
+        }
       }
     });
+
+    if (user?.id) {
+      socket.on(`ride-cancelled-${user.id}`, (data) => {
+        setCancellationNotice({
+          title: '⚠️ Captain Cancelled Your Ride',
+          reason: data.reason || 'Captain was unable to fulfill this trip.',
+          message: 'You have not been charged any cancellation fee. A rating penalty (-0.2★) was applied to the driver.'
+        });
+      });
+    }
     
     socket.on('driver-arrived', (data) => {
       if (booking?._id === data.bookingId) {
@@ -133,7 +166,7 @@ function ActiveRide({ user }) {
     });
     
     return () => socket.disconnect();
-  }, [booking?._id, isDriver, navigate]);
+  }, [booking?._id, isDriver, navigate, user?.id]);
 
   // Poll every 5s
   useEffect(() => {
@@ -310,7 +343,12 @@ function ActiveRide({ user }) {
   const handleCancel = async () => {
     setLoading(true);
     try {
-      await cancelRide(booking._id, isDriver ? 'Driver cancelled' : 'Customer cancelled', isDriver ? 'driver' : 'customer');
+      await cancelRide(
+        booking._id,
+        isDriver ? 'Captain cancelled trip due to traffic/emergency' : 'Customer requested cancellation',
+        'OTHER',
+        isDriver ? 'driver' : 'customer'
+      );
       localStorage.removeItem('activeBooking');
       navigate('/');
     } catch (err) {
@@ -382,14 +420,6 @@ function ActiveRide({ user }) {
         </div>
       </div>
 
-      {/* OTP Banner for Customer */}
-      {!isDriver && rideDetails.otp && !isTripActive && !['SEARCHING_DRIVER', 'searching', 'REQUESTED', 'TRIP_COMPLETED', 'SETTLED'].includes(rideStatus) && (
-        <div className="otp-display">
-          <span className="otp-label">Share 4-Digit Ride OTP with Captain:</span>
-          <span className="otp-code">{rideDetails.otp}</span>
-        </div>
-      )}
-
       {/* Bottom Panel */}
       <div className="ride-info-panel">
         <div className="panel-handle"><div className="handle-bar"></div></div>
@@ -397,6 +427,24 @@ function ActiveRide({ user }) {
         {/* Customer View */}
         {!isDriver && (
           <>
+            {/* PROMINENT RIDER START OTP CARD AT THE BOTTOM */}
+            {rideDetails.otp && !isTripActive && !['SEARCHING_DRIVER', 'searching', 'REQUESTED', 'TRIP_COMPLETED', 'SETTLED'].includes(rideStatus) && (
+              <div className="prominent-otp-card">
+                <div className="otp-card-top">
+                  <div className="otp-title-group">
+                    <span className="otp-key-icon">🔑</span>
+                    <span className="otp-title-text">YOUR START TRIP OTP</span>
+                  </div>
+                  <span className="otp-sub-hint">Share with Captain to start</span>
+                </div>
+                <div className="otp-digits-wrapper">
+                  {rideDetails.otp.toString().split('').map((char, idx) => (
+                    <span key={idx} className="otp-digit-box">{char}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Driver Info */}
             {!['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
               <div className="driver-card">
@@ -582,6 +630,31 @@ function ActiveRide({ user }) {
           </button>
         )}
       </div>
+
+      {/* DRIVER CANCELLATION NOTICE MODAL FOR CUSTOMER */}
+      {cancellationNotice && (
+        <div className="modal-overlay">
+          <div className="cancellation-notice-modal">
+            <div className="notice-icon">⚠️</div>
+            <h2>{cancellationNotice.title}</h2>
+            <div className="notice-reason-box">
+              <span className="reason-label">Reason:</span>
+              <p className="reason-text">"{cancellationNotice.reason}"</p>
+            </div>
+            <p className="notice-explanation">{cancellationNotice.message}</p>
+            <button
+              className="btn-rebook"
+              onClick={() => {
+                localStorage.removeItem('activeBooking');
+                setCancellationNotice(null);
+                navigate('/');
+              }}
+            >
+              🚕 Book Another Ride
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* OTP Input Modal */}
       {showOtpInput && (

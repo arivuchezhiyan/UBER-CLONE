@@ -637,3 +637,149 @@
   margin-top: 8px;
   cursor: pointer;
 }
+
+/* ============================================================ */
+/* PROMINENT RIDER OTP CARD (Bottom Sheet)                      */
+/* ============================================================ */
+.prominent-otp-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border: 2px solid #3b82f6;
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin: 6px 0 14px 0;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.otp-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.otp-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.otp-key-icon {
+  font-size: 18px;
+}
+
+.otp-title-text {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #60a5fa;
+}
+
+.otp-sub-hint {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.otp-digits-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.otp-digit-box {
+  width: 54px;
+  height: 58px;
+  background: #ffffff;
+  border: 2px solid #3b82f6;
+  border-radius: 12px;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================================ */
+/* DRIVER CANCELLATION NOTICE MODAL                             */
+/* ============================================================ */
+.cancellation-notice-modal {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+  animation: popIn 0.3s ease-out;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.notice-icon {
+  font-size: 52px;
+  margin-bottom: 10px;
+}
+
+.cancellation-notice-modal h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 14px 0;
+}
+
+.notice-reason-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.notice-reason-box .reason-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b91c1c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.notice-reason-box .reason-text {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #7f1d1d;
+  font-style: italic;
+}
+
+.notice-explanation {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.btn-rebook {
+  width: 100%;
+  padding: 16px;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-rebook:hover {
+  background: #1e293b;
+}
