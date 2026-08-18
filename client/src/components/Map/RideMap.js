@@ -204,14 +204,18 @@ function RideMap({
           if (res.ok) {
             const data = await res.json();
             if (data.routes && data.routes.length > 0) {
-              // Find the optimal minimum distance & fastest road route among alternatives
-              const optimalRoute = [...data.routes].sort((a, b) => {
-                // Balance minimum distance and minimal duration for fastest, traffic-free path
-                return (a.distance * 0.65 + a.duration * 3.5) - (b.distance * 0.65 + b.duration * 3.5);
-              })[0];
+              // Find the absolute minimum drivable distance route among alternatives
+              const optimalRoute = [...data.routes].sort((a, b) => a.distance - b.distance)[0];
 
               // Convert GeoJSON [lng, lat] to Leaflet [lat, lng]
-              const coords = optimalRoute.geometry.coordinates.map(pt => [pt[1], pt[0]]);
+              let coords = optimalRoute.geometry.coordinates.map(pt => [pt[1], pt[0]]);
+              
+              // Ensure route connects 100% precisely to the exact pickup & dropoff coordinates
+              if (coords.length > 0) {
+                coords[0] = [startLat, startLng];
+                coords[coords.length - 1] = [endLat, endLng];
+              }
+
               const distKm = +(optimalRoute.distance / 1000).toFixed(1);
               const durationMin = Math.max(1, Math.round(optimalRoute.duration / 60));
               const routeSummary = optimalRoute.legs?.[0]?.summary || 'Main Highway / Arterial Rd';
@@ -300,14 +304,14 @@ function RideMap({
         <FitBounds pickup={pickup} dropoff={dropoff} routePath={roadPath} />
         <MapControls onLocateUser={handleLocateUser} />
         
-        {/* Real Road Driving Route Line with Trafficless Highlight */}
+        {/* Real Road Driving Route Line */}
         {showRoute && roadPath.length > 0 && (
           <>
-            {/* Green trafficless / optimal road glow */}
+            {/* Smooth road border / glow */}
             <Polyline
               positions={roadPath}
-              color="#16a34a"
-              weight={8}
+              color="#2563eb"
+              weight={7}
               opacity={0.35}
               lineCap="round"
               lineJoin="round"
@@ -324,7 +328,7 @@ function RideMap({
           </>
         )}
         
-        {/* Pickup Marker */}
+        {/* Pickup Marker (Pinpointed directly at user position) */}
         {pickup && (
           <Marker position={pickup} icon={pickupIcon} />
         )}
@@ -339,27 +343,11 @@ function RideMap({
           <AnimatedCar path={roadPath} progress={carProgress} />
         )}
         
-        {/* User Location - blue dot */}
-        {userLocation && (
+        {/* User Location - only shown if pickup marker is not placed */}
+        {userLocation && !pickup && (
           <Marker position={userLocation} icon={userLocationIcon} />
         )}
       </MapContainer>
-
-      {/* Floating Traffic & Fastest Route Badge */}
-      {showRoute && routeInfo && (
-        <div className="traffic-route-badge">
-          <div className="traffic-indicator-pulse">
-            <span className="pulse-circle"></span>
-            <span className="pulse-core"></span>
-          </div>
-          <div className="traffic-badge-content">
-            <span className="traffic-route-title">⚡ Optimal Shortest Route</span>
-            <span className="traffic-route-sub">
-              {routeInfo.distanceKm} km • ~{routeInfo.durationMin} min (Traffic Free 🟢)
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

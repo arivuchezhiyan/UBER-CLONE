@@ -230,7 +230,36 @@ export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185
     }
   }
 
-  // 2. Exact or partial match in PLACES_DATABASE
+  // 2. Recognized Area & Corridor Landmark matches
+  if (cleanQ.includes('kelambak') || cleanQ.includes('kelambakkam')) {
+    return { lat: 12.7871, lng: 80.2185 }; // Kelambakkam Junction (OMR / ECR Link)
+  }
+  if (cleanQ.includes('ssn') || cleanQ.includes('kalavakkam')) {
+    return { lat: 12.7508, lng: 80.1983 }; // SSN College / Kalavakkam Main Gate (OMR)
+  }
+  if (cleanQ.includes('thiruporur')) {
+    return { lat: 12.7230, lng: 80.1915 }; // Thiruporur Main Junction
+  }
+  if (cleanQ.includes('siruseri') || cleanQ.includes('sipcot')) {
+    return { lat: 12.8285, lng: 80.2195 }; // Siruseri SIPCOT IT Park
+  }
+  if (cleanQ.includes('navalur') || cleanQ.includes('vivira')) {
+    return { lat: 12.8465, lng: 80.2260 }; // Navalur OMR Vivira Hub
+  }
+  if (cleanQ.includes('sholinganallur')) {
+    return { lat: 12.8985, lng: 80.2260 }; // Sholinganallur Junction
+  }
+  if (cleanQ.includes('tambaram')) {
+    return { lat: 12.9249, lng: 80.1260 }; // Tambaram Junction
+  }
+  if (cleanQ.includes('velachery')) {
+    return { lat: 12.9815, lng: 80.2180 }; // Velachery
+  }
+  if (cleanQ.includes('guindy')) {
+    return { lat: 13.0067, lng: 80.2024 }; // Guindy
+  }
+
+  // 3. Exact or partial match in PLACES_DATABASE
   const matchedPlace = PLACES_DATABASE.find(p => 
     p.name.toLowerCase() === cleanQ || 
     p.address.toLowerCase().includes(cleanQ) ||
