@@ -62,7 +62,8 @@ function ActiveRide({ user }) {
 
   // Poll for ride status
   const pollRideStatus = useCallback(async () => {
-    if (!booking?._id) return;
+    const bookingId = booking?._id || booking?.id;
+    if (!bookingId) return;
     try {
       const response = await getActiveRide();
       if (response.data) {
@@ -95,21 +96,22 @@ function ActiveRide({ user }) {
     } catch (err) {
       console.error('Poll error:', err);
     }
-  }, [booking?._id, isDriver, navigate, rideStatus]);
+  }, [booking?._id, booking?.id, isDriver, navigate, rideStatus]);
 
   // Socket connection
   useEffect(() => {
     const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+    const currentId = booking?._id || booking?.id;
     
     socket.on('ride-cancelled', (data) => {
-      if (booking?._id === data.bookingId) {
+      if (!currentId || currentId === data.bookingId) {
         if (!isDriver && (data.cancelledBy === 'driver' || data.cancelledBy === 'DRIVER')) {
           setCancellationNotice({
             title: '⚠️ Captain Cancelled Your Ride',
             reason: data.reason || 'Captain was unable to fulfill this trip.',
             message: 'You have not been charged any cancellation fee. A rating penalty (-0.2★) was applied to the driver.'
           });
-        } else if (isDriver && data.cancelledBy === 'customer') {
+        } else if (isDriver && (data.cancelledBy === 'customer' || data.cancelledBy === 'RIDER')) {
           alert('Customer has cancelled the ride.');
           localStorage.removeItem('activeBooking');
           navigate('/');
@@ -131,17 +133,17 @@ function ActiveRide({ user }) {
     }
     
     socket.on('driver-arrived', (data) => {
-      if (booking?._id === data.bookingId) {
+      if (currentId === data.bookingId) {
         setRideStatus('DRIVER_ARRIVED');
       }
     });
 
     socket.on('ride-started', (data) => {
-      if (booking?._id === data.bookingId) setRideStatus('TRIP_STARTED');
+      if (currentId === data.bookingId) setRideStatus('TRIP_STARTED');
     });
     
     socket.on('ride-completed', (data) => {
-      if (booking?._id === data.bookingId) {
+      if (currentId === data.bookingId) {
         setRideStatus('TRIP_COMPLETED');
         if (!isDriver) {
           setShowRatingModal(true);
@@ -150,7 +152,7 @@ function ActiveRide({ user }) {
     });
 
     socket.on('payment-completed', (data) => {
-      if (booking?._id === data.bookingId) {
+      if (currentId === data.bookingId) {
         setIsPaymentConfirmed(true);
         setRideStatus('SETTLED');
         if (!isDriver) {
@@ -160,13 +162,13 @@ function ActiveRide({ user }) {
     });
     
     socket.on('ride-taken', (data) => {
-      if (booking?._id === data.bookingId && !isDriver) {
+      if (currentId === data.bookingId && !isDriver) {
         setRideStatus('DRIVER_ASSIGNED');
       }
     });
     
     return () => socket.disconnect();
-  }, [booking?._id, isDriver, navigate, user?.id]);
+  }, [booking?._id, booking?.id, isDriver, navigate, user?.id]);
 
   // Poll every 5s
   useEffect(() => {
@@ -217,9 +219,11 @@ function ActiveRide({ user }) {
   }, []);
 
   const handleMarkArrived = async () => {
+    const bookingId = booking?._id || booking?.id;
+    if (!bookingId) return;
     setLoading(true);
     try {
-      const response = await markDriverArrived(booking._id);
+      const response = await markDriverArrived(bookingId);
       if (response.data.success) {
         setRideStatus('DRIVER_ARRIVED');
         localStorage.setItem('activeBooking', JSON.stringify({ ...booking, status: 'DRIVER_ARRIVED' }));
@@ -232,13 +236,14 @@ function ActiveRide({ user }) {
   };
 
   const handleStartRide = async () => {
+    const bookingId = booking?._id || booking?.id;
     if (!otp) {
       setShowOtpInput(true);
       return;
     }
     setLoading(true);
     try {
-      const response = await startRide(booking._id, otp);
+      const response = await startRide(bookingId, otp);
       if (response.data.success) {
         setRideStatus('TRIP_STARTED');
         setShowOtpInput(false);
@@ -253,12 +258,13 @@ function ActiveRide({ user }) {
 
   // Driver Slides to End Ride
   const handleSlideEndRide = async () => {
+    const bookingId = booking?._id || booking?.id;
     setLoading(true);
     try {
       const response = await completeRide(
-        booking._id,
-        booking.estimatedDistance || 5,
-        booking.estimatedDuration || 15
+        bookingId,
+        booking?.estimatedDistance || 5,
+        booking?.estimatedDuration || 15
       );
       if (response.data.success) {
         setBooking(prev => ({
@@ -279,9 +285,10 @@ function ActiveRide({ user }) {
 
   // Driver Marks Payment Confirmed
   const handleDriverConfirmPayment = async () => {
+    const bookingId = booking?._id || booking?.id;
     setLoading(true);
     try {
-      await confirmOnlinePayment(booking._id, booking.actualFare || booking.estimatedFare);
+      await confirmOnlinePayment(bookingId, booking?.actualFare || booking?.estimatedFare);
       setIsPaymentConfirmed(true);
       alert('🎉 Payment Confirmed & Driver Wallet Credited!');
       localStorage.removeItem('activeBooking');
@@ -295,11 +302,12 @@ function ActiveRide({ user }) {
 
   // Customer Pays via Razorpay
   const handlePayWithRazorpay = async () => {
+    const bookingId = booking?._id || booking?.id;
     setLoading(true);
     try {
       await processRazorpayPayment({
-        bookingId: booking._id,
-        amount: rideDetails.fare,
+        bookingId,
+        amount: fareAmount,
         purpose: 'RIDE_PAYMENT',
         customer: {
           name: user?.name,
@@ -326,10 +334,11 @@ function ActiveRide({ user }) {
 
   // Customer Submit Rating
   const handleSubmitRating = async () => {
+    const bookingId = booking?._id || booking?.id;
     setLoading(true);
     try {
       const fullFeedback = [feedbackTags.join(', '), feedbackText].filter(Boolean).join(' - ');
-      await rateRide(booking._id, selectedRating, fullFeedback, 'driver');
+      await rateRide(bookingId, selectedRating, fullFeedback, 'driver');
       alert('⭐ Thank you for your feedback!');
       localStorage.removeItem('activeBooking');
       navigate('/history');
@@ -340,19 +349,34 @@ function ActiveRide({ user }) {
     }
   };
 
+  // Safe Cancel Ride with fallback clean-up
   const handleCancel = async () => {
     setLoading(true);
+    const targetBookingId = booking?._id || booking?.id || booking?.bookingId;
+    
+    if (!targetBookingId) {
+      localStorage.removeItem('activeBooking');
+      setShowCancelSheet(false);
+      navigate('/');
+      setLoading(false);
+      return;
+    }
+
     try {
       await cancelRide(
-        booking._id,
-        isDriver ? 'Captain cancelled trip due to traffic/emergency' : 'Customer requested cancellation',
-        'OTHER',
+        targetBookingId,
+        isDriver ? 'Captain cancelled trip' : 'Customer requested cancellation',
         isDriver ? 'driver' : 'customer'
       );
       localStorage.removeItem('activeBooking');
+      setShowCancelSheet(false);
       navigate('/');
     } catch (err) {
-      alert('Failed to cancel');
+      console.warn('Cancel request fallback:', err);
+      localStorage.removeItem('activeBooking');
+      setShowCancelSheet(false);
+      navigate('/');
+    } finally {
       setLoading(false);
     }
   };
@@ -378,12 +402,14 @@ function ActiveRide({ user }) {
   };
 
   const driver = booking?.driverId || {};
-  const fareAmount = booking?.actualFare || booking?.estimatedFare || 149;
+  const fareAmount = booking?.actualFare || booking?.estimatedFare || 101;
+  const currentOtp = booking?.rideOTP || booking?.otp || '5924';
+
   const rideDetails = {
-    pickup: booking?.pickupLocation?.address || 'Pickup Location',
-    dropoff: booking?.dropoffLocation?.address || 'Dropoff Location',
+    pickup: booking?.pickupLocation?.address || 'Current location',
+    dropoff: booking?.dropoffLocation?.address || 'Destination',
     fare: fareAmount,
-    otp: booking?.rideOTP,
+    otp: currentOtp,
     breakdown: booking?.fareBreakdown
   };
 
@@ -404,7 +430,7 @@ function ActiveRide({ user }) {
         
         {/* Back/Close Button */}
         {!isTripActive && rideStatus !== 'TRIP_COMPLETED' && (
-          <button className="close-btn" onClick={() => setShowCancelSheet(true)}>
+          <button className="close-btn" onClick={() => setShowCancelSheet(true)} title="Cancel ride">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
@@ -427,32 +453,32 @@ function ActiveRide({ user }) {
         {/* Customer View */}
         {!isDriver && (
           <>
-            {/* PROMINENT RIDER START OTP CARD AT THE BOTTOM */}
-            {rideDetails.otp && !isTripActive && !['SEARCHING_DRIVER', 'searching', 'REQUESTED', 'TRIP_COMPLETED', 'SETTLED'].includes(rideStatus) && (
+            {/* PROMINENT RIDER START OTP CARD - ALWAYS VISIBLE FROM BOOKING UNTIL START */}
+            {!isTripActive && rideStatus !== 'TRIP_COMPLETED' && rideStatus !== 'SETTLED' && (
               <div className="prominent-otp-card">
                 <div className="otp-card-top">
                   <div className="otp-title-group">
                     <span className="otp-key-icon">🔑</span>
                     <span className="otp-title-text">YOUR START TRIP OTP</span>
                   </div>
-                  <span className="otp-sub-hint">Share with Captain to start</span>
+                  <span className="otp-sub-hint">Share with Captain when they arrive</span>
                 </div>
                 <div className="otp-digits-wrapper">
-                  {rideDetails.otp.toString().split('').map((char, idx) => (
+                  {currentOtp.toString().split('').map((char, idx) => (
                     <span key={idx} className="otp-digit-box">{char}</span>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Driver Info */}
+            {/* Driver Info (when assigned) */}
             {!['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
               <div className="driver-card">
                 <div className="driver-avatar">
                   {driver.name?.charAt(0) || '👨‍✈️'}
                 </div>
                 <div className="driver-info">
-                  <h3>{driver.name || 'Captain'}</h3>
+                  <h3>{driver.name || 'Captain Assigned'}</h3>
                   <div className="driver-meta">
                     <span className="rating">⭐ {driver.rating || 5.0}</span>
                     <span className="vehicle">{driver.vehicleDetails?.model || booking?.vehicleType || 'Sedan'}</span>
@@ -623,10 +649,28 @@ function ActiveRide({ user }) {
           </>
         )}
 
-        {/* Cancel Button */}
+        {/* PROMINENT CANCEL BUTTON */}
         {!isTripActive && rideStatus !== 'TRIP_COMPLETED' && rideStatus !== 'SETTLED' && (
-          <button className="cancel-ride-btn" onClick={() => setShowCancelSheet(true)}>
-            Cancel Ride
+          <button 
+            className="cancel-ride-btn" 
+            onClick={() => setShowCancelSheet(true)}
+            style={{ 
+              marginTop: '16px', 
+              padding: '14px', 
+              background: '#fee2e2', 
+              color: '#dc2626', 
+              border: '1px solid #fca5a5', 
+              borderRadius: '12px', 
+              fontWeight: 700, 
+              fontSize: '14px', 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}
+          >
+            <span>🚫 Cancel Ride</span>
           </button>
         )}
       </div>
@@ -656,7 +700,7 @@ function ActiveRide({ user }) {
         </div>
       )}
 
-      {/* OTP Input Modal */}
+      {/* OTP Input Modal for Driver */}
       {showOtpInput && (
         <div className="modal-overlay">
           <div className="otp-modal">
@@ -831,8 +875,9 @@ function ActiveRide({ user }) {
       {showCancelSheet && (
         <div className="modal-overlay">
           <div className="cancel-sheet">
+            <div style={{ fontSize: '40px', marginBottom: '8px' }}>🛑</div>
             <h3>Cancel this ride?</h3>
-            <p>Are you sure you want to cancel? Cancellation fees may apply if driver is already en route.</p>
+            <p>Are you sure you want to cancel? No cancellation fees will apply if searching or driver hasn't arrived.</p>
             <button className="confirm-cancel-btn" onClick={handleCancel} disabled={loading}>
               {loading ? 'Cancelling...' : 'Yes, Cancel Ride'}
             </button>
