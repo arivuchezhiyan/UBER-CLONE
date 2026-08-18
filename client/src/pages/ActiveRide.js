@@ -10,6 +10,7 @@ import {
   confirmOnlinePayment
 } from '../services/api';
 import RideMap from '../components/Map/RideMap';
+import { processRazorpayPayment } from '../services/razorpay';
 import io from 'socket.io-client';
 import './ActiveRide.css';
 
@@ -227,6 +228,34 @@ function ActiveRide({ user }) {
     }
   };
 
+  const handlePayWithRazorpay = async () => {
+    setLoading(true);
+    try {
+      await processRazorpayPayment({
+        bookingId: booking._id,
+        amount: rideDetails.fare,
+        purpose: 'RIDE_PAYMENT',
+        customer: {
+          name: user?.name,
+          phone: user?.phone,
+          email: user?.email
+        },
+        onSuccess: (paymentInfo) => {
+          alert(`✅ Payment of ₹${paymentInfo.amount} received! Payment ID: ${paymentInfo.paymentId}`);
+          setBooking(prev => ({ ...prev, paymentStatus: 'completed', paymentMethod: 'online' }));
+          setLoading(false);
+        },
+        onFailure: (err) => {
+          alert(`Payment: ${err.message}`);
+          setLoading(false);
+        }
+      });
+    } catch (err) {
+      alert(err.message);
+      setLoading(false);
+    }
+  };
+
   const getStatusMessage = () => {
     switch(rideStatus) {
       case 'REQUESTED':
@@ -375,6 +404,26 @@ function ActiveRide({ user }) {
                 </div>
               )}
             </div>
+
+            {/* Pay with Razorpay Online */}
+            {booking?.paymentStatus !== 'completed' && !['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
+              <button 
+                className="action-btn primary" 
+                onClick={handlePayWithRazorpay}
+                disabled={loading}
+                style={{ 
+                  marginTop: '12px', 
+                  background: 'linear-gradient(135deg, #02042b 0%, #0c2340 100%)', 
+                  border: '1px solid #3399cc',
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '8px' 
+                }}
+              >
+                <span>💳 Pay ₹{rideDetails.fare} with Razorpay (UPI / Card)</span>
+              </button>
+            )}
           </>
         )}
 

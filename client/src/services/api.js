@@ -166,6 +166,19 @@ export const addMoneyToWallet = (amount) => {
   return api.post('/payments/wallet/add', { amount });
 };
 
+// ==================== RAZORPAY PAYMENT APIs ====================
+export const getRazorpayConfig = () => {
+  return api.get('/payments/razorpay/config');
+};
+
+export const createRazorpayOrder = ({ bookingId, amount, purpose }) => {
+  return api.post('/payments/razorpay/create-order', { bookingId, amount, purpose });
+};
+
+export const verifyRazorpayPayment = (paymentData) => {
+  return api.post('/payments/razorpay/verify-payment', paymentData);
+};
+
 // ==================== DRIVER PAYMENT APIs ====================
 export const getDriverUpiId = () => {
   return api.get('/payments/driver/upi');

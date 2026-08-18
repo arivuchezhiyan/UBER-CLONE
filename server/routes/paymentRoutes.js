@@ -3,9 +3,238 @@ const router = express.Router();
 const auth = require('../middleware/authMiddleware');
 const Booking = require('../models/Booking');
 const User = require('../models/User');
+const Payment = require('../models/Payment');
 const WalletService = require('../services/WalletService');
+const RazorpayService = require('../services/RazorpayService');
 
-// Get saved payment methods
+// ============================================================
+// 1. RAZORPAY INTEGRATION ENDPOINTS
+// ============================================================
+
+// Get Razorpay Public Config (Key ID)
+router.get('/razorpay/config', auth, (req, res) => {
+  res.json({
+    success: true,
+    keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_TRFJ7gXnnDU8Kc',
+    currency: 'INR'
+  });
+});
+
+// Create Razorpay Order
+router.post('/razorpay/create-order', auth, async (req, res) => {
+  try {
+    const { bookingId, amount, purpose = 'RIDE_PAYMENT' } = req.body;
+
+    let targetAmount = Number(amount);
+    let rideReceipt = `rcpt_${Date.now()}`;
+    let booking = null;
+
+    if (bookingId) {
+      booking = await Booking.findById(bookingId);
+      if (!booking) {
+        return res.status(404).json({ success: false, message: 'Booking not found' });
+      }
+      targetAmount = targetAmount || booking.actualFare || booking.estimatedFare || 100;
+      rideReceipt = booking.rideNumber || booking._id.toString();
+    }
+
+    if (!targetAmount || targetAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid payment amount' });
+    }
+
+    // Call Razorpay API to create order
+    const orderData = await RazorpayService.createOrder({
+      amountInRupees: targetAmount,
+      receipt: rideReceipt,
+      notes: {
+        userId: req.userId,
+        bookingId: bookingId || '',
+        purpose
+      }
+    });
+
+    // Create pending Payment audit record
+    const payment = new Payment({
+      bookingId: bookingId || null,
+      userId: req.userId,
+      driverId: booking?.driverId || null,
+      amount: targetAmount,
+      currency: 'INR',
+      paymentMethod: 'razorpay',
+      gateway: 'RAZORPAY',
+      razorpayOrderId: orderData.orderId,
+      status: 'pending',
+      notes: { purpose, receipt: rideReceipt }
+    });
+    await payment.save();
+
+    res.json({
+      success: true,
+      orderId: orderData.orderId,
+      amount: orderData.amount, // in paise
+      amountInRupees: orderData.amountInRupees,
+      currency: orderData.currency,
+      keyId: orderData.keyId,
+      paymentRecordId: payment._id,
+      customer: {
+        id: req.userId
+      }
+    });
+  } catch (error) {
+    console.error('Error creating Razorpay order:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Verify Razorpay Payment Signature & Settle
+router.post('/razorpay/verify-payment', auth, async (req, res) => {
+  try {
+    const {
+      bookingId,
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature,
+      purpose = 'RIDE_PAYMENT'
+    } = req.body;
+
+    if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+      return res.status(400).json({ success: false, message: 'Missing payment signature verification parameters' });
+    }
+
+    // 1. Verify HMAC Signature
+    const verification = RazorpayService.verifyPaymentSignature({
+      orderId: razorpayOrderId,
+      paymentId: razorpayPaymentId,
+      signature: razorpaySignature
+    });
+
+    if (!verification.isValid) {
+      // Mark payment failed
+      await Payment.findOneAndUpdate(
+        { razorpayOrderId },
+        { status: 'failed', failureReason: 'Invalid HMAC signature' }
+      );
+      return res.status(400).json({ success: false, message: 'Payment signature verification failed. Tampering detected.' });
+    }
+
+    // 2. Update Payment Record to completed
+    const payment = await Payment.findOneAndUpdate(
+      { razorpayOrderId },
+      {
+        $set: {
+          razorpayPaymentId,
+          razorpaySignature,
+          transactionId: razorpayPaymentId,
+          status: 'completed',
+          isVerified: true,
+          verifiedAt: new Date(),
+          updatedAt: new Date()
+        }
+      },
+      { new: true }
+    );
+
+    // 3. Purpose: RIDE_PAYMENT -> Settle ride and credit driver wallet
+    if (purpose === 'RIDE_PAYMENT' && bookingId) {
+      const booking = await Booking.findById(bookingId);
+      if (booking) {
+        booking.paymentStatus = 'completed';
+        booking.paymentMethod = 'online';
+        booking.status = 'SETTLED';
+
+        const driverEarnings = booking.fareBreakdown?.driverEarnings || Math.round((payment?.amount || booking.estimatedFare) * 0.8);
+
+        // Double-entry ledger credit to driver
+        if (booking.driverId) {
+          await WalletService.creditRideEarnings(
+            booking.driverId,
+            booking._id,
+            driverEarnings,
+            booking.rideNumber
+          );
+        }
+
+        await booking.save();
+
+        // Emit real-time completion to sockets
+        const io = req.app.get('io');
+        if (io) {
+          io.emit('payment-completed', {
+            bookingId: booking._id,
+            rideNumber: booking.rideNumber,
+            amount: payment?.amount || booking.estimatedFare,
+            paymentId: razorpayPaymentId,
+            status: 'SETTLED'
+          });
+        }
+      }
+    } else if (purpose === 'WALLET_TOPUP') {
+      // Purpose: WALLET_TOPUP -> Credit user wallet balance
+      const topupAmount = payment?.amount || Number(req.body.amount);
+      await User.findByIdAndUpdate(req.userId, {
+        $inc: { walletBalance: topupAmount }
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Payment verified and settled successfully',
+      paymentId: razorpayPaymentId,
+      orderId: razorpayOrderId,
+      verified: true
+    });
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Razorpay Webhook Handler (Asynchronous Fail-Safe)
+router.post('/razorpay/webhook', async (req, res) => {
+  try {
+    const signature = req.headers['x-razorpay-signature'];
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET;
+
+    const isValid = RazorpayService.verifyWebhookSignature({
+      rawBody: req.body,
+      signature,
+      secret
+    });
+
+    if (!isValid) {
+      return res.status(400).json({ message: 'Invalid webhook signature' });
+    }
+
+    const event = req.body.event;
+    const paymentEntity = req.body.payload?.payment?.entity;
+
+    if (event === 'payment.captured' && paymentEntity) {
+      const orderId = paymentEntity.order_id;
+      const paymentId = paymentEntity.id;
+
+      await Payment.findOneAndUpdate(
+        { razorpayOrderId: orderId },
+        {
+          $set: {
+            razorpayPaymentId: paymentId,
+            status: 'completed',
+            isVerified: true,
+            verifiedAt: new Date()
+          }
+        }
+      );
+    }
+
+    res.json({ status: 'ok' });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ============================================================
+// 2. SAVED PAYMENT METHODS
+// ============================================================
 router.get('/methods', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('paymentMethods');
@@ -15,7 +244,6 @@ router.get('/methods', auth, async (req, res) => {
   }
 });
 
-// Add payment method
 router.post('/methods', auth, async (req, res) => {
   try {
     const { type, details } = req.body;
@@ -42,7 +270,6 @@ router.post('/methods', auth, async (req, res) => {
   }
 });
 
-// Remove payment method
 router.delete('/methods/:methodId', auth, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
@@ -54,7 +281,7 @@ router.delete('/methods/:methodId', auth, async (req, res) => {
   }
 });
 
-// Process payment for a ride
+// Process payment for a ride (Generic/Legacy)
 router.post('/process', auth, async (req, res) => {
   try {
     const { bookingId, paymentMethod, amount } = req.body;
@@ -103,7 +330,7 @@ router.get('/history', auth, async (req, res) => {
   }
 });
 
-// Add money to customer wallet
+// Customer Wallet Add
 router.post('/wallet/add', auth, async (req, res) => {
   try {
     const { amount } = req.body;
