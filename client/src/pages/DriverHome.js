@@ -360,23 +360,6 @@ function DriverHome({ user }) {
           >
             📄 KYC
           </button>
-          <button 
-            onClick={() => navigate('/admin')} 
-            style={{ 
-              background: '#3b82f6', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '20px', 
-              padding: '6px 12px', 
-              fontSize: '12px', 
-              fontWeight: 700, 
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(59,130,246,0.3)'
-            }}
-            title="Admin Portal"
-          >
-            ⚙️ Admin
-          </button>
         </div>
       </div>
 

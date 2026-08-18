@@ -107,27 +107,6 @@ function CustomerHome({ user }) {
               <span>🚗</span>
               <span>Trips</span>
             </button>
-
-            <button
-              onClick={() => navigate('/admin')}
-              style={{
-                background: '#3b82f6',
-                border: 'none',
-                borderRadius: '20px',
-                padding: '6px 14px',
-                fontSize: '12px',
-                fontWeight: 700,
-                color: '#ffffff',
-                boxShadow: '0 2px 8px rgba(59,130,246,0.3)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-            >
-              <span>⚙️</span>
-              <span>Admin</span>
-            </button>
           </div>
         </div>
 

@@ -113,7 +113,9 @@ function Profile({ user, onLogout }) {
       { icon: '📄', label: 'Vehicle & KYC Documents', action: () => navigate('/driver/documents') },
       { icon: '💰', label: 'Wallet & Earnings', action: () => setShowWalletModal(true) }
     ] : []),
-    { icon: '⚙️', label: 'Admin Portal', action: () => navigate('/admin') },
+    ...(user?.userType === 'admin' || user?.role === 'ADMIN' ? [
+      { icon: '⚙️', label: 'Admin Portal', action: () => navigate('/admin') }
+    ] : []),
     { icon: '🎁', label: 'Promotions', action: () => {} },
     { icon: '⭐', label: 'Rate us', action: () => {} },
     { icon: '❓', label: 'Help', action: () => {} },
