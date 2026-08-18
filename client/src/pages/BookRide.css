@@ -46,11 +46,11 @@
 .route-info-card {
   position: absolute;
   top: 16px;
-  left: 70px;
-  right: 16px;
+  left: 62px;
+  right: 14px;
   background: #ffffff;
   border-radius: 16px;
-  padding: 10px 14px;
+  padding: 8px 14px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   z-index: 6000 !important;
 }

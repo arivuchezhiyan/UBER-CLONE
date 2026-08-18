@@ -214,15 +214,36 @@ function BookRide({ user }) {
     }
   };
 
-  const editingQuery = activeEditingField === 'pickup' ? pickup : dropoff;
-  const filteredSuggestions = PLACES_DATABASE.filter(place => {
-    if (!editingQuery || !editingQuery.trim()) return true;
-    return (
-      place.name.toLowerCase().includes(editingQuery.toLowerCase()) ||
-      place.address.toLowerCase().includes(editingQuery.toLowerCase()) ||
-      place.category.toLowerCase().includes(editingQuery.toLowerCase())
-    );
+  const editingQuery = (activeEditingField === 'pickup' ? pickup : dropoff) || '';
+  const cleanQuery = editingQuery.trim().toLowerCase();
+
+  // 1. Filter places matching query (substring or token match)
+  const matchedPlaces = PLACES_DATABASE.filter(place => {
+    if (!cleanQuery) return true;
+    const nameMatch = place.name.toLowerCase().includes(cleanQuery);
+    const addrMatch = place.address.toLowerCase().includes(cleanQuery);
+    const catMatch = place.category.toLowerCase().includes(cleanQuery);
+    const words = cleanQuery.split(/[\s,]+/);
+    const anyWordMatch = words.some(w => w.length >= 2 && (place.name.toLowerCase().includes(w) || place.address.toLowerCase().includes(w)));
+    return nameMatch || addrMatch || catMatch || anyWordMatch;
   });
+
+  // 2. Custom typed location option
+  const showCustomOption = cleanQuery.length > 0 && !matchedPlaces.some(p => p.name.toLowerCase() === cleanQuery);
+  const customPlace = showCustomOption ? {
+    id: 'custom-' + cleanQuery,
+    name: editingQuery,
+    address: 'Tap to select this exact location',
+    icon: '📍',
+    category: 'Selected',
+    distanceKm: Math.floor(Math.random() * 8) + 4,
+    isLongDistance: false
+  } : null;
+
+  const suggestionsToDisplay = [
+    ...(customPlace ? [customPlace] : []),
+    ...(matchedPlaces.length > 0 ? matchedPlaces : PLACES_DATABASE)
+  ].slice(0, 8);
 
   const getPaymentIcon = () => {
     switch(paymentMethod) {
@@ -248,8 +269,8 @@ function BookRide({ user }) {
           height="100%"
         />
         
-        {/* Floating Universal Back Button */}
-        <BackButton to="/" label="Back" className="floating" />
+        {/* Floating Universal Back Button - Icon Only */}
+        <BackButton to="/" label="" className="floating icon-only" />
 
         {/* Route Info Overlay with editable inputs and floating suggestions */}
         <div className="route-info-card">
@@ -306,7 +327,7 @@ function BookRide({ user }) {
                 <button type="button" className="close-dropdown-btn" onClick={() => setActiveEditingField(null)}>✕</button>
               </div>
               <div className="dropdown-list">
-                {filteredSuggestions.slice(0, 8).map(place => (
+                {suggestionsToDisplay.map(place => (
                   <div 
                     key={place.id} 
                     className="dropdown-item" 

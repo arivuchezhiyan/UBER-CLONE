@@ -6,40 +6,40 @@ import './CustomerHome.css';
 
 export const PLACES_DATABASE = [
   // Saved / Home / Work
-  { id: 's1', name: 'Home', address: 'Koramangala 4th Block, Bengaluru', icon: '🏠', category: 'Saved', distanceKm: 1.2, isLongDistance: false },
-  { id: 's2', name: 'Work', address: 'Whitefield Tech Park, ITPL Main Rd', icon: '💼', category: 'Saved', distanceKm: 14.5, isLongDistance: false },
+  { id: 's1', name: 'Home', address: 'Kelambakkam Junction, OMR', icon: '🏠', category: 'Saved', distanceKm: 1.2, isLongDistance: false, coords: { lat: 12.7871, lng: 80.2185 } },
+  { id: 's2', name: 'Work', address: 'Siruseri SIPCOT IT Park, TCS Main Gate', icon: '💼', category: 'Saved', distanceKm: 4.8, isLongDistance: false, coords: { lat: 12.8277, lng: 80.2188 } },
 
-  // Nearby City Spots & Hotspots
-  { id: 'n1', name: 'Koramangala Sony World Signal', address: '80 Feet Road, Koramangala 4th Block', icon: '📍', category: 'Nearby', distanceKm: 0.8, isLongDistance: false },
-  { id: 'n2', name: 'Indiranagar 100 Feet Road', address: 'Near Toit & 12th Main Road Junction', icon: '📍', category: 'Nearby', distanceKm: 4.2, isLongDistance: false },
-  { id: 'n3', name: 'MG Road Metro Station', address: 'Mahatma Gandhi Road, Bengaluru Central', icon: '🚇', category: 'Transit', distanceKm: 5.6, isLongDistance: false },
-  { id: 'n4', name: 'Brigade Road', address: 'Shanthala Nagar, Ashok Nagar, Bengaluru', icon: '🛍️', category: 'Nearby', distanceKm: 5.8, isLongDistance: false },
-  { id: 'n5', name: 'Church Street', address: 'Rest House Road Junction, Central BLR', icon: '☕', category: 'Nearby', distanceKm: 5.9, isLongDistance: false },
-  { id: 'n6', name: 'HSR Layout Sector 1', address: '27th Main Road, BDA Complex Area', icon: '📍', category: 'Nearby', distanceKm: 3.5, isLongDistance: false },
-  { id: 'n7', name: 'Electronic City Phase 1', address: 'Infosys Main Gate, Hosur Elevated Tollway', icon: '🏢', category: 'Nearby', distanceKm: 11.2, isLongDistance: false },
-  { id: 'n8', name: 'Manyata Tech Park', address: 'Outer Ring Road, Nagawara, Hebbal', icon: '🏢', category: 'Nearby', distanceKm: 15.0, isLongDistance: false },
-  { id: 'n9', name: 'Phoenix Marketcity', address: 'Whitefield Main Road, Mahadevapura', icon: '🛍️', category: 'Nearby', distanceKm: 10.4, isLongDistance: false },
-  { id: 'n10', name: 'Orion Mall', address: 'Brigade Gateway, Malleshwaram West', icon: '🛍️', category: 'Nearby', distanceKm: 11.8, isLongDistance: false },
-  { id: 'n11', name: 'Jayanagar 4th Block', address: 'Shopping Complex, 11th Main Road', icon: '📍', category: 'Nearby', distanceKm: 6.2, isLongDistance: false },
+  // Chennai & OMR / ECR Regional Hotspots (Including Kelambakkam)
+  { id: 'c1', name: 'Kelambakkam Bus Stand', address: 'Rajiv Gandhi Salai, Kelambakkam Junction (OMR)', icon: '📍', category: 'Nearby', distanceKm: 0.5, isLongDistance: false, coords: { lat: 12.7871, lng: 80.2185 } },
+  { id: 'c2', name: 'Siruseri SIPCOT IT Park', address: 'TCS, CTS, Hexaware Campus, OMR', icon: '🏢', category: 'Nearby', distanceKm: 4.5, isLongDistance: false, coords: { lat: 12.8277, lng: 80.2188 } },
+  { id: 'c3', name: 'Navalur Vivira Mall', address: 'Rajiv Gandhi IT Expressway, Navalur (OMR)', icon: '🛍️', category: 'Nearby', distanceKm: 6.8, isLongDistance: false, coords: { lat: 12.8465, lng: 80.2260 } },
+  { id: 'c4', name: 'Sholinganallur Junction', address: 'OMR - ECR Link Road Junction, Chennai', icon: '📍', category: 'Nearby', distanceKm: 12.5, isLongDistance: false, coords: { lat: 12.9010, lng: 80.2279 } },
+  { id: 'c5', name: 'Thiruporur Murugan Temple', address: 'Old Mahabalipuram Road, Thiruporur', icon: '🛕', category: 'Nearby', distanceKm: 7.2, isLongDistance: false, coords: { lat: 12.7236, lng: 80.1878 } },
+  { id: 'c6', name: 'Kovalam Beach & Surf School', address: 'East Coast Road (ECR), Kovalam', icon: '🏖️', category: 'Nearby', distanceKm: 5.5, isLongDistance: false, coords: { lat: 12.7925, lng: 80.2514 } },
+  { id: 'c7', name: 'Mahabalipuram Shore Temple', address: 'UNESCO Heritage Site, ECR, Mamallapuram', icon: '🏛️', category: 'Nearby', distanceKm: 18.0, isLongDistance: false, coords: { lat: 12.6165, lng: 80.1983 } },
+  { id: 'c8', name: 'Velachery Phoenix Marketcity', address: 'Guru Nanak College Rd, Indira Gandhi Nagar, Chennai', icon: '🛍️', category: 'Nearby', distanceKm: 23.0, isLongDistance: false, coords: { lat: 12.9922, lng: 80.2173 } },
+  { id: 'c9', name: 'Guindy Kathipara Junction', address: 'Kathipara Cloverleaf Flyover & Metro, Chennai', icon: '🚇', category: 'Transit', distanceKm: 27.0, isLongDistance: false, coords: { lat: 13.0067, lng: 80.2030 } },
+  { id: 'c10', name: 'T. Nagar Panagal Park', address: 'Pondy Bazaar, Ranganathan St, Chennai', icon: '🛍️', category: 'Nearby', distanceKm: 31.0, isLongDistance: false, coords: { lat: 13.0418, lng: 80.2341 } },
+  { id: 'c11', name: 'Tambaram Railway Junction', address: 'GST Road, Tambaram Sanatorium (MEPZ)', icon: '🚆', category: 'Transit', distanceKm: 22.0, isLongDistance: false, coords: { lat: 12.9249, lng: 80.1000 } },
+  { id: 'c12', name: 'Chennai International Airport (MAA)', address: 'Terminal 1, 2 & 4, GST Road, Meenambakkam', icon: '✈️', category: 'Airport', distanceKm: 28.5, isLongDistance: false, coords: { lat: 12.9941, lng: 80.1709 } },
+  { id: 'c13', name: 'Chennai Central Railway Station', address: 'Puratchi Thalaivar Dr. M.G.R Central (MAS)', icon: '🚆', category: 'Transit', distanceKm: 36.0, isLongDistance: false, coords: { lat: 13.0827, lng: 80.2707 } },
 
-  // Airports & Major Transit Hubs
-  { id: 't1', name: 'Kempegowda International Airport (BLR)', address: 'Terminal 1 & Terminal 2, Devanahalli', icon: '✈️', category: 'Airport', distanceKm: 38.5, isLongDistance: false },
-  { id: 't2', name: 'KSR Bengaluru Railway Station', address: 'Kempegowda Majestic Station (SBC)', icon: '🚆', category: 'Transit', distanceKm: 7.8, isLongDistance: false },
-  { id: 't3', name: 'Yeshwanthpur Junction', address: 'Platform 1 / 6, Tumkur Road (YPR)', icon: '🚆', category: 'Transit', distanceKm: 13.2, isLongDistance: false },
-  { id: 't4', name: 'Majestic Bus Stand', address: 'Kempegowda Bus Station Intercity Hub', icon: '🚌', category: 'Transit', distanceKm: 7.9, isLongDistance: false },
+  // Bangalore Hotspots
+  { id: 'n1', name: 'Koramangala Sony World Signal', address: '80 Feet Road, Koramangala 4th Block, Bengaluru', icon: '📍', category: 'Nearby', distanceKm: 0.8, isLongDistance: false, coords: { lat: 12.9344, lng: 77.6272 } },
+  { id: 'n2', name: 'Indiranagar 100 Feet Road', address: 'Near Toit & 12th Main Road Junction, Bengaluru', icon: '📍', category: 'Nearby', distanceKm: 4.2, isLongDistance: false, coords: { lat: 12.9719, lng: 77.6412 } },
+  { id: 'n3', name: 'MG Road Metro Station', address: 'Mahatma Gandhi Road, Bengaluru Central', icon: '🚇', category: 'Transit', distanceKm: 5.6, isLongDistance: false, coords: { lat: 12.9756, lng: 77.6066 } },
+  { id: 'n4', name: 'Whitefield Tech Park', address: 'ITPL Main Road, Prestige Shantiniketan', icon: '💼', category: 'Nearby', distanceKm: 14.5, isLongDistance: false, coords: { lat: 12.9698, lng: 77.7499 } },
+  { id: 'n5', name: 'Kempegowda International Airport (BLR)', address: 'Terminal 1 & Terminal 2, Devanahalli', icon: '✈️', category: 'Airport', distanceKm: 38.5, isLongDistance: false, coords: { lat: 13.1986, lng: 77.7066 } },
 
   // Long Distance & Outstation Destinations
-  { id: 'l1', name: 'Nandi Hills', address: 'Chikkaballapur District (Hilltop Sunrise)', icon: '⛰️', category: 'Outstation', distanceKm: 62.0, isLongDistance: true },
-  { id: 'l2', name: 'Mysore Palace (Mysuru)', address: 'Sayyaji Rao Rd, Mysuru, Karnataka', icon: '🏰', category: 'Outstation', distanceKm: 145.0, isLongDistance: true },
-  { id: 'l3', name: 'Shivanasamudra Waterfalls', address: 'Mandya / Chamarajanagar Border', icon: '🌊', category: 'Outstation', distanceKm: 135.0, isLongDistance: true },
-  { id: 'l4', name: 'Coorg (Madikeri Hills)', address: 'Kodagu Coffee Estates & Abbey Falls', icon: '☕', category: 'Outstation', distanceKm: 250.0, isLongDistance: true },
-  { id: 'l5', name: 'Ooty (Nilgiri Mountains)', address: 'Udhagamandalam, Tamil Nadu', icon: '🌲', category: 'Outstation', distanceKm: 275.0, isLongDistance: true },
-  { id: 'l6', name: 'Chikmagalur', address: 'Mullayanagiri Peak & Coffee Valley', icon: '⛰️', category: 'Outstation', distanceKm: 240.0, isLongDistance: true },
-  { id: 'l7', name: 'Tirupati Balaji Temple', address: 'Tirumala Hills, Andhra Pradesh', icon: '🛕', category: 'Outstation', distanceKm: 250.0, isLongDistance: true },
-  { id: 'l8', name: 'Pondicherry (Puducherry)', address: 'White Town French Quarter & Beach', icon: '🏖️', category: 'Outstation', distanceKm: 310.0, isLongDistance: true },
-  { id: 'l9', name: 'Chennai Central', address: 'Puratchi Thalaivar Dr. M.G.R Station', icon: '🏙️', category: 'Outstation', distanceKm: 345.0, isLongDistance: true },
-  { id: 'l10', name: 'Hyderabad (HITEC City)', address: 'Cyberabad IT Corridor, Telangana', icon: '🏙️', category: 'Outstation', distanceKm: 570.0, isLongDistance: true },
-  { id: 'l11', name: 'Hosur SIPCOT Industrial Area', address: 'Hosur, Tamil Nadu (State Border)', icon: '🏭', category: 'Outstation', distanceKm: 38.0, isLongDistance: true }
+  { id: 'l1', name: 'Pondicherry (Puducherry)', address: 'White Town French Quarter & Promenade Beach', icon: '🏖️', category: 'Outstation', distanceKm: 115.0, isLongDistance: true, coords: { lat: 11.9416, lng: 79.8083 } },
+  { id: 'l2', name: 'Tirupati Balaji Temple', address: 'Tirumala Hills, Andhra Pradesh', icon: '🛕', category: 'Outstation', distanceKm: 155.0, isLongDistance: true, coords: { lat: 13.6833, lng: 79.3500 } },
+  { id: 'l3', name: 'Vellore Golden Temple & Fort', address: 'Sripuram & Vellore Fort, Tamil Nadu', icon: '🛕', category: 'Outstation', distanceKm: 140.0, isLongDistance: true, coords: { lat: 12.8711, lng: 79.0888 } },
+  { id: 'l4', name: 'Nandi Hills', address: 'Chikkaballapur District (Hilltop Sunrise)', icon: '⛰️', category: 'Outstation', distanceKm: 62.0, isLongDistance: true, coords: { lat: 13.3702, lng: 77.6835 } },
+  { id: 'l5', name: 'Mysore Palace (Mysuru)', address: 'Sayyaji Rao Rd, Mysuru, Karnataka', icon: '🏰', category: 'Outstation', distanceKm: 145.0, isLongDistance: true, coords: { lat: 12.3052, lng: 76.6552 } },
+  { id: 'l6', name: 'Coorg (Madikeri Hills)', address: 'Kodagu Coffee Estates & Abbey Falls', icon: '☕', category: 'Outstation', distanceKm: 250.0, isLongDistance: true, coords: { lat: 12.4244, lng: 75.7382 } },
+  { id: 'l7', name: 'Ooty (Nilgiri Mountains)', address: 'Udhagamandalam, Tamil Nadu', icon: '🌲', category: 'Outstation', distanceKm: 275.0, isLongDistance: true, coords: { lat: 11.4102, lng: 76.6950 } },
+  { id: 'l8', name: 'Hyderabad (HITEC City)', address: 'Cyberabad IT Corridor, Telangana', icon: '🏙️', category: 'Outstation', distanceKm: 570.0, isLongDistance: true, coords: { lat: 17.4435, lng: 78.3772 } }
 ];
 
 export const reverseGeocode = async (lat, lng) => {

@@ -63,7 +63,15 @@
 .universal-back-btn.floating {
   position: absolute;
   top: 16px;
-  left: 16px;
+  left: 14px;
+}
+
+.universal-back-btn.icon-only {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
 }
 
 .universal-back-btn.fixed-top-left {
