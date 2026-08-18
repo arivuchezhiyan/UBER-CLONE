@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDriverUpiId, updateDriverUpiId, getDriverWallet, requestWithdrawal, updateUserProfile } from '../services/api';
+import BackButton from '../components/BackButton/BackButton';
 import './Profile.css';
 
 function Profile({ user, onLogout }) {
@@ -126,12 +127,8 @@ function Profile({ user, onLogout }) {
   return (
     <div className="profile-page">
       {/* Header */}
-      <header className="profile-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </button>
+      <header className="profile-header" style={{ padding: '20px 20px 10px', display: 'flex', alignItems: 'center' }}>
+        <BackButton to="/" label="Back" theme="dark" />
       </header>
 
       {/* Profile Card */}

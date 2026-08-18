@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserBookings, getDriverBookings } from '../services/api';
+import BackButton from '../components/BackButton/BackButton';
 import './RideHistory.css';
 
 function RideHistory({ user }) {
@@ -84,14 +85,10 @@ function RideHistory({ user }) {
   return (
     <div className="ride-history">
       {/* Header */}
-      <header className="history-header">
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1>{isDriver ? 'My Earnings' : 'My Trips'}</h1>
-        <div className="header-spacer"></div>
+      <header className="history-header" style={{ padding: '20px 20px 10px' }}>
+        <BackButton to="/" label="Back" theme="dark" />
+        <h1 style={{ margin: 0, fontSize: '18px' }}>{isDriver ? 'My Earnings' : 'My Trips'}</h1>
+        <div style={{ width: '40px' }}></div>
       </header>
 
       {/* Earnings Summary for Driver */}

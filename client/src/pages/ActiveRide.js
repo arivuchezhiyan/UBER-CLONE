@@ -13,6 +13,7 @@ import {
 } from '../services/api';
 import RideMap from '../components/Map/RideMap';
 import SlideButton from '../components/SlideButton/SlideButton';
+import BackButton from '../components/BackButton/BackButton';
 import { processRazorpayPayment } from '../services/razorpay';
 import io from 'socket.io-client';
 import './ActiveRide.css';
@@ -440,34 +441,18 @@ function ActiveRide({ user }) {
           zIndex: 1000,
           pointerEvents: 'none'
         }}>
-          <button
-            onClick={() => {
-              if (['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus)) {
-                setShowCancelSheet(true);
-              } else {
-                navigate('/');
-              }
-            }}
-            title="Go Back"
-            style={{
-              pointerEvents: 'auto',
-              background: '#ffffff',
-              border: '1px solid #cbd5e1',
-              borderRadius: '24px',
-              padding: '8px 16px',
-              fontSize: '13px',
-              fontWeight: 800,
-              color: '#0f172a',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <span style={{ fontSize: '16px' }}>←</span>
-            <span>Back</span>
-          </button>
+          <div style={{ pointerEvents: 'auto' }}>
+            <BackButton
+              onClick={() => {
+                if (['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus)) {
+                  setShowCancelSheet(true);
+                } else {
+                  navigate('/');
+                }
+              }}
+              label="Back"
+            />
+          </div>
 
           {/* Status Pill */}
           <div className={`status-pill ${rideStatus}`} style={{ pointerEvents: 'auto', position: 'static', margin: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>

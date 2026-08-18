@@ -279,28 +279,70 @@ function DriverHome({ user }) {
       </div>
 
       {/* Top Header */}
-      <div className="driver-header">
-        <button className="menu-btn" onClick={() => navigate('/profile')} title="My Profile">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="3" y1="12" x2="21" y2="12"/>
-            <line x1="3" y1="18" x2="21" y2="18"/>
-          </svg>
-        </button>
-        
-        {/* Online Status Pill */}
-        <div 
-          className={`status-pill ${isOnline ? 'online' : 'offline'}`}
-          onClick={toggleOnlineStatus}
-          style={{ cursor: 'pointer' }}
-          title={isOnline ? 'Tap to go Offline' : 'Tap to go Online'}
-        >
-          <div className="status-dot"></div>
-          <span>{isOnline ? 'Online' : 'Offline'}</span>
+      <div className="driver-header" style={{
+        position: 'absolute',
+        top: '16px',
+        left: '16px',
+        right: '16px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        zIndex: 100
+      }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            onClick={() => navigate('/profile')}
+            style={{
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              borderRadius: '24px',
+              padding: '8px 14px',
+              fontSize: '13px',
+              fontWeight: 800,
+              color: '#0f172a',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            title="My Profile & Settings"
+          >
+            <span>👤</span>
+            <span>Profile</span>
+          </button>
+
+          {/* Online Status Pill */}
+          <div 
+            className={`status-pill ${isOnline ? 'online' : 'offline'}`}
+            onClick={toggleOnlineStatus}
+            style={{ cursor: 'pointer', margin: 0, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+            title={isOnline ? 'Tap to go Offline' : 'Tap to go Online'}
+          >
+            <div className="status-dot"></div>
+            <span>{isOnline ? 'Online' : 'Offline'}</span>
+          </div>
         </div>
 
         {/* Shortcuts */}
         <div style={{ display: 'flex', gap: '6px' }}>
+          <button 
+            onClick={() => navigate('/history')} 
+            style={{ 
+              background: '#ffffff', 
+              color: '#0f172a', 
+              border: '1px solid #cbd5e1', 
+              borderRadius: '20px', 
+              padding: '6px 12px', 
+              fontSize: '12px', 
+              fontWeight: 700, 
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}
+            title="Earnings & Trip History"
+          >
+            💰 Earnings
+          </button>
           <button 
             onClick={() => navigate('/driver/documents')} 
             style={{ 
@@ -311,7 +353,8 @@ function DriverHome({ user }) {
               padding: '6px 12px', 
               fontSize: '12px', 
               fontWeight: 700, 
-              cursor: 'pointer' 
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}
             title="Vehicle & KYC Documents"
           >
@@ -327,7 +370,8 @@ function DriverHome({ user }) {
               padding: '6px 12px', 
               fontSize: '12px', 
               fontWeight: 700, 
-              cursor: 'pointer' 
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(59,130,246,0.3)'
             }}
             title="Admin Portal"
           >

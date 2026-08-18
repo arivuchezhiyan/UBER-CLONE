@@ -1,0 +1,78 @@
+.universal-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  z-index: 9999;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18), 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1.5px solid rgba(0, 0, 0, 0.1);
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.universal-back-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.8;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.universal-back-btn:hover {
+  transform: translateX(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.universal-back-btn:active {
+  transform: scale(0.95);
+}
+
+/* Light Theme (Default - Bright white card with dark text) */
+.universal-back-btn.light {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.universal-back-btn.light:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* Dark Theme (For dark pages) */
+.universal-back-btn.dark {
+  background: #1e293b;
+  color: #ffffff;
+  border-color: #475569;
+}
+
+.universal-back-btn.dark:hover {
+  background: #334155;
+}
+
+/* Floating overlay variant */
+.universal-back-btn.floating {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+
+.universal-back-btn.fixed-top-left {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+}
+
+.universal-back-btn .btn-label {
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDriverDocuments, uploadDriverDocuments } from '../services/api';
+import BackButton from '../components/BackButton/BackButton';
 import './DriverDocuments.css';
 
 function DriverDocuments({ user }) {
@@ -150,14 +151,9 @@ function DriverDocuments({ user }) {
   return (
     <div className="driver-docs-page">
       {/* Top Header */}
-      <header className="docs-top-bar">
-        <button className="back-btn" onClick={() => navigate(-1)} title="Go Back">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span>Back</span>
-        </button>
-        <h2>Captain Registration & KYC</h2>
+      <header className="docs-top-bar" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <BackButton to="/" label="Back" theme="light" />
+        <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Captain KYC & Documents</h2>
         <div style={{ width: 40 }}></div>
       </header>
 
