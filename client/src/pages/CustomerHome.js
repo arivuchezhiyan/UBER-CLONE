@@ -94,11 +94,98 @@ export const reverseGeocode = async (lat, lng) => {
   return 'Current Location';
 };
 
+// Snap coordinates to the nearest real drivable road on land
+export const snapToNearestRoad = async (lat, lng) => {
+  // Ensure we are strictly on land (prevent east ocean placement in coastal zones)
+  let safeLng = lng;
+  let safeLat = lat;
+  if (lat > 12.5 && lat < 13.3) {
+    // East coast boundary (sea begins at ~80.245) - clamp safely inland to OMR/GST
+    if (safeLng > 80.235) {
+      safeLng = 80.222;
+    }
+  }
+
+  try {
+    const res = await fetch(`https://router.project-osrm.org/nearest/v1/driving/${safeLng},${safeLat}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.waypoints && data.waypoints.length > 0) {
+        const roadCoord = data.waypoints[0].location;
+        let roadLng = roadCoord[0];
+        let roadLat = roadCoord[1];
+        if (roadLat > 12.5 && roadLat < 13.3 && roadLng > 80.235) {
+          roadLng = 80.222;
+        }
+        return {
+          lat: roadLat,
+          lng: roadLng,
+          roadName: data.waypoints[0].name || ''
+        };
+      }
+    }
+  } catch (e) {
+    console.warn('Road snap fallback:', e);
+  }
+  return { lat: safeLat, lng: safeLng };
+};
+
 export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185) => {
   if (!query || !query.trim()) return null;
 
   const cleanQ = query.toLowerCase().trim();
-  // 1. Exact or partial match in PLACES_DATABASE
+
+  // 1. Keyword / Amenity Resolver for real-world popular spots
+  if (cleanQ.includes('briyani') || cleanQ.includes('biryani') || cleanQ.includes('food') || cleanQ.includes('restaurant') || cleanQ.includes('hotel')) {
+    if (baseLat > 12.6 && baseLat < 13.2) {
+      // Chennai / OMR Biryani Hotspots
+      if (cleanQ.includes('irfan') || cleanQ.includes('thalappakatti') || cleanQ.includes('nearby')) {
+        return { lat: 12.8480, lng: 80.2268 }; // Navalur OMR Food Hub
+      } else if (cleanQ.includes('aasife') || cleanQ.includes('kelambakkam')) {
+        return { lat: 12.7885, lng: 80.2201 }; // Kelambakkam Junction
+      } else if (cleanQ.includes('hyderabad') || cleanQ.includes('sholinganallur')) {
+        return { lat: 12.8985, lng: 80.2260 }; // Sholinganallur OMR
+      }
+      return { lat: 12.8465, lng: 80.2260 }; // Navalur OMR
+    } else {
+      // Bangalore Biryani Hotspots
+      return { lat: 12.9344, lng: 77.6272 }; // Koramangala
+    }
+  }
+
+  if (cleanQ.includes('coffee') || cleanQ.includes('cafe') || cleanQ.includes('tea') || cleanQ.includes('bakery')) {
+    if (baseLat > 12.6 && baseLat < 13.2) {
+      return { lat: 12.8465, lng: 80.2260 }; // Vivira Mall OMR
+    } else {
+      return { lat: 12.9719, lng: 77.6412 }; // Indiranagar
+    }
+  }
+
+  if (cleanQ.includes('cinema') || cleanQ.includes('movie') || cleanQ.includes('theater') || cleanQ.includes('mall') || cleanQ.includes('shopping')) {
+    if (baseLat > 12.6 && baseLat < 13.2) {
+      return { lat: 12.8465, lng: 80.2260 }; // AGS Cinemas Vivira Mall OMR
+    } else {
+      return { lat: 12.9959, lng: 77.6964 }; // Phoenix Marketcity Bangalore
+    }
+  }
+
+  if (cleanQ.includes('atm') || cleanQ.includes('bank')) {
+    if (baseLat > 12.6 && baseLat < 13.2) {
+      return { lat: 12.7871, lng: 80.2185 }; // Kelambakkam Junction
+    } else {
+      return { lat: 12.9756, lng: 77.6066 }; // MG Road
+    }
+  }
+
+  if (cleanQ.includes('petrol') || cleanQ.includes('fuel') || cleanQ.includes('diesel') || cleanQ.includes('gas')) {
+    if (baseLat > 12.6 && baseLat < 13.2) {
+      return { lat: 12.7890, lng: 80.2195 }; // OMR Kelambakkam Bunk
+    } else {
+      return { lat: 12.9344, lng: 77.6272 };
+    }
+  }
+
+  // 2. Exact or partial match in PLACES_DATABASE
   const matchedPlace = PLACES_DATABASE.find(p => 
     p.name.toLowerCase() === cleanQ || 
     p.address.toLowerCase().includes(cleanQ) ||
@@ -108,7 +195,7 @@ export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185
     return matchedPlace.coords;
   }
 
-  // 2. Query OpenStreetMap Nominatim for real-world lat/lng
+  // 3. Query OpenStreetMap Nominatim for real-world lat/lng
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
@@ -117,28 +204,38 @@ export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185
     if (res.ok) {
       const results = await res.json();
       if (results && results.length > 0) {
-        return {
-          lat: parseFloat(results[0].lat),
-          lng: parseFloat(results[0].lon)
-        };
+        let rawLat = parseFloat(results[0].lat);
+        let rawLng = parseFloat(results[0].lon);
+
+        // Snap to nearest drivable road safely inland
+        const snapped = await snapToNearestRoad(rawLat, rawLng);
+        return { lat: snapped.lat, lng: snapped.lng };
       }
     }
   } catch (err) {
     console.warn('Geocoding search fallback:', err);
   }
 
-  // 3. Deterministic regional offset based on string hash for custom locations
+  // 4. Guaranteed Inland Terrestrial Offset along the road network
   let hash = 0;
   for (let i = 0; i < query.length; i++) {
     hash = ((hash << 5) - hash) + query.charCodeAt(i);
     hash |= 0;
   }
-  const offsetLat = ((Math.abs(hash) % 35) + 12) * 0.001 * (hash % 2 === 0 ? 1 : -1);
-  const offsetLng = ((Math.abs(hash >> 2) % 35) + 12) * 0.001 * (hash % 3 === 0 ? 1 : -1);
+  // Offset North/South along the highway corridor, clamping strictly to motorable land
+  const offsetLat = ((Math.abs(hash) % 30) + 8) * 0.001 * (hash % 2 === 0 ? 1 : -1);
+  // Keep longitude strictly aligned with the main north-south road corridor (OMR: 80.22)
+  const safeTargetLat = baseLat + offsetLat;
+  let safeTargetLng = baseLng;
+  if (safeTargetLat > 12.5 && safeTargetLat < 13.3) {
+    // Chennai OMR corridor is at 80.22 - never exceed 80.235
+    safeTargetLng = 80.220 + ((Math.abs(hash) % 10) * 0.001);
+  }
 
+  const snapped = await snapToNearestRoad(safeTargetLat, safeTargetLng);
   return {
-    lat: baseLat + offsetLat,
-    lng: baseLng + offsetLng
+    lat: snapped.lat,
+    lng: snapped.lng
   };
 };
 
