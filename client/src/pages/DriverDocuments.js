@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDriverDocuments, uploadDriverDocuments } from '../services/api';
 import BackButton from '../components/BackButton/BackButton';
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ClockIcon,
+  CarIcon,
+  DocumentIcon,
+  ShieldIcon,
+  ZapIcon,
+  CameraIcon,
+  UploadCloudIcon
+} from '../components/Icons';
 import './DriverDocuments.css';
 
 function DriverDocuments({ user }) {
@@ -32,11 +43,11 @@ function DriverDocuments({ user }) {
   const [toast, setToast] = useState(null);
 
   const vehicleOptions = [
-    { id: 'UberGo', label: '🚗 UberGo', desc: 'Compact & Hatchbacks (4 seats)' },
-    { id: 'Premier', label: '🚘 Premier', desc: 'Comfortable Sedans (4 seats)' },
-    { id: 'UberXL', label: '🚐 UberXL', desc: 'SUVs & 6 Seaters' },
-    { id: 'Uber Auto', label: '🛺 Uber Auto', desc: '3-Wheeler Auto Rickshaws' },
-    { id: 'Uber Moto', label: '🏍️ Uber Moto', desc: 'Motorcycles & Bikes (1 seat)' }
+    { id: 'UberGo', label: 'UberGo Compact', desc: 'Hatchbacks & Minis (4 seats)', icon: <CarIcon size={22} color="#61d4fb" /> },
+    { id: 'Premier', label: 'Premier Sedan', desc: 'Premium Sedans & City Cars (4 seats)', icon: <CarIcon size={22} color="#b5c4ff" /> },
+    { id: 'UberXL', label: 'UberXL SUV', desc: 'Spacious SUVs & 6 Seater MPVs', icon: <CarIcon size={22} color="#a855f7" /> },
+    { id: 'Uber Auto', label: 'Auto Rickshaw', desc: '3-Wheeler Auto Transit', icon: <CarIcon size={22} color="#fbbf24" /> },
+    { id: 'Uber Moto', label: 'Moto Bike', desc: 'Motorcycles & Scooters (1 passenger)', icon: <CarIcon size={22} color="#34d399" /> }
   ];
 
   useEffect(() => {
@@ -101,7 +112,7 @@ function DriverDocuments({ user }) {
     setRcPhoto('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500&auto=format&fit=crop&q=60');
     setInsuranceNumber('POL-HDFC-9928172');
     setInsurancePhoto('https://images.unsplash.com/photo-1450133064473-71024230f91b?w=500&auto=format&fit=crop&q=60');
-    showToast('Demo KYC data pre-filled!', 'success');
+    showToast('Demo KYC data pre-filled successfully', 'success');
   };
 
   const showToast = (message, type = 'info') => {
@@ -135,7 +146,7 @@ function DriverDocuments({ user }) {
 
       const res = await uploadDriverDocuments(payload);
       if (res.data?.success) {
-        showToast('✅ Documents submitted successfully! Verification pending.', 'success');
+        showToast('Documents submitted successfully! Verification in progress.', 'success');
         setStatusInfo(prev => ({ ...prev, approvalStatus: 'PENDING' }));
         setTimeout(() => {
           navigate('/driver');
@@ -151,9 +162,9 @@ function DriverDocuments({ user }) {
   return (
     <div className="driver-docs-page">
       {/* Top Header */}
-      <header className="docs-top-bar" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <BackButton to="/" label="Back" theme="light" />
-        <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Captain KYC & Documents</h2>
+      <header className="docs-top-bar">
+        <BackButton to="/driver" label="Cockpit" theme="light" />
+        <h2>Captain KYC & Vehicle Documents</h2>
         <div style={{ width: 40 }}></div>
       </header>
 
@@ -167,11 +178,13 @@ function DriverDocuments({ user }) {
         {/* Verification Status Card */}
         <div className={`status-card ${statusInfo.approvalStatus.toLowerCase()}`}>
           <div className="status-card-header">
-            <span className="status-icon">
-              {statusInfo.approvalStatus === 'APPROVED' ? '✅' : statusInfo.approvalStatus === 'REJECTED' ? '❌' : '⏳'}
-            </span>
+            <div className="status-icon-wrap">
+              {statusInfo.approvalStatus === 'APPROVED' && <CheckCircleIcon size={32} color="#10b981" />}
+              {statusInfo.approvalStatus === 'REJECTED' && <XCircleIcon size={32} color="#ef4444" />}
+              {statusInfo.approvalStatus !== 'APPROVED' && statusInfo.approvalStatus !== 'REJECTED' && <ClockIcon size={32} color="#f59e0b" />}
+            </div>
             <div>
-              <h3>Account Status: {statusInfo.approvalStatus}</h3>
+              <h3>Captain Status: {statusInfo.approvalStatus}</h3>
               <p>
                 {statusInfo.approvalStatus === 'APPROVED' && 'Your documents are fully verified. You can go online and accept customer rides!'}
                 {statusInfo.approvalStatus === 'PENDING' && 'Your KYC and vehicle documents are currently under review by the admin team.'}
@@ -182,7 +195,8 @@ function DriverDocuments({ user }) {
           </div>
           {statusInfo.approvalStatus !== 'APPROVED' && (
             <button className="btn-quick-fill" type="button" onClick={handleQuickFillDemo}>
-              ⚡ Quick Fill Sample KYC Data
+              <ZapIcon size={14} color="#61d4fb" />
+              <span>Quick Fill Verified Demo KYC</span>
             </button>
           )}
         </div>
@@ -190,8 +204,8 @@ function DriverDocuments({ user }) {
         <form onSubmit={handleSubmit}>
           {/* 1. Vehicle Type Selection */}
           <section className="form-section">
-            <h3 className="section-title">1. Select Your Vehicle Category</h3>
-            <p className="section-subtext">You will only receive ride requests matching your vehicle category</p>
+            <h3 className="section-title">1. Select Vehicle Category</h3>
+            <p className="section-subtext">You will only receive ride requests matching your verified vehicle category</p>
             
             <div className="vehicle-type-grid">
               {vehicleOptions.map((opt) => (
@@ -203,6 +217,7 @@ function DriverDocuments({ user }) {
                   <div className="vehicle-card-radio">
                     {vehicleType === opt.id && <div className="radio-dot"></div>}
                   </div>
+                  <div className="veh-icon-holder">{opt.icon}</div>
                   <div className="vehicle-card-info">
                     <h4>{opt.label}</h4>
                     <p>{opt.desc}</p>
@@ -232,7 +247,7 @@ function DriverDocuments({ user }) {
                 <label>License Plate Number *</label>
                 <input
                   type="text"
-                  placeholder="e.g. KA 01 AB 1234"
+                  placeholder="e.g. TN 07 CB 4567"
                   value={licensePlate}
                   onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
                   required
@@ -245,7 +260,7 @@ function DriverDocuments({ user }) {
                 <label>Color</label>
                 <input
                   type="text"
-                  placeholder="e.g. White / Silver"
+                  placeholder="e.g. Pearl White / Silver"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
                 />
@@ -255,7 +270,7 @@ function DriverDocuments({ user }) {
                 <label>Manufacturing Year</label>
                 <input
                   type="number"
-                  placeholder="2022"
+                  placeholder="2023"
                   value={year}
                   onChange={(e) => setYear(e.target.value)}
                 />
@@ -264,16 +279,17 @@ function DriverDocuments({ user }) {
 
             {/* Vehicle Photo Upload */}
             <div className="file-upload-box">
-              <label className="upload-label">🚗 Vehicle Exterior Photo (with Number Plate)</label>
+              <label className="upload-label">Vehicle Exterior Photo (with Number Plate)</label>
               <div className="upload-dropzone">
                 {vehiclePhoto ? (
                   <div className="preview-container">
                     <img src={vehiclePhoto} alt="Vehicle Preview" className="doc-preview-img" />
-                    <button type="button" className="btn-remove-photo" onClick={() => setVehiclePhoto('')}>✕ Remove</button>
+                    <button type="button" className="btn-remove-photo" onClick={() => setVehiclePhoto('')}>✕ Remove Photo</button>
                   </div>
                 ) : (
                   <label className="file-input-label">
-                    <span>📷 Tap to upload Vehicle Photo</span>
+                    <CameraIcon size={22} color="#61d4fb" />
+                    <span>Tap to upload Vehicle Exterior Photo</span>
                     <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setVehiclePhoto)} />
                   </label>
                 )}
@@ -287,7 +303,10 @@ function DriverDocuments({ user }) {
 
             {/* Driver License */}
             <div className="doc-upload-item">
-              <h4>🪪 Driver License (DL)</h4>
+              <div className="doc-item-title-row">
+                <DocumentIcon size={18} color="#61d4fb" />
+                <h4>Driving License (DL)</h4>
+              </div>
               <div className="form-group">
                 <input
                   type="text"
@@ -304,7 +323,8 @@ function DriverDocuments({ user }) {
                   </div>
                 ) : (
                   <label className="file-input-label">
-                    <span>📄 Upload Driver License Photo</span>
+                    <UploadCloudIcon size={18} color="#b5c4ff" />
+                    <span>Upload Driver License Front Photo</span>
                     <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setDrivingLicensePhoto)} />
                   </label>
                 )}
@@ -313,7 +333,10 @@ function DriverDocuments({ user }) {
 
             {/* Vehicle RC */}
             <div className="doc-upload-item">
-              <h4>📋 Vehicle Registration Certificate (RC)</h4>
+              <div className="doc-item-title-row">
+                <DocumentIcon size={18} color="#b5c4ff" />
+                <h4>Vehicle Registration Certificate (RC)</h4>
+              </div>
               <div className="form-group">
                 <input
                   type="text"
@@ -330,7 +353,8 @@ function DriverDocuments({ user }) {
                   </div>
                 ) : (
                   <label className="file-input-label">
-                    <span>📄 Upload RC Document Photo</span>
+                    <UploadCloudIcon size={18} color="#b5c4ff" />
+                    <span>Upload RC Document Photo</span>
                     <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setRcPhoto)} />
                   </label>
                 )}
@@ -339,7 +363,10 @@ function DriverDocuments({ user }) {
 
             {/* Insurance */}
             <div className="doc-upload-item">
-              <h4>🛡️ Vehicle Insurance Policy</h4>
+              <div className="doc-item-title-row">
+                <ShieldIcon size={18} color="#34d399" />
+                <h4>Vehicle Insurance Policy</h4>
+              </div>
               <div className="form-group">
                 <input
                   type="text"
@@ -356,7 +383,8 @@ function DriverDocuments({ user }) {
                   </div>
                 ) : (
                   <label className="file-input-label">
-                    <span>📄 Upload Insurance Copy Photo</span>
+                    <UploadCloudIcon size={18} color="#b5c4ff" />
+                    <span>Upload Insurance Certificate Photo</span>
                     <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setInsurancePhoto)} />
                   </label>
                 )}
@@ -367,7 +395,8 @@ function DriverDocuments({ user }) {
           {/* Submit Button */}
           <div className="submit-section">
             <button className="btn-submit-docs" type="submit" disabled={loading}>
-              {loading ? 'Submitting Verification...' : 'Submit Documents for Verification'}
+              <ZapIcon size={16} color="#090d16" />
+              <span>{loading ? 'Submitting Verification...' : 'Submit Documents for Verification'}</span>
             </button>
           </div>
         </form>
