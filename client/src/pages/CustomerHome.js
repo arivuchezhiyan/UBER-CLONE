@@ -350,29 +350,55 @@ function CustomerHome({ user }) {
   };
 
   const handleIncrementHour = () => {
-    const num = parseInt(selectedHour, 10);
+    const num = parseInt(selectedHour, 10) || 12;
     const next = num >= 12 ? 1 : num + 1;
     setSelectedHour(next < 10 ? `0${next}` : `${next}`);
   };
 
   const handleDecrementHour = () => {
-    const num = parseInt(selectedHour, 10);
+    const num = parseInt(selectedHour, 10) || 1;
     const prev = num <= 1 ? 12 : num - 1;
     setSelectedHour(prev < 10 ? `0${prev}` : `${prev}`);
   };
 
+  const handleHourChange = (e) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    if (val.length <= 2) {
+      setSelectedHour(val);
+    }
+  };
+
+  const handleHourBlur = () => {
+    let num = parseInt(selectedHour, 10);
+    if (isNaN(num) || num < 1) num = 12;
+    if (num > 12) num = 12;
+    setSelectedHour(num < 10 ? `0${num}` : `${num}`);
+  };
+
   const handleIncrementMinute = () => {
-    const minutes = ['00', '15', '30', '45'];
-    const idx = minutes.indexOf(selectedMinute);
-    const next = minutes[(idx + 1) % minutes.length];
-    setSelectedMinute(next);
+    const num = parseInt(selectedMinute, 10) || 0;
+    const next = num >= 59 ? 0 : num + 1;
+    setSelectedMinute(next < 10 ? `0${next}` : `${next}`);
   };
 
   const handleDecrementMinute = () => {
-    const minutes = ['00', '15', '30', '45'];
-    const idx = minutes.indexOf(selectedMinute);
-    const prev = minutes[(idx - 1 + minutes.length) % minutes.length];
-    setSelectedMinute(prev);
+    const num = parseInt(selectedMinute, 10) || 0;
+    const prev = num <= 0 ? 59 : num - 1;
+    setSelectedMinute(prev < 10 ? `0${prev}` : `${prev}`);
+  };
+
+  const handleMinuteChange = (e) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    if (val.length <= 2) {
+      setSelectedMinute(val);
+    }
+  };
+
+  const handleMinuteBlur = () => {
+    let num = parseInt(selectedMinute, 10);
+    if (isNaN(num) || num < 0) num = 0;
+    if (num > 59) num = 59;
+    setSelectedMinute(num < 10 ? `0${num}` : `${num}`);
   };
 
   // Auto-fetch Current Location on Boot
@@ -804,7 +830,18 @@ function CustomerHome({ user }) {
                         <path d="M18 15l-6-6-6 6"/>
                       </svg>
                     </button>
-                    <span className="stepper-val-glow">{selectedHour}</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={2}
+                      className="stepper-val-input"
+                      value={selectedHour}
+                      onChange={handleHourChange}
+                      onBlur={handleHourBlur}
+                      onFocus={(e) => e.target.select()}
+                      title="Type Hour (01-12)"
+                    />
                     <button type="button" className="stepper-btn" onClick={handleDecrementHour} title="Decrease Hour">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                         <path d="M6 9l6 6 6-6"/>
@@ -822,7 +859,18 @@ function CustomerHome({ user }) {
                         <path d="M18 15l-6-6-6 6"/>
                       </svg>
                     </button>
-                    <span className="stepper-val-glow">{selectedMinute}</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={2}
+                      className="stepper-val-input"
+                      value={selectedMinute}
+                      onChange={handleMinuteChange}
+                      onBlur={handleMinuteBlur}
+                      onFocus={(e) => e.target.select()}
+                      title="Type Minute (00-59)"
+                    />
                     <button type="button" className="stepper-btn" onClick={handleDecrementMinute} title="Decrease Minute">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                         <path d="M6 9l6 6 6-6"/>
