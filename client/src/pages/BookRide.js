@@ -151,11 +151,12 @@ function BookRide({ user }) {
 
   const setDefaultRideOptions = () => {
     const options = [
-      { id: 'UberGo', name: 'UberGo', desc: 'Affordable, everyday rides', price: 149, time: '2 min away', capacity: 4, icon: '🚗', pricePerKm: 12, baseFare: 50 },
-      { id: 'Premier', name: 'Premier', desc: 'Comfortable sedans, top drivers', price: 199, time: '4 min away', capacity: 4, icon: '🚘', pricePerKm: 15, baseFare: 70 },
-      { id: 'UberXL', name: 'UberXL', desc: 'Affordable rides for groups up to 6', price: 279, time: '5 min away', capacity: 6, icon: '🚐', pricePerKm: 18, baseFare: 100 },
-      { id: 'Auto', name: 'Uber Auto', desc: 'No bargaining, doorstep pick-up', price: 89, time: '1 min away', capacity: 3, icon: '🛺', pricePerKm: 8, baseFare: 25 },
-      { id: 'Moto', name: 'Uber Moto', desc: 'Affordable motorcycle rides', price: 49, time: '2 min away', capacity: 1, icon: '🏍️', pricePerKm: 5, baseFare: 15 }
+      { id: 'Premier', name: 'Royal Premier', desc: 'Executive comfort sedan, top captains', price: 199, time: '3 min away', capacity: 4, icon: '🚘', pricePerKm: 15, baseFare: 70 },
+      { id: 'UberGo', name: 'PickMe Go', desc: 'Everyday comfortable ride', price: 149, time: '2 min away', capacity: 4, icon: '🚗', pricePerKm: 12, baseFare: 50 },
+      { id: 'RoyalEV', name: 'Royal VIP EV', desc: 'Silent luxury electric, climate aroma', price: 239, time: '4 min away', capacity: 4, icon: '⚡', pricePerKm: 16, baseFare: 80 },
+      { id: 'UberXL', name: 'Royal XL SUV', desc: 'Spacious 6-seater for family & luggage', price: 289, time: '5 min away', capacity: 6, icon: '🚙', pricePerKm: 18, baseFare: 100 },
+      { id: 'Auto', name: 'Auto Express', desc: 'Quick doorstep auto ride', price: 89, time: '1 min away', capacity: 3, icon: '🛺', pricePerKm: 8, baseFare: 25 },
+      { id: 'Moto', name: 'Moto Fast', desc: 'Fast single-rider motorcycle', price: 49, time: '2 min away', capacity: 1, icon: '🏍️', pricePerKm: 5, baseFare: 15 }
     ];
     setRideOptions(options);
     setSelectedRide(options[0]);

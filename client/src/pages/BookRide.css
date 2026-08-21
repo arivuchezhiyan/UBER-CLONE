@@ -1,11 +1,41 @@
-/* Book Ride - Uber/Ola Style */
+/* ============================================================ */
+/* BOOK RIDE — ROSY LIQUID GLASS (APPLE & FIGMA SENIOR DESIGN)  */
+/* ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
 .book-ride-app {
+  --rider-canvas: #070a14;
+  --rider-rose-primary: #ff5c8a;
+  --rider-rose-vivid: #f43f5e;
+  --rider-rose-gold: #ffb3c6;
+  --rider-rose-deep: #be123c;
+  --rider-gradient-rose: linear-gradient(135deg, #ff5c8a 0%, #be123c 100%);
+  --rider-gradient-glass: linear-gradient(135deg, rgba(255, 92, 138, 0.08) 0%, rgba(18, 22, 38, 0.88) 35%, rgba(10, 14, 26, 0.96) 100%);
+
   height: 100vh;
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: #000;
+  background: var(--rider-canvas);
   position: relative;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #ffffff;
+  user-select: none;
+}
+
+/* Ambient Radial Aurora Glow */
+.book-ride-app::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 20%;
+  width: 60%;
+  height: 40%;
+  background: radial-gradient(circle, rgba(255, 92, 138, 0.16) 0%, rgba(192, 132, 252, 0.1) 40%, transparent 70%);
+  pointer-events: none;
+  z-index: 2;
+  filter: blur(50px);
 }
 
 /* Map Section */
@@ -13,75 +43,79 @@
   flex: 1;
   position: relative;
   min-height: 35vh;
+  z-index: 1;
 }
 
 .ride-map-section .leaflet-container {
   height: 100% !important;
   width: 100% !important;
+  background: #070a14 !important;
 }
 
-/* Back Button */
-.back-button {
-  position: absolute;
-  top: 50px;
-  left: 16px;
-  width: 44px;
-  height: 44px;
-  background: #fff;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  z-index: 100;
-  cursor: pointer;
-}
-
-.back-button svg {
-  color: #000;
-}
-
-/* Route Info Card */
+/* Floating Route Info Glass Card */
 .route-info-card {
   position: absolute;
   top: 16px;
-  left: 62px;
-  right: 14px;
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 8px 14px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  left: 68px;
+  right: 16px;
+  max-width: 520px;
+  background: rgba(18, 22, 38, 0.8);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255, 200, 225, 0.25);
+  border-top: 1px solid rgba(255, 230, 245, 0.6);
+  border-radius: 24px;
+  padding: 10px 16px;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.45), inset 0 0 20px rgba(255, 92, 138, 0.08), 0 16px 40px rgba(0, 0, 0, 0.6);
   z-index: 6000 !important;
 }
 
 .route-point {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 4px 0;
   position: relative;
+}
+
+.point-marker {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.point-marker.green {
+  background: #ff5c8a;
+  box-shadow: 0 0 10px #ff5c8a;
+}
+
+.point-marker.black {
+  background: #67e8f9;
+  border-radius: 2px;
+  box-shadow: 0 0 10px #67e8f9;
 }
 
 .route-input {
   flex: 1;
   border: none;
   background: transparent;
-  font-size: 13px;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #ffffff;
   outline: none;
   min-width: 0;
+  font-family: 'Inter', sans-serif;
   text-overflow: ellipsis;
 }
 
 .route-input:focus {
-  color: #2563eb;
+  color: #ffb3c6;
 }
 
 .btn-locate-mini {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  background: rgba(255, 92, 138, 0.15);
+  border: 1px solid rgba(255, 92, 138, 0.35);
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -91,40 +125,25 @@
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .btn-locate-mini:hover {
-  background: #eff6ff;
-  border-color: #2563eb;
+  background: rgba(255, 92, 138, 0.3);
+  border-color: #ff5c8a;
+  box-shadow: 0 0 10px rgba(255, 92, 138, 0.4);
 }
 
 .btn-locate-mini svg {
   width: 14px;
   height: 14px;
-  color: #2563eb;
-}
-
-.point-marker {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.point-marker.green {
-  background: #22c55e;
-}
-
-.point-marker.black {
-  background: #0f172a;
-  border-radius: 2px;
+  color: #ff5c8a;
 }
 
 .route-divider {
   height: 1px;
-  background: #f1f5f9;
-  margin: 3px 0 3px 18px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 0 4px 22px;
 }
 
 /* Route Suggestions Floating Dropdown */
@@ -133,19 +152,22 @@
   top: 100%;
   left: 0;
   right: 0;
-  margin-top: 8px;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  border: 1px solid #e2e8f0;
-  max-height: 260px;
+  margin-top: 10px;
+  background: rgba(18, 22, 38, 0.95);
+  backdrop-filter: blur(48px);
+  -webkit-backdrop-filter: blur(48px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 200, 225, 0.25);
+  border-top: 1px solid rgba(255, 230, 245, 0.6);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 92, 138, 0.15);
+  max-height: 280px;
   overflow-y: auto;
   z-index: 7000 !important;
-  animation: dropDownSlide 0.2s ease;
+  animation: dropDownSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes dropDownSlide {
-  from { opacity: 0; transform: translateY(-8px); }
+  from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -153,51 +175,61 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  background: #f8fafc;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 11px;
-  font-weight: 800;
-  color: #64748b;
+  font-weight: 700;
+  color: #ffb3c6;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
+  font-family: 'Geist', sans-serif;
 }
 
 .dropdown-filter-chips {
   display: flex;
   gap: 6px;
-  padding: 6px 10px;
-  background: #ffffff;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.02);
   overflow-x: auto;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  scrollbar-width: none;
+}
+
+.dropdown-filter-chips::-webkit-scrollbar {
+  display: none;
 }
 
 .chip-btn {
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid rgba(255, 200, 225, 0.15);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 14px;
-  padding: 4px 10px;
+  padding: 5px 10px;
   font-size: 11px;
-  font-weight: 700;
-  color: #475569;
+  font-weight: 600;
+  color: #cbd5e1;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
 .chip-btn.active {
-  background: #0f172a;
+  background: var(--rider-gradient-rose);
   color: #ffffff;
-  border-color: #0f172a;
+  border-color: #ff5c8a;
+  box-shadow: 0 0 12px rgba(255, 92, 138, 0.4);
 }
 
 .close-dropdown-btn {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  font-size: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
   font-weight: bold;
-  color: #94a3b8;
+  color: #fff;
   cursor: pointer;
 }
 
@@ -209,15 +241,15 @@
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-bottom: 1px solid #f8fafc;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .dropdown-item:hover {
-  background: #f1f5f9;
+  background: rgba(255, 92, 138, 0.15);
 }
 
 .dropdown-icon {
@@ -239,163 +271,185 @@
 
 .dropdown-name {
   font-size: 13px;
-  font-weight: 700;
-  color: #0f172a;
+  font-weight: 600;
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: 'Geist', sans-serif;
 }
 
 .dropdown-badge {
   font-size: 10px;
   font-weight: 700;
-  padding: 1px 6px;
+  padding: 2px 6px;
   border-radius: 8px;
   flex-shrink: 0;
 }
 
 .dropdown-badge.nearby {
-  background: #f1f5f9;
-  color: #475569;
+  background: rgba(103, 232, 249, 0.15);
+  color: #67e8f9;
+  border: 1px solid rgba(103, 232, 249, 0.3);
 }
 
 .dropdown-badge.outstation {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
+  background: rgba(255, 92, 138, 0.2);
+  color: #ffb3c6;
+  border: 1px solid rgba(255, 92, 138, 0.35);
 }
 
 .dropdown-address {
-  display: block;
   font-size: 11px;
-  color: #64748b;
+  color: #94a3b8;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: block;
 }
 
-/* Vehicle Sheet */
+/* ============================================================ */
+/* 2. BOTTOM SHEET — VEHICLE SELECTION CAROUSEL & CARDS         */
+/* ============================================================ */
 .vehicle-sheet {
-  background: #fff;
-  border-radius: 20px 20px 0 0;
-  padding: 12px 20px max(20px, env(safe-area-inset-bottom));
-  max-height: 60vh;
+  background: var(--rider-gradient-glass);
+  backdrop-filter: blur(48px) saturate(200%);
+  -webkit-backdrop-filter: blur(48px) saturate(200%);
+  border-top: 1px solid rgba(255, 230, 245, 0.55);
+  border-radius: 36px 36px 0 0;
+  padding: 16px 20px 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  box-shadow: inset 0 1.5px 2px rgba(255, 255, 255, 0.5), 0 -20px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(255, 92, 138, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 50;
+  max-height: 65vh;
   overflow-y: auto;
-  position: relative;
-  z-index: 5000 !important;
-  box-shadow: 0 -8px 30px rgba(0,0,0,0.25);
 }
 
 .sheet-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 16px;
+  gap: 8px;
 }
 
 .drag-indicator {
-  width: 40px;
+  width: 44px;
   height: 4px;
-  background: #ddd;
-  border-radius: 2px;
-  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
 
 .trip-info {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #666;
-}
-
-.trip-info .distance,
-.trip-info .duration {
-  font-weight: 500;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 200, 225, 0.15);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffb3c6;
+  font-family: 'Geist', sans-serif;
 }
 
 .trip-info .separator {
-  color: #ccc;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-/* Ride Options List */
+/* Vehicle Cards List */
 .ride-options-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 16px;
-  max-height: 240px;
-  overflow-y: auto;
+  gap: 10px;
 }
 
 .ride-option {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 12px;
+  gap: 14px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 200, 225, 0.15);
+  border-top: 1px solid rgba(255, 230, 245, 0.35);
+  border-radius: 22px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
-  border: 2px solid transparent;
+  overflow: hidden;
 }
 
 .ride-option:hover {
-  background: #f9f9f9;
+  background: rgba(255, 92, 138, 0.12);
+  border-color: #ff5c8a;
+  transform: translateY(-1px);
 }
 
 .ride-option.selected {
-  background: #f0f7ff;
-  border-color: #276ef1;
+  background: linear-gradient(135deg, rgba(255, 92, 138, 0.25) 0%, rgba(190, 18, 60, 0.2) 60%, rgba(18, 22, 38, 0.8) 100%);
+  border: 1.5px solid #ff5c8a;
+  border-top: 1.5px solid #ffb3c6;
+  box-shadow: 0 0 30px rgba(255, 92, 138, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.5), inset 0 0 20px rgba(255, 92, 138, 0.15);
+  transform: scale(1.01);
 }
 
 .ride-icon-wrapper {
-  width: 56px;
-  height: 56px;
-  background: #f5f5f5;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 200, 225, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
 }
 
-.ride-icon {
-  font-size: 28px;
+.ride-option.selected .ride-icon-wrapper {
+  background: rgba(255, 92, 138, 0.2);
+  border-color: #ff5c8a;
+  box-shadow: 0 0 14px rgba(255, 92, 138, 0.4);
 }
 
 .ride-info {
   flex: 1;
-  min-width: 0;
 }
 
 .ride-main {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 2px;
 }
 
 .ride-main h4 {
+  font-family: 'Geist', sans-serif;
   font-size: 16px;
-  font-weight: 600;
-  color: #000;
-  margin: 0;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
 }
 
 .ride-time {
-  font-size: 12px;
-  color: #666;
-  background: #f0f0f0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffb3c6;
+  background: rgba(255, 92, 138, 0.15);
+  border: 1px solid rgba(255, 92, 138, 0.3);
   padding: 2px 8px;
   border-radius: 10px;
 }
 
 .ride-desc {
-  font-size: 13px;
-  color: #666;
-  margin: 4px 0 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 12px;
+  color: #94a3b8;
 }
 
 .ride-price {
@@ -403,207 +457,206 @@
 }
 
 .ride-price .price {
-  font-size: 16px;
-  font-weight: 600;
-  color: #000;
+  font-family: 'Geist', sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
 }
 
 .selected-indicator {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  color: #276ef1;
-}
-
-/* Promo Section */
-.promo-section {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: #f8f8f8;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  cursor: pointer;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ff5c8a;
+  color: #ffffff;
+  box-shadow: 0 0 10px #ff5c8a;
 }
 
-.promo-section span {
-  flex: 1;
-  font-size: 14px;
-  color: #666;
+.selected-indicator svg {
+  width: 14px;
+  height: 14px;
 }
 
-/* Payment Section */
-.payment-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: #f8f8f8;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  cursor: pointer;
-}
-
-.payment-icon {
-  font-size: 20px;
-}
-
-.payment-label {
-  flex: 1;
-  font-size: 15px;
-  font-weight: 500;
-  color: #000;
-}
-
-/* Confirm Button */
-.confirm-ride-btn {
-  width: 100%;
-  padding: 18px 24px;
-  background: #000;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
+/* Promo Code & Payment Sections */
+.promo-section, .payment-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: background 0.2s;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 200, 225, 0.15);
+  border-top: 1px solid rgba(255, 230, 245, 0.35);
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
 
-.confirm-ride-btn:hover:not(:disabled) {
-  background: #222;
+.promo-section:hover, .payment-section:hover {
+  background: rgba(255, 92, 138, 0.12);
+  border-color: #ff5c8a;
 }
 
-.confirm-ride-btn:disabled {
-  background: #ccc;
-  cursor: not-allowed;
+.promo-section svg, .payment-section svg {
+  color: #ff5c8a;
+}
+
+.promo-section span, .payment-section .payment-label {
+  flex: 1;
+  margin-left: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  font-family: 'Geist', sans-serif;
+}
+
+.payment-icon {
+  font-size: 18px;
+}
+
+/* Confirm Ride Primary Button */
+.confirm-ride-btn {
+  width: 100%;
+  background: var(--rider-gradient-rose);
+  color: #ffffff;
+  font-family: 'Geist', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 16px 24px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-top: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 10px 32px -4px rgba(255, 92, 138, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.confirm-ride-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px -4px rgba(255, 92, 138, 0.8), 0 0 25px rgba(244, 63, 94, 0.5);
 }
 
 .btn-price {
-  background: rgba(255,255,255,0.2);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 14px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 15px;
+  font-weight: 800;
 }
 
-.loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid rgba(255,255,255,0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Payment Sheet Overlay */
+/* Payment Sheet Overlay & Modal */
 .payment-sheet-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   display: flex;
   align-items: flex-end;
-  z-index: 500;
+  justify-content: center;
+  z-index: 9000;
 }
 
 .payment-sheet {
   width: 100%;
-  background: #fff;
-  border-radius: 20px 20px 0 0;
-  padding: 20px 20px max(20px, env(safe-area-inset-bottom));
+  max-width: 500px;
+  background: linear-gradient(135deg, rgba(255, 92, 138, 0.1) 0%, rgba(20, 24, 42, 0.96) 100%);
+  backdrop-filter: blur(48px);
+  -webkit-backdrop-filter: blur(48px);
+  border-top: 1px solid rgba(255, 230, 245, 0.6);
+  border-radius: 32px 32px 0 0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: sheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 .payment-sheet-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
 }
 
 .payment-sheet-header h3 {
+  font-family: 'Geist', sans-serif;
   font-size: 18px;
-  font-weight: 600;
-  color: #000;
-  margin: 0;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .payment-sheet-header button {
   width: 32px;
   height: 32px;
-  background: #f0f0f0;
-  border: none;
   border-radius: 50%;
-  font-size: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 
 .payment-options {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .payment-option {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  border-radius: 12px;
+  gap: 14px;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 200, 225, 0.15);
+  border-radius: 18px;
   cursor: pointer;
-  border: 2px solid #eee;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .payment-option:hover {
-  background: #f9f9f9;
+  background: rgba(255, 92, 138, 0.15);
+  border-color: #ff5c8a;
 }
 
 .payment-option.selected {
-  border-color: #000;
-  background: #f8f8f8;
+  background: rgba(255, 92, 138, 0.25);
+  border-color: #ff5c8a;
+  box-shadow: 0 0 16px rgba(255, 92, 138, 0.3);
 }
 
 .option-icon {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .option-label {
   flex: 1;
-  font-size: 16px;
-  font-weight: 500;
-  color: #000;
+  font-family: 'Geist', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
 }
 
-.payment-option .check {
-  color: #22c55e;
-  font-weight: 700;
+.check {
+  color: #ff5c8a;
+  font-weight: bold;
   font-size: 18px;
-}
-
-/* Desktop Responsive */
-@media (min-width: 768px) {
-  .vehicle-sheet {
-    max-width: 450px;
-    margin: 0 auto;
-    border-radius: 20px 20px 0 0;
-  }
-  
-  .route-info-card {
-    max-width: 400px;
-  }
-  
-  .payment-sheet {
-    max-width: 450px;
-    margin: 0 auto;
-  }
 }
