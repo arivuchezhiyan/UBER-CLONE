@@ -349,6 +349,114 @@ export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185
   };
 };
 
+// Industrial SVG Vector Icon Renderer for Daily Places
+export const renderDailyPlaceSvgIcon = (key) => {
+  switch (key) {
+    case 'home':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff5c8a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      );
+    case 'work':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+      );
+    case 'college':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
+      );
+    case 'spot':
+    default:
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+      );
+  }
+};
+
+// Industrial SVG Vector Icon Renderer for Categorized Places
+export const renderCategorySvgIcon = (type) => {
+  switch (type) {
+    case 'metro':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="3" width="16" height="16" rx="2"/>
+          <path d="M4 11h16M12 3v8M8 15h.01M16 15h.01M8 19l-2 3M16 19l2 3"/>
+        </svg>
+      );
+    case 'railway':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fb923c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="4" y="3" width="16" height="14" rx="2"/>
+          <circle cx="8.5" cy="13.5" r="1.5" fill="currentColor"/>
+          <circle cx="15.5" cy="13.5" r="1.5" fill="currentColor"/>
+          <line x1="8" y1="3" x2="8" y2="8"/>
+          <line x1="16" y1="3" x2="16" y2="8"/>
+          <line x1="3" y1="21" x2="21" y2="21"/>
+        </svg>
+      );
+    case 'airport':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.8-.2-1.6.2-1.9.9-.4.9-.1 1.9.6 2.4l5.3 4-2.8 2.8-2.6-.4c-.4-.1-.8.1-1.1.4l-.8.8 3.5 1.5 1.5 3.5.8-.8c.3-.3.5-.7.4-1.1l-.4-2.6 2.8-2.8 4 5.3c.5.7 1.5 1 2.4.6.7-.3 1.1-1.1.9-1.9z"/>
+        </svg>
+      );
+    case 'bus':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="16" rx="2"/>
+          <path d="M3 10h18M7 15h.01M17 15h.01M6 19l-1.5 3M18 19l1.5 3"/>
+        </svg>
+      );
+    case 'tech_park':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>
+        </svg>
+      );
+    case 'college':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c084fc" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+        </svg>
+      );
+    case 'hospital':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="3"/>
+          <path d="M12 8v8M8 12h8"/>
+        </svg>
+      );
+    case 'outstation':
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 2 22 22 22"/>
+          <path d="M12 12v6M12 8h.01"/>
+        </svg>
+      );
+    default:
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff5c8a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <circle cx="12" cy="12" r="3" fill="#ff5c8a"/>
+        </svg>
+      );
+  }
+};
+
 function CustomerHome({ user }) {
   const navigate = useNavigate();
   const [currentLocation, setCurrentLocation] = useState(null);
@@ -445,10 +553,10 @@ function CustomerHome({ user }) {
       try { return JSON.parse(saved); } catch (e) {}
     }
     return [
-      { id: 'dp_home', key: 'home', label: 'Home', name: 'Home', address: 'Kelambakkam Junction, OMR', icon: '🏠', coords: { lat: 12.7871, lng: 80.2185 }, distanceKm: 1.2 },
-      { id: 'dp_work', key: 'work', label: 'Office', name: 'Work / Office', address: 'Siruseri SIPCOT IT Park, OMR', icon: '💼', coords: { lat: 12.8277, lng: 80.2188 }, distanceKm: 4.8 },
-      { id: 'dp_college', key: 'college', label: 'College', name: 'SSN College of Engineering', address: 'Rajiv Gandhi Salai (OMR), Kalavakkam', icon: '🎓', coords: { lat: 12.7508, lng: 80.1983 }, distanceKm: 3.5 },
-      { id: 'dp_spot', key: 'spot', label: 'Daily Spot', name: 'Vivira Mall & Zone', address: 'Rajiv Gandhi IT Expressway, Navalur', icon: '🛍️', coords: { lat: 12.8465, lng: 80.2260 }, distanceKm: 6.8 },
+      { id: 'dp_home', key: 'home', label: 'Home', name: 'Home', address: 'Kelambakkam Junction, OMR', coords: { lat: 12.7871, lng: 80.2185 }, distanceKm: 1.2 },
+      { id: 'dp_work', key: 'work', label: 'Office', name: 'Work / Office', address: 'Siruseri SIPCOT IT Park, OMR', coords: { lat: 12.8277, lng: 80.2188 }, distanceKm: 4.8 },
+      { id: 'dp_college', key: 'college', label: 'College', name: 'SSN College of Engineering', address: 'Rajiv Gandhi Salai (OMR), Kalavakkam', coords: { lat: 12.7508, lng: 80.1983 }, distanceKm: 3.5 },
+      { id: 'dp_spot', key: 'spot', label: 'Daily Spot', name: 'Vivira Mall & Zone', address: 'Rajiv Gandhi IT Expressway, Navalur', coords: { lat: 12.8465, lng: 80.2260 }, distanceKm: 6.8 },
     ];
   });
 
@@ -664,8 +772,13 @@ function CustomerHome({ user }) {
               <div className="rider-avatar-status"></div>
             </div>
             <div className="rider-profile-meta">
-              <span className="rider-name">{user?.name || 'Royal Rider'}</span>
-              <span className="rider-tier-badge">✨ VIP GOLD</span>
+              <span className="rider-name">{user?.name || 'Alex Rider'}</span>
+              <span className="rider-tier-badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="1">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                VIP GOLD
+              </span>
             </div>
           </div>
 
@@ -699,7 +812,11 @@ function CustomerHome({ user }) {
           {/* Greeting & Royal Tag */}
           <div className="uber-greeting">
             <div className="greeting-info-row">
-              <span className="greeting-sparkle">✨</span>
+              <div className="greeting-sparkle-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>
+              </div>
               <h2 className="greeting-text">
                 Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}, <span className="greeting-highlight">{user?.name?.split(' ')[0] || 'Rider'}</span>
               </h2>
@@ -748,7 +865,7 @@ function CustomerHome({ user }) {
                 onClick={() => handleLaunchDailyPlace(place)}
                 title={`Ride to ${place.name}`}
               >
-                <span className="chip-icon">{place.icon}</span>
+                <span className="chip-icon-box">{renderDailyPlaceSvgIcon(place.key)}</span>
                 <span>{place.label}</span>
               </div>
             ))}
@@ -808,10 +925,12 @@ function CustomerHome({ user }) {
           <div className="daily-commute-section">
             <div className="daily-commute-header">
               <div className="header-title-box">
-                <span className="sparkle-star">⭐</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ff5c8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
                 <span className="section-title">Daily Commute & Saved Places</span>
               </div>
-              <span className="custom-hint-badge">Tap to Ride • ✏️ Edit</span>
+              <span className="custom-hint-badge">Tap to Ride • Quick Edit</span>
             </div>
 
             <div className="daily-places-list">
@@ -822,7 +941,7 @@ function CustomerHome({ user }) {
                   onClick={() => handleLaunchDailyPlace(place)}
                 >
                   <div className="daily-place-icon-box">
-                    <span className="daily-place-emoji">{place.icon}</span>
+                    {renderDailyPlaceSvgIcon(place.key)}
                   </div>
                   <div className="daily-place-info">
                     <div className="daily-place-title-row">
@@ -843,7 +962,9 @@ function CustomerHome({ user }) {
                         setCustomAddressInput(place.address);
                       }}
                     >
-                      ✏️
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ff5c8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                      </svg>
                     </button>
                     <div className="daily-place-arrow">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ff5c8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -861,8 +982,9 @@ function CustomerHome({ user }) {
         {/* Detached Liquid Glass Bottom Navigation */}
         <nav className="uber-nav">
           <div className="nav-item active">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
             <span>Home</span>
           </div>
@@ -1145,7 +1267,8 @@ function CustomerHome({ user }) {
                           setCustomAddressInput(p.address);
                         }}
                       >
-                        {p.icon} {p.name.split(' ')[0]}
+                        {renderCategorySvgIcon(p.type)} 
+                        <span>{p.name.split(' ')[0]}</span>
                       </button>
                     ))}
                   </div>
@@ -1248,43 +1371,70 @@ function CustomerHome({ user }) {
           className={`filter-pill ${selectedFilterCategory === 'ALL' ? 'active' : ''}`}
           onClick={() => setSelectedFilterCategory('ALL')}
         >
-          🌟 All
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          All
         </button>
         <button 
           className={`filter-pill ${selectedFilterCategory === 'METRO' ? 'active' : ''}`}
           onClick={() => setSelectedFilterCategory('METRO')}
         >
-          🚇 Metro
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <rect x="4" y="3" width="16" height="16" rx="2"/>
+            <path d="M4 11h16M12 3v8"/>
+          </svg>
+          Metro
         </button>
         <button 
           className={`filter-pill ${selectedFilterCategory === 'AIRPORT' ? 'active' : ''}`}
           onClick={() => setSelectedFilterCategory('AIRPORT')}
         >
-          ✈️ Airport
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3.5c-.5-.5-2.5 0-4 1.5L13.5 8.5 5.3 6.7c-.8-.2-1.6.2-1.9.9-.4.9-.1 1.9.6 2.4l5.3 4-2.8 2.8-2.6-.4c-.4-.1-.8.1-1.1.4l-.8.8 3.5 1.5 1.5 3.5.8-.8c.3-.3.5-.7.4-1.1l-.4-2.6 2.8-2.8 4 5.3c.5.7 1.5 1 2.4.6.7-.3 1.1-1.1.9-1.9z"/>
+          </svg>
+          Airport
         </button>
         <button 
           className={`filter-pill ${selectedFilterCategory === 'TECH' ? 'active' : ''}`}
           onClick={() => setSelectedFilterCategory('TECH')}
         >
-          🏢 IT Parks
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>
+          </svg>
+          IT Parks
         </button>
         <button 
           className={`filter-pill ${selectedFilterCategory === 'RAILWAY' ? 'active' : ''}`}
           onClick={() => setSelectedFilterCategory('RAILWAY')}
         >
-          🚆 Railway
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <rect x="4" y="3" width="16" height="14" rx="2"/>
+            <circle cx="8.5" cy="13.5" r="1.5" fill="currentColor"/>
+            <circle cx="15.5" cy="13.5" r="1.5" fill="currentColor"/>
+            <line x1="3" y1="21" x2="21" y2="21"/>
+          </svg>
+          Railway
         </button>
         <button 
           className={`filter-pill ${selectedFilterCategory === 'BUS' ? 'active' : ''}`}
           onClick={() => setSelectedFilterCategory('BUS')}
         >
-          🚌 Bus Stands
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <rect x="3" y="3" width="18" height="16" rx="2"/>
+            <path d="M3 10h18"/>
+          </svg>
+          Bus Stands
         </button>
         <button 
           className={`filter-pill ${selectedFilterCategory === 'OUTSTATION' ? 'active' : ''}`}
           onClick={() => setSelectedFilterCategory('OUTSTATION')}
         >
-          🏖️ Outstations
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <polygon points="12 2 2 22 22 22"/>
+          </svg>
+          Outstations
         </button>
       </div>
 
@@ -1305,8 +1455,8 @@ function CustomerHome({ user }) {
                 className={`place-item ${place.isLongDistance ? 'long-distance-item' : ''}`} 
                 onClick={() => handlePlaceSelect(place)}
               >
-                <div className={`place-icon ${place.category.toLowerCase()}`}>
-                  {place.icon}
+                <div className={`place-icon ${place.type || place.category.toLowerCase()}`}>
+                  {renderCategorySvgIcon(place.type)}
                 </div>
                 <div className="place-details">
                   <div className="place-title-row">
@@ -1327,7 +1477,12 @@ function CustomerHome({ user }) {
                 className="place-item custom-address-item"
                 onClick={() => handlePlaceSelect({ name: currentQuery, address: 'Custom Specified Location', distanceKm: 12 })}
               >
-                <div className="place-icon custom">📍</div>
+                <div className="place-icon custom">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff5c8a" strokeWidth="2.2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                </div>
                 <div className="place-details">
                   <span className="place-name">Use "{currentQuery}"</span>
                   <span className="place-address">Tap to set as {activeField} location</span>
