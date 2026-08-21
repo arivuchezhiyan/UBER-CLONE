@@ -617,7 +617,7 @@
   color: #ffffff;
 }
 
-.payment-sheet-header button {
+.payment-sheet-header button, .sheet-modal-header button {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -628,6 +628,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payment-sheet-header button:hover, .sheet-modal-header button:hover {
+  background: rgba(255, 92, 138, 0.3);
+  border-color: #ff5c8a;
+  transform: rotate(90deg);
 }
 
 .payment-options {
@@ -643,36 +650,366 @@
   padding: 14px 18px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 200, 225, 0.15);
-  border-radius: 18px;
+  border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .payment-option:hover {
-  background: rgba(255, 92, 138, 0.15);
+  background: rgba(255, 92, 138, 0.12);
   border-color: #ff5c8a;
 }
 
 .payment-option.selected {
-  background: rgba(255, 92, 138, 0.25);
+  background: rgba(255, 92, 138, 0.2);
   border-color: #ff5c8a;
-  box-shadow: 0 0 16px rgba(255, 92, 138, 0.3);
+  box-shadow: 0 0 20px rgba(255, 92, 138, 0.3);
 }
 
-.option-icon {
-  font-size: 20px;
+.option-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 200, 225, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.option-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .option-label {
-  flex: 1;
   font-family: 'Geist', sans-serif;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14.5px;
+  font-weight: 700;
   color: #ffffff;
+}
+
+.option-sub {
+  font-size: 11px;
+  color: #94a3b8;
 }
 
 .check {
   color: #ff5c8a;
   font-weight: bold;
   font-size: 18px;
+}
+
+/* Dropdown SVG Icon Box */
+.dropdown-icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255, 92, 138, 0.12);
+  border: 1px solid rgba(255, 92, 138, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Fare Info Pill */
+.btn-fare-info-pill {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 200, 225, 0.2);
+  color: #ffb3c6;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-fare-info-pill:hover {
+  background: rgba(255, 92, 138, 0.2);
+  border-color: #ff5c8a;
+}
+
+/* Capacity Badge & Original Price */
+.capacity-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+
+.original-price {
+  font-size: 12px;
+  color: #94a3b8;
+  text-decoration: line-through;
+  margin-right: 6px;
+}
+
+.promo-left-box, .payment-left-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.promo-text-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.promo-main-text {
+  font-family: 'Geist', sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.promo-discount-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #34d399;
+}
+
+/* Promo Modal Sheet */
+.promo-sheet-modal, .fare-breakdown-modal {
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(135deg, rgba(255, 92, 138, 0.12) 0%, rgba(18, 22, 38, 0.98) 100%);
+  backdrop-filter: blur(48px);
+  -webkit-backdrop-filter: blur(48px);
+  border: 1px solid rgba(255, 200, 225, 0.3);
+  border-top: 1.5px solid rgba(255, 230, 245, 0.6);
+  border-radius: 28px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+  animation: sheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.sheet-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sheet-modal-header h3 {
+  font-family: 'Geist', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+}
+
+.coupon-input-form {
+  display: flex;
+  gap: 8px;
+}
+
+.coupon-input-form input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 200, 225, 0.2);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: #ffffff;
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  letter-spacing: 0.05em;
+}
+
+.coupon-input-form input:focus {
+  border-color: #ff5c8a;
+  box-shadow: 0 0 12px rgba(255, 92, 138, 0.3);
+}
+
+.coupon-input-form button {
+  background: var(--rider-gradient-rose);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+}
+
+.promo-error-msg {
+  font-size: 11px;
+  color: #f87171;
+  margin: -6px 0 0 4px;
+}
+
+.active-applied-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  padding: 12px 14px;
+  border-radius: 16px;
+}
+
+.active-code-tag {
+  font-size: 12px;
+  font-weight: 800;
+  color: #34d399;
+}
+
+.active-applied-banner p {
+  font-size: 11px;
+  color: #cbd5e1;
+  margin: 2px 0 0;
+}
+
+.btn-remove-coupon {
+  background: rgba(248, 113, 113, 0.15);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: #f87171;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.coupons-available-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.coupons-subhead {
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+}
+
+.coupon-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 200, 225, 0.15);
+  padding: 12px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.coupon-card:hover {
+  background: rgba(255, 92, 138, 0.1);
+  border-color: #ff5c8a;
+}
+
+.coupon-card.applied {
+  border-color: #34d399;
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.coupon-code-pill {
+  font-size: 10px;
+  font-weight: 800;
+  color: #ff5c8a;
+  background: rgba(255, 92, 138, 0.15);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.coupon-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 4px 0 2px;
+}
+
+.coupon-desc {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.btn-apply-coupon {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 200, 225, 0.2);
+  color: #ff5c8a;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Fare Breakdown Modal Styles */
+.fare-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fare-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+.fare-row .free-tag {
+  color: #34d399;
+  font-weight: 700;
+}
+
+.fare-row.discount-row {
+  color: #34d399;
+  font-weight: 700;
+}
+
+.fare-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 0;
+}
+
+.fare-row.total-row {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.total-val {
+  color: #ff5c8a;
+  font-size: 20px;
+}
+
+.btn-close-breakdown {
+  width: 100%;
+  background: var(--rider-gradient-rose);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 14px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  margin-top: 8px;
 }

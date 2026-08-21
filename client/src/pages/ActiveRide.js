@@ -511,7 +511,13 @@ function ActiveRide({ user }) {
               <div className="prominent-otp-card">
                 <div className="otp-card-top">
                   <div className="otp-title-group">
-                    <span className="otp-key-icon">🔑</span>
+                    <div className="otp-key-icon-box">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="7.5" cy="15.5" r="5.5" />
+                        <path d="m21 2-9.6 9.6" />
+                        <path d="m15.5 7.5 3 3L22 7l-3-3" />
+                      </svg>
+                    </div>
                     <span className="otp-title-text">YOUR START TRIP OTP</span>
                   </div>
                   <span className="otp-sub-hint">Share with Captain when they arrive</span>
@@ -528,19 +534,34 @@ function ActiveRide({ user }) {
             {!['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
               <div className="driver-card">
                 <div className="driver-avatar">
-                  {driver.name?.charAt(0) || '👨‍✈️'}
+                  {driver.name?.charAt(0) || 'C'}
                 </div>
                 <div className="driver-info">
-                  <h3>{driver.name || 'Captain Assigned'}</h3>
-                  <div className="driver-meta">
-                    <span className="rating">⭐ {driver.rating || 5.0}</span>
-                    <span className="vehicle">{driver.vehicleDetails?.model || booking?.vehicleType || 'Sedan'}</span>
+                  <div className="driver-name-row">
+                    <h3>{driver.name || 'Captain Assigned'}</h3>
+                    <span className="captain-verified-pill">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="#34d399">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                      </svg>
+                      Verified
+                    </span>
                   </div>
-                  <span className="plate">{driver.vehicleDetails?.licensePlate || 'KA 01 AB 1234'}</span>
+                  <div className="driver-meta">
+                    <span className="rating">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                      {driver.rating || 5.0}
+                    </span>
+                    <span className="vehicle">{driver.vehicleDetails?.model || booking?.vehicleType || 'Royal Sedan'}</span>
+                  </div>
+                  <span className="plate">{driver.vehicleDetails?.licensePlate || 'TN 09 BK 4521'}</span>
                 </div>
                 <div className="contact-btns">
-                  <button className="contact-btn" onClick={() => alert(`Calling Captain at ${driver.phone || '+91 9876543210'}`)}>
-                    📞
+                  <button className="contact-btn" onClick={() => alert(`Calling Captain at ${driver.phone || '+91 9876543210'}`)} title="Call Captain">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -565,17 +586,20 @@ function ActiveRide({ user }) {
                 <span className="fare-amount">₹{rideDetails.fare}</span>
               </div>
               <div className="payment-method">
-                <span>💵 {booking?.paymentMethod?.toUpperCase() || 'CASH'}</span>
+                <span>{booking?.paymentMethod?.toUpperCase() || 'CASH ON ARRIVAL'}</span>
                 {booking?.fareBreakdown?.surgeMultiplier > 1 && (
-                  <span style={{ color: '#f59e0b', fontSize: '11px', fontWeight: 600 }}>
-                    ⚡ {booking.fareBreakdown.surgeMultiplier}x Surge
+                  <span style={{ color: '#fbbf24', fontSize: '11px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="#fbbf24">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                    {booking.fareBreakdown.surgeMultiplier}x Surge
                   </span>
                 )}
               </div>
 
               {/* Collapsible Itemized Fare Receipt */}
               {showFareBreakdown && booking?.fareBreakdown && (
-                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #e2e8f0', fontSize: '12px' }}>
+                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <span>Base Fare</span>
                     <span>₹{booking.fareBreakdown.baseFare}</span>
@@ -592,7 +616,7 @@ function ActiveRide({ user }) {
                     <span>GST (5%)</span>
                     <span>₹{booking.fareBreakdown.taxAmount}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, marginTop: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, marginTop: '6px', color: '#ff5c8a', fontSize: '14px' }}>
                     <span>Total Amount</span>
                     <span>₹{booking.fareBreakdown.totalFare}</span>
                   </div>
@@ -600,7 +624,7 @@ function ActiveRide({ user }) {
               )}
             </div>
 
-            {/* Pay with Razorpay Online Button for Customer */}
+            {/* Pay Online Button */}
             {booking?.paymentStatus !== 'completed' && !['SEARCHING_DRIVER', 'searching', 'REQUESTED'].includes(rideStatus) && (
               <button 
                 className="action-btn primary" 
@@ -608,15 +632,19 @@ function ActiveRide({ user }) {
                 disabled={loading}
                 style={{ 
                   marginTop: '12px', 
-                  background: 'linear-gradient(135deg, #02042b 0%, #0c2340 100%)', 
-                  border: '1px solid #3399cc',
+                  background: 'var(--rider-gradient-rose)', 
+                  border: '1px solid rgba(255,255,255,0.3)',
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center', 
                   gap: '8px' 
                 }}
               >
-                <span>💳 Pay ₹{rideDetails.fare} Online (UPI / Card / NetBanking)</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.2">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/>
+                  <line x1="2" y1="10" x2="22" y2="10"/>
+                </svg>
+                <span>Pay ₹{rideDetails.fare} Online (UPI / Card / NetBanking)</span>
               </button>
             )}
           </>
