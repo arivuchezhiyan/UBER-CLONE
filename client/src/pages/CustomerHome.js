@@ -349,6 +349,32 @@ function CustomerHome({ user }) {
     return days;
   };
 
+  const handleIncrementHour = () => {
+    const num = parseInt(selectedHour, 10);
+    const next = num >= 12 ? 1 : num + 1;
+    setSelectedHour(next < 10 ? `0${next}` : `${next}`);
+  };
+
+  const handleDecrementHour = () => {
+    const num = parseInt(selectedHour, 10);
+    const prev = num <= 1 ? 12 : num - 1;
+    setSelectedHour(prev < 10 ? `0${prev}` : `${prev}`);
+  };
+
+  const handleIncrementMinute = () => {
+    const minutes = ['00', '15', '30', '45'];
+    const idx = minutes.indexOf(selectedMinute);
+    const next = minutes[(idx + 1) % minutes.length];
+    setSelectedMinute(next);
+  };
+
+  const handleDecrementMinute = () => {
+    const minutes = ['00', '15', '30', '45'];
+    const idx = minutes.indexOf(selectedMinute);
+    const prev = minutes[(idx - 1 + minutes.length) % minutes.length];
+    setSelectedMinute(prev);
+  };
+
   // Auto-fetch Current Location on Boot
   useEffect(() => {
     if (navigator.geolocation) {
@@ -767,104 +793,103 @@ function CustomerHome({ user }) {
                 </div>
               </div>
 
-              {/* 2. Interactive Digital Neon Clock Display */}
-              <div className="digital-clock-display">
-                <div className="clock-digits">
-                  <span className="digit-glow">{selectedHour}</span>
-                  <span className="digit-separator">:</span>
-                  <span className="digit-glow">{selectedMinute}</span>
-                </div>
-                
-                {/* AM/PM Switch */}
-                <div className="period-switch-group">
-                  <button
-                    type="button"
-                    className={`period-btn ${selectedPeriod === 'AM' ? 'active' : ''}`}
-                    onClick={() => setSelectedPeriod('AM')}
-                  >
-                    AM
-                  </button>
-                  <button
-                    type="button"
-                    className={`period-btn ${selectedPeriod === 'PM' ? 'active' : ''}`}
-                    onClick={() => setSelectedPeriod('PM')}
-                  >
-                    PM
-                  </button>
+              {/* 2. Ergonomic Apple-Style Digital Stepper Clock */}
+              <div className="schedule-section">
+                <label className="section-label">Set Pickup Time</label>
+                <div className="stepper-clock-container">
+                  {/* Hour Stepper */}
+                  <div className="stepper-column">
+                    <button type="button" className="stepper-btn" onClick={handleIncrementHour} title="Increase Hour">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M18 15l-6-6-6 6"/>
+                      </svg>
+                    </button>
+                    <span className="stepper-val-glow">{selectedHour}</span>
+                    <button type="button" className="stepper-btn" onClick={handleDecrementHour} title="Decrease Hour">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M6 9l6 6 6-6"/>
+                      </svg>
+                    </button>
+                    <span className="stepper-unit-label">Hour</span>
+                  </div>
+
+                  <span className="stepper-separator">:</span>
+
+                  {/* Minute Stepper */}
+                  <div className="stepper-column">
+                    <button type="button" className="stepper-btn" onClick={handleIncrementMinute} title="Increase Minute">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M18 15l-6-6-6 6"/>
+                      </svg>
+                    </button>
+                    <span className="stepper-val-glow">{selectedMinute}</span>
+                    <button type="button" className="stepper-btn" onClick={handleDecrementMinute} title="Decrease Minute">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <path d="M6 9l6 6 6-6"/>
+                      </svg>
+                    </button>
+                    <span className="stepper-unit-label">Min</span>
+                  </div>
+
+                  {/* AM/PM Switch */}
+                  <div className="period-switch-group">
+                    <button
+                      type="button"
+                      className={`period-btn ${selectedPeriod === 'AM' ? 'active' : ''}`}
+                      onClick={() => setSelectedPeriod('AM')}
+                    >
+                      AM
+                    </button>
+                    <button
+                      type="button"
+                      className={`period-btn ${selectedPeriod === 'PM' ? 'active' : ''}`}
+                      onClick={() => setSelectedPeriod('PM')}
+                    >
+                      PM
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* 3. Quick Transit Slot Presets */}
+              {/* 3. Quick Transit Slot Presets (2x2 Grid) */}
               <div className="schedule-section">
-                <label className="section-label">Quick Transit Slots</label>
-                <div className="quick-time-chips">
+                <label className="section-label">Quick Presets</label>
+                <div className="quick-presets-grid">
                   {[
-                    { label: '🌅 Morning 08:30 AM', h: '08', m: '30', p: 'AM' },
-                    { label: '💼 Office 09:15 AM', h: '09', m: '15', p: 'AM' },
-                    { label: '✈️ Airport 02:30 PM', h: '02', m: '30', p: 'PM' },
-                    { label: '🌆 Evening 06:45 PM', h: '06', m: '45', p: 'PM' },
-                    { label: '🌙 Night 10:15 PM', h: '10', m: '15', p: 'PM' },
+                    { icon: '🌅', label: 'Morning', time: '08:30 AM', h: '08', m: '30', p: 'AM' },
+                    { icon: '💼', label: 'Office', time: '09:15 AM', h: '09', m: '15', p: 'AM' },
+                    { icon: '✈️', label: 'Airport', time: '02:30 PM', h: '02', m: '30', p: 'PM' },
+                    { icon: '🌆', label: 'Evening', time: '06:45 PM', h: '06', m: '45', p: 'PM' },
                   ].map((preset, idx) => (
                     <button
                       key={idx}
                       type="button"
-                      className="quick-slot-chip"
+                      className={`preset-chip-card ${selectedHour === preset.h && selectedMinute === preset.m && selectedPeriod === preset.p ? 'active' : ''}`}
                       onClick={() => {
                         setSelectedHour(preset.h);
                         setSelectedMinute(preset.m);
                         setSelectedPeriod(preset.p);
                       }}
                     >
-                      {preset.label}
+                      <span className="preset-icon">{preset.icon}</span>
+                      <div className="preset-info">
+                        <span className="preset-name">{preset.label}</span>
+                        <span className="preset-time">{preset.time}</span>
+                      </div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* 4. Precision Hour & Minute Selectors */}
-              <div className="time-selectors-row">
-                <div className="time-selector-col">
-                  <label className="sub-label">Hour</label>
-                  <div className="picker-scroll-row">
-                    {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map((hr) => (
-                      <button
-                        key={hr}
-                        type="button"
-                        className={`picker-pill ${selectedHour === hr ? 'selected' : ''}`}
-                        onClick={() => setSelectedHour(hr)}
-                      >
-                        {hr}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="time-selector-col">
-                  <label className="sub-label">Minute</label>
-                  <div className="picker-scroll-row">
-                    {['00', '15', '30', '45'].map((min) => (
-                      <button
-                        key={min}
-                        type="button"
-                        className={`picker-pill ${selectedMinute === min ? 'selected' : ''}`}
-                        onClick={() => setSelectedMinute(min)}
-                      >
-                        {min}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 5. Policy & Arrival Guarantee Pill */}
+              {/* 4. Policy & Arrival Guarantee Pill */}
               <div className="schedule-info-box">
                 <div className="info-icon">✨</div>
                 <p>
-                  Captain is assigned 15 minutes before pickup. Free cancellation up to 60 mins before trip.
+                  Captain is reserved & arrives 15 mins before pickup. Free cancellation up to 60 mins before trip.
                 </p>
               </div>
 
-              {/* 6. Action Controls */}
+              {/* 5. Action Controls */}
               <div className="schedule-actions-row">
                 <button 
                   type="button" 
