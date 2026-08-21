@@ -527,21 +527,12 @@ function BookRide({ user }) {
         <div className="sheet-header">
           <div className="drag-indicator"></div>
           {isScheduled && (
-            <div style={{
-              background: '#eff6ff',
-              border: '1.5px solid #93c5fd',
-              color: '#1d4ed8',
-              borderRadius: '20px',
-              padding: '6px 14px',
-              fontSize: '12px',
-              fontWeight: 800,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              marginBottom: '8px'
-            }}>
-              <span>🕒</span>
-              <span>Scheduled for {scheduledDate || 'Today'} at {scheduledTime || '10:00'}</span>
+            <div className="scheduled-trip-banner">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ff5c8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span>VIP Pickup Reserved for {scheduledDate || 'Today'} at {scheduledTime || '10:00 AM'}</span>
             </div>
           )}
           <div className="trip-info">

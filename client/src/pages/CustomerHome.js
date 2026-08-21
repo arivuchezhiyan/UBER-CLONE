@@ -328,6 +328,27 @@ function CustomerHome({ user }) {
   const [scheduledTime, setScheduledTime] = useState('');
   const [isScheduled, setIsScheduled] = useState(false);
 
+  // Precision Time Picker States
+  const [selectedHour, setSelectedHour] = useState('09');
+  const [selectedMinute, setSelectedMinute] = useState('30');
+  const [selectedPeriod, setSelectedPeriod] = useState('AM');
+
+  // Next 7 days generator for Custom Liquid Glass Date Carousel
+  const getUpcomingDays = () => {
+    const days = [];
+    const now = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now);
+      d.setDate(now.getDate() + i);
+      const isoDate = d.toISOString().split('T')[0];
+      const dayName = i === 0 ? 'TODAY' : i === 1 ? 'TMRW' : d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+      const monthShort = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+      const dateNum = d.getDate();
+      days.push({ isoDate, dayName, monthShort, dateNum });
+    }
+    return days;
+  };
+
   // Auto-fetch Current Location on Boot
   useEffect(() => {
     if (navigator.geolocation) {
@@ -698,14 +719,23 @@ function CustomerHome({ user }) {
           </div>
         </nav>
 
-        {/* SCHEDULE RIDE MODAL */}
+        {/* ROSY LIQUID GLASS INTERACTIVE SCHEDULE RIDE MODAL */}
         {showScheduleModal && (
           <div className="modal-overlay" style={{ zIndex: 999999 }}>
             <div className="schedule-ride-modal">
+              {/* Modal Header */}
               <div className="schedule-modal-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '22px' }}>🕒</span>
-                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Schedule a Ride</h3>
+                <div className="modal-title-box">
+                  <div className="modal-icon-glow">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff5c8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="modal-title-text">Schedule Royal Pickup</h3>
+                    <span className="modal-subtitle-text">VIP Reserved Ride with Dedicated Captain</span>
+                  </div>
                 </div>
                 <button 
                   type="button" 
@@ -716,39 +746,125 @@ function CustomerHome({ user }) {
                 </button>
               </div>
 
-              <p className="schedule-modal-subtext">
-                Choose your exact pickup date and time in advance. A captain will arrive right on schedule.
-              </p>
-
-              {/* Date Selection */}
-              <div className="schedule-field-group">
-                <label>Pickup Date</label>
-                <input 
-                  type="date" 
-                  className="schedule-input"
-                  min={new Date().toISOString().split('T')[0]}
-                  value={scheduledDate || new Date().toISOString().split('T')[0]}
-                  onChange={(e) => setScheduledDate(e.target.value)}
-                />
+              {/* 1. Interactive 7-Day Liquid Glass Date Carousel */}
+              <div className="schedule-section">
+                <label className="section-label">Select Pickup Date</label>
+                <div className="days-carousel">
+                  {getUpcomingDays().map((day) => {
+                    const isSelected = (scheduledDate || getUpcomingDays()[0].isoDate) === day.isoDate;
+                    return (
+                      <div
+                        key={day.isoDate}
+                        className={`day-card ${isSelected ? 'selected' : ''}`}
+                        onClick={() => setScheduledDate(day.isoDate)}
+                      >
+                        <span className="day-name">{day.dayName}</span>
+                        <span className="day-number">{day.dateNum}</span>
+                        <span className="day-month">{day.monthShort}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* Time Selection */}
-              <div className="schedule-field-group">
-                <label>Pickup Time</label>
-                <input 
-                  type="time" 
-                  className="schedule-input"
-                  value={scheduledTime || '10:00'}
-                  onChange={(e) => setScheduledTime(e.target.value)}
-                />
+              {/* 2. Interactive Digital Neon Clock Display */}
+              <div className="digital-clock-display">
+                <div className="clock-digits">
+                  <span className="digit-glow">{selectedHour}</span>
+                  <span className="digit-separator">:</span>
+                  <span className="digit-glow">{selectedMinute}</span>
+                </div>
+                
+                {/* AM/PM Switch */}
+                <div className="period-switch-group">
+                  <button
+                    type="button"
+                    className={`period-btn ${selectedPeriod === 'AM' ? 'active' : ''}`}
+                    onClick={() => setSelectedPeriod('AM')}
+                  >
+                    AM
+                  </button>
+                  <button
+                    type="button"
+                    className={`period-btn ${selectedPeriod === 'PM' ? 'active' : ''}`}
+                    onClick={() => setSelectedPeriod('PM')}
+                  >
+                    PM
+                  </button>
+                </div>
               </div>
 
+              {/* 3. Quick Transit Slot Presets */}
+              <div className="schedule-section">
+                <label className="section-label">Quick Transit Slots</label>
+                <div className="quick-time-chips">
+                  {[
+                    { label: '🌅 Morning 08:30 AM', h: '08', m: '30', p: 'AM' },
+                    { label: '💼 Office 09:15 AM', h: '09', m: '15', p: 'AM' },
+                    { label: '✈️ Airport 02:30 PM', h: '02', m: '30', p: 'PM' },
+                    { label: '🌆 Evening 06:45 PM', h: '06', m: '45', p: 'PM' },
+                    { label: '🌙 Night 10:15 PM', h: '10', m: '15', p: 'PM' },
+                  ].map((preset, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className="quick-slot-chip"
+                      onClick={() => {
+                        setSelectedHour(preset.h);
+                        setSelectedMinute(preset.m);
+                        setSelectedPeriod(preset.p);
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. Precision Hour & Minute Selectors */}
+              <div className="time-selectors-row">
+                <div className="time-selector-col">
+                  <label className="sub-label">Hour</label>
+                  <div className="picker-scroll-row">
+                    {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map((hr) => (
+                      <button
+                        key={hr}
+                        type="button"
+                        className={`picker-pill ${selectedHour === hr ? 'selected' : ''}`}
+                        onClick={() => setSelectedHour(hr)}
+                      >
+                        {hr}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="time-selector-col">
+                  <label className="sub-label">Minute</label>
+                  <div className="picker-scroll-row">
+                    {['00', '15', '30', '45'].map((min) => (
+                      <button
+                        key={min}
+                        type="button"
+                        className={`picker-pill ${selectedMinute === min ? 'selected' : ''}`}
+                        onClick={() => setSelectedMinute(min)}
+                      >
+                        {min}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. Policy & Arrival Guarantee Pill */}
               <div className="schedule-info-box">
-                <span>💡</span>
-                <p>Extra wait time included to meet your ride. Free cancellation up to 60 min before pickup.</p>
+                <div className="info-icon">✨</div>
+                <p>
+                  Captain is assigned 15 minutes before pickup. Free cancellation up to 60 mins before trip.
+                </p>
               </div>
 
-              {/* Action Buttons */}
+              {/* 6. Action Controls */}
               <div className="schedule-actions-row">
                 <button 
                   type="button" 
@@ -766,16 +882,16 @@ function CustomerHome({ user }) {
                   type="button" 
                   className="btn-confirm-schedule"
                   onClick={() => {
-                    const todayStr = new Date().toISOString().split('T')[0];
+                    const todayStr = getUpcomingDays()[0].isoDate;
                     const chosenDate = scheduledDate || todayStr;
-                    const chosenTime = scheduledTime || '10:00';
+                    const formattedTime = `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
                     setScheduledDate(chosenDate);
-                    setScheduledTime(chosenTime);
+                    setScheduledTime(formattedTime);
                     setIsScheduled(true);
                     setShowScheduleModal(false);
                   }}
                 >
-                  Set Pickup Time
+                  Confirm Pickup Time
                 </button>
               </div>
             </div>
