@@ -4,6 +4,12 @@ import RideMap from '../components/Map/RideMap';
 import './CustomerHome.css';
 
 export const PLACES_DATABASE = [
+  // 🎓 COLLEGES & UNIVERSITIES
+  { id: 'c1', name: 'SSN College of Engineering', address: 'Rajiv Gandhi Salai (OMR), Kalavakkam, Chennai', icon: '🎓', category: 'Saved', type: 'college', distanceKm: 3.5, isLongDistance: false, coords: { lat: 12.7508, lng: 80.1983 } },
+  { id: 'c2', name: 'VIT Chennai Campus', address: 'Vandalur-Kelambakkam Road, Chennai', icon: '🎓', category: 'Saved', type: 'college', distanceKm: 11.0, isLongDistance: false, coords: { lat: 12.8406, lng: 80.1534 } },
+  { id: 'c3', name: 'SRM Institute of Science & Technology (SRM IST)', address: 'GST Road, Potheri, Kattankulathur', icon: '🎓', category: 'Saved', type: 'college', distanceKm: 18.0, isLongDistance: false, coords: { lat: 12.8231, lng: 80.0442 } },
+  { id: 'c4', name: 'Hindustan Institute of Technology and Science (HITS)', address: 'Rajiv Gandhi Salai (OMR), Padur', icon: '🎓', category: 'Saved', type: 'college', distanceKm: 2.5, isLongDistance: false, coords: { lat: 12.8016, lng: 80.2241 } },
+
   // Saved / Home / Work
   { id: 's1', name: 'Home', address: 'Kelambakkam Junction, OMR', icon: '🏠', category: 'Saved', type: 'saved', distanceKm: 1.2, isLongDistance: false, coords: { lat: 12.7871, lng: 80.2185 } },
   { id: 's2', name: 'Work', address: 'Siruseri SIPCOT IT Park, TCS Gate', icon: '💼', category: 'Saved', type: 'tech_park', distanceKm: 4.8, isLongDistance: false, coords: { lat: 12.8277, lng: 80.2188 } },
@@ -34,7 +40,7 @@ export const PLACES_DATABASE = [
 
   // 🚌 BUS STANDS & TERMINALS
   { id: 'b1', name: 'Kelambakkam Bus Stand', address: 'Rajiv Gandhi Salai, Kelambakkam Junction (OMR)', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 0.5, isLongDistance: false, coords: { lat: 12.7871, lng: 80.2185 } },
-  { id: 'b2', name: 'Kilambakkam Kalaignar Centenary Bus Terminus (KCBT)', address: 'GST Road, Vandalur, Chennai Intercity Hub', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 19.5, isLongDistance: false, coords: { lat: 12.8718, lng: 80.0827 } },
+  { id: 'b2', name: 'Kilambakkam Kalaignar Centenary Bus Terminus (KCBT)', address: 'GST Road, Vandalur, Chennai Intercity Hub', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 19.5, isLongDistance: false, coords: { lat: 12.8687, lng: 80.0805 } },
   { id: 'b3', name: 'CMBT Bus Terminus', address: 'Jawaharlal Nehru Road, Koyambedu, Chennai', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 33.0, isLongDistance: false, coords: { lat: 13.0694, lng: 80.2057 } },
   { id: 'b4', name: 'Sholinganallur Junction Bus Stop', address: 'OMR - ECR Link Road Junction, Chennai', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 12.5, isLongDistance: false, coords: { lat: 12.9010, lng: 80.2279 } },
   { id: 'b5', name: 'Majestic Kempegowda Bus Station', address: 'Subhash Nagar, Intercity & BMTC Hub, Bengaluru', icon: '🚌', category: 'Bus Stand', type: 'bus', distanceKm: 7.9, isLongDistance: false, coords: { lat: 12.9767, lng: 77.5713 } },
@@ -229,12 +235,47 @@ export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185
     }
   }
 
-  // 2. Recognized Area & Corridor Landmark matches
+  // 1. Exact or substring match against known places in PLACES_DATABASE
+  const matchedPlace = PLACES_DATABASE.find(p => 
+    p.name.toLowerCase() === cleanQ || 
+    cleanQ.includes(p.name.toLowerCase()) ||
+    p.name.toLowerCase().includes(cleanQ) ||
+    p.address.toLowerCase().includes(cleanQ)
+  );
+  if (matchedPlace && matchedPlace.coords) {
+    return matchedPlace.coords;
+  }
+
+  // 2. Recognized Area & Landmark matches
+  if (cleanQ.includes('ssn') || cleanQ.includes('kalavakkam')) {
+    return { lat: 12.7508, lng: 80.1983 }; // SSN College / Kalavakkam Main Gate (OMR)
+  }
+  if (cleanQ.includes('kilambak') || cleanQ.includes('kcbt') || cleanQ.includes('vandalur bus')) {
+    return { lat: 12.8687, lng: 80.0805 }; // Kilambakkam Kalaignar Centenary Bus Terminus (KCBT)
+  }
   if (cleanQ.includes('kelambak') || cleanQ.includes('kelambakkam')) {
     return { lat: 12.7871, lng: 80.2185 }; // Kelambakkam Junction (OMR / ECR Link)
   }
-  if (cleanQ.includes('ssn') || cleanQ.includes('kalavakkam')) {
-    return { lat: 12.7508, lng: 80.1983 }; // SSN College / Kalavakkam Main Gate (OMR)
+  if (cleanQ.includes('vit chennai') || cleanQ.includes('vit university')) {
+    return { lat: 12.8406, lng: 80.1534 }; // VIT Chennai Campus
+  }
+  if (cleanQ.includes('srm') || cleanQ.includes('potheri') || cleanQ.includes('kattankulathur')) {
+    return { lat: 12.8231, lng: 80.0442 }; // SRM University (GST Road)
+  }
+  if (cleanQ.includes('hindustan') || cleanQ.includes('hits') || cleanQ.includes('padur')) {
+    return { lat: 12.8016, lng: 80.2241 }; // Hindustan University (Padur)
+  }
+  if (cleanQ.includes('cmbt') || cleanQ.includes('koyambedu')) {
+    return { lat: 13.0694, lng: 80.2057 }; // CMBT Koyambedu Hub
+  }
+  if (cleanQ.includes('airport') || cleanQ.includes('meenambakkam') || cleanQ.includes('maa')) {
+    return { lat: 12.9941, lng: 80.1709 }; // Chennai International Airport
+  }
+  if (cleanQ.includes('central') || cleanQ.includes('mgr central')) {
+    return { lat: 13.0827, lng: 80.2707 }; // Chennai Central Railway Station
+  }
+  if (cleanQ.includes('egmore')) {
+    return { lat: 13.0784, lng: 80.2612 }; // Chennai Egmore Station
   }
   if (cleanQ.includes('thiruporur')) {
     return { lat: 12.7230, lng: 80.1915 }; // Thiruporur Main Junction
@@ -257,15 +298,11 @@ export const geocodeAddress = async (query, baseLat = 12.7871, baseLng = 80.2185
   if (cleanQ.includes('guindy')) {
     return { lat: 13.0067, lng: 80.2024 }; // Guindy
   }
-
-  // 3. Exact or partial match in PLACES_DATABASE
-  const matchedPlace = PLACES_DATABASE.find(p => 
-    p.name.toLowerCase() === cleanQ || 
-    p.address.toLowerCase().includes(cleanQ) ||
-    cleanQ.includes(p.name.toLowerCase())
-  );
-  if (matchedPlace && matchedPlace.coords) {
-    return matchedPlace.coords;
+  if (cleanQ.includes('mahabalipuram') || cleanQ.includes('mamallapuram')) {
+    return { lat: 12.6165, lng: 80.1983 }; // Mahabalipuram
+  }
+  if (cleanQ.includes('pondicherry') || cleanQ.includes('puducherry')) {
+    return { lat: 11.9416, lng: 79.8083 }; // Pondicherry
   }
 
   // 3. Query OpenStreetMap Nominatim for real-world lat/lng
@@ -484,18 +521,26 @@ function CustomerHome({ user }) {
     return matchesCategory && queryMatches;
   });
 
-  const handlePlaceSelect = (place) => {
+  const handlePlaceSelect = async (place) => {
     if (activeField === 'pickup') {
       setPickup(place.name);
       setActiveField('dropoff');
     } else {
       setDropoff(place.name);
+      const chosenPickup = pickup || 'Current location';
+      const pCoords = (chosenPickup && chosenPickup !== 'Current location' && !chosenPickup.includes('GPS')) 
+        ? await geocodeAddress(chosenPickup) 
+        : currentLocation;
+      const dCoords = place.coords || await geocodeAddress(place.name, pCoords?.lat, pCoords?.lng);
+
       // Navigate to booking when destination is selected
       setTimeout(() => {
         navigate('/book', {
           state: {
-            pickup: pickup || 'Current location',
+            pickup: chosenPickup,
             dropoff: place.name,
+            pickupCoords: pCoords,
+            dropoffCoords: dCoords,
             isScheduled,
             scheduledDate,
             scheduledTime,
@@ -506,12 +551,18 @@ function CustomerHome({ user }) {
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (pickup && dropoff) {
+      const pCoords = (pickup !== 'Current location' && !pickup.includes('GPS')) 
+        ? await geocodeAddress(pickup) 
+        : currentLocation;
+      const dCoords = await geocodeAddress(dropoff, pCoords?.lat, pCoords?.lng);
       navigate('/book', {
         state: {
           pickup,
           dropoff,
+          pickupCoords: pCoords,
+          dropoffCoords: dCoords,
           isScheduled,
           scheduledDate,
           scheduledTime

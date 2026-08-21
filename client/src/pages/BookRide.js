@@ -29,31 +29,65 @@ function BookRide({ user }) {
   const [selectedTransitFilter, setSelectedTransitFilter] = useState('ALL');
   const [locationAlert, setLocationAlert] = useState('');
 
-  // Live dynamic geocoding for dropoff when typed or changed
+  // 1. Initialize and resolve coordinates on mount without overriding user's typed pickup
   useEffect(() => {
-    if (!dropoff || !dropoff.trim()) return;
-    const baseLat = pickupCoords?.lat || 12.7871;
-    const baseLng = pickupCoords?.lng || 80.2185;
-    
-    // Check if dropoff matches any known place immediately
-    const matchedPlace = PLACES_DATABASE.find(p => p.name.toLowerCase() === dropoff.toLowerCase());
-    if (matchedPlace && matchedPlace.coords) {
-      setDropoffCoords(matchedPlace.coords);
-      return;
-    }
+    let isMounted = true;
 
-    const timer = setTimeout(async () => {
-      const coords = await geocodeAddress(dropoff, baseLat, baseLng);
-      if (coords) {
-        setDropoffCoords(coords);
+    const initCoordinates = async () => {
+      let resolvedPickupCoords = location.state?.pickupCoords || null;
+      let resolvedDropoffCoords = location.state?.dropoffCoords || null;
+
+      // Resolve Pickup Coordinates
+      if (!resolvedPickupCoords) {
+        if (pickup && pickup !== 'Current location' && !pickup.includes('GPS')) {
+          resolvedPickupCoords = await geocodeAddress(pickup);
+        } else if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              if (!isMounted) return;
+              const lat = pos.coords.latitude;
+              const lng = pos.coords.longitude;
+              setPickupCoords({ lat, lng });
+              if (!pickup || pickup === 'Current location' || pickup.includes('GPS')) {
+                const realName = await reverseGeocode(lat, lng);
+                setPickup(realName);
+              }
+            },
+            () => {
+              if (!isMounted) return;
+              setPickupCoords({ lat: 12.9716, lng: 77.5946 });
+            },
+            { enableHighAccuracy: true, timeout: 8000 }
+          );
+        }
       }
-    }, 350);
-    return () => clearTimeout(timer);
-  }, [dropoff, pickupCoords?.lat, pickupCoords?.lng]);
 
-  // Live dynamic geocoding for pickup when typed or changed
+      if (isMounted && resolvedPickupCoords) {
+        setPickupCoords(resolvedPickupCoords);
+      }
+
+      // Resolve Dropoff Coordinates
+      if (!resolvedDropoffCoords && dropoff && dropoff.trim()) {
+        const baseLat = resolvedPickupCoords?.lat || 12.7871;
+        const baseLng = resolvedPickupCoords?.lng || 80.2185;
+        resolvedDropoffCoords = await geocodeAddress(dropoff, baseLat, baseLng);
+      }
+
+      if (isMounted && resolvedDropoffCoords) {
+        setDropoffCoords(resolvedDropoffCoords);
+      }
+    };
+
+    initCoordinates();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 2. Dynamic geocoding when pickup is edited directly in BookRide
   useEffect(() => {
-    if (!pickup || !pickup.trim() || pickup.includes('Current location') || pickup.includes('GPS')) return;
+    if (!pickup || !pickup.trim() || pickup === 'Current location' || pickup.includes('GPS')) return;
     const matchedPlace = PLACES_DATABASE.find(p => p.name.toLowerCase() === pickup.toLowerCase());
     if (matchedPlace && matchedPlace.coords) {
       setPickupCoords(matchedPlace.coords);
@@ -69,41 +103,26 @@ function BookRide({ user }) {
     return () => clearTimeout(timer);
   }, [pickup]);
 
-  // Get coordinates on mount
+  // 3. Dynamic geocoding when dropoff is edited directly in BookRide
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          setPickupCoords({ lat, lng });
-          
-          if (!pickup || pickup === 'Current location' || pickup.includes('GPS')) {
-            const realName = await reverseGeocode(lat, lng);
-            setPickup(realName);
-          }
-
-          // Set dropoff coords based on place or offset
-          const matchedPlace = PLACES_DATABASE.find(p => p.name.toLowerCase() === (dropoff || '').toLowerCase());
-          if (matchedPlace && matchedPlace.coords) {
-            setDropoffCoords(matchedPlace.coords);
-          } else {
-            setDropoffCoords({ lat: lat + 0.025, lng: lng + 0.02 });
-          }
-        },
-        async () => {
-          const defaultLat = 12.9716;
-          const defaultLng = 77.5946;
-          setPickupCoords({ lat: defaultLat, lng: defaultLng });
-          if (!pickup) setPickup('Koramangala 4th Block, Bengaluru');
-          setDropoffCoords({ lat: defaultLat + 0.02, lng: defaultLng + 0.015 });
-        }
-      );
-    } else {
-      setPickupCoords({ lat: 12.9716, lng: 77.5946 });
-      setDropoffCoords({ lat: 12.9916, lng: 77.6096 });
+    if (!dropoff || !dropoff.trim()) return;
+    const baseLat = pickupCoords?.lat || 12.7871;
+    const baseLng = pickupCoords?.lng || 80.2185;
+    
+    const matchedPlace = PLACES_DATABASE.find(p => p.name.toLowerCase() === dropoff.toLowerCase());
+    if (matchedPlace && matchedPlace.coords) {
+      setDropoffCoords(matchedPlace.coords);
+      return;
     }
-  }, []);
+
+    const timer = setTimeout(async () => {
+      const coords = await geocodeAddress(dropoff, baseLat, baseLng);
+      if (coords) {
+        setDropoffCoords(coords);
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [dropoff, pickupCoords?.lat, pickupCoords?.lng]);
 
   // Fetch ride types
   useEffect(() => {
