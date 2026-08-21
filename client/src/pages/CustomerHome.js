@@ -438,6 +438,74 @@ function CustomerHome({ user }) {
     setSelectedMinute(num < 10 ? `0${num}` : `${num}`);
   };
 
+  // Daily Usable / Favorite Locations with localStorage persistence
+  const [dailyPlaces, setDailyPlaces] = useState(() => {
+    const saved = localStorage.getItem('pickme_daily_places');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return [
+      { id: 'dp_home', key: 'home', label: 'Home', name: 'Home', address: 'Kelambakkam Junction, OMR', icon: '🏠', coords: { lat: 12.7871, lng: 80.2185 }, distanceKm: 1.2 },
+      { id: 'dp_work', key: 'work', label: 'Office', name: 'Work / Office', address: 'Siruseri SIPCOT IT Park, OMR', icon: '💼', coords: { lat: 12.8277, lng: 80.2188 }, distanceKm: 4.8 },
+      { id: 'dp_college', key: 'college', label: 'College', name: 'SSN College of Engineering', address: 'Rajiv Gandhi Salai (OMR), Kalavakkam', icon: '🎓', coords: { lat: 12.7508, lng: 80.1983 }, distanceKm: 3.5 },
+      { id: 'dp_spot', key: 'spot', label: 'Daily Spot', name: 'Vivira Mall & Zone', address: 'Rajiv Gandhi IT Expressway, Navalur', icon: '🛍️', coords: { lat: 12.8465, lng: 80.2260 }, distanceKm: 6.8 },
+    ];
+  });
+
+  // Modal to edit/customize Home, Office, College addresses
+  const [editingDailyPlace, setEditingDailyPlace] = useState(null);
+  const [customNameInput, setCustomNameInput] = useState('');
+  const [customAddressInput, setCustomAddressInput] = useState('');
+
+  // 1-Tap Daily Route Launcher
+  const handleLaunchDailyPlace = async (place) => {
+    const chosenPickup = pickup || 'Current location';
+    const pCoords = (chosenPickup && chosenPickup !== 'Current location' && !chosenPickup.includes('GPS')) 
+      ? await geocodeAddress(chosenPickup) 
+      : currentLocation;
+    const dCoords = place.coords || await geocodeAddress(place.address || place.name, pCoords?.lat, pCoords?.lng);
+    
+    setDropoff(place.name || place.address);
+    navigate('/book', {
+      state: {
+        pickup: chosenPickup,
+        dropoff: place.name || place.address,
+        pickupCoords: pCoords,
+        dropoffCoords: dCoords,
+        isScheduled,
+        scheduledDate,
+        scheduledTime,
+        estimatedDistance: place.distanceKm || 4
+      }
+    });
+  };
+
+  // Save customized address to state & localStorage
+  const handleSaveDailyPlace = async (e) => {
+    if (e) e.preventDefault();
+    if (!editingDailyPlace) return;
+
+    const finalAddress = customAddressInput.trim() || customNameInput.trim() || editingDailyPlace.address;
+    const finalName = customNameInput.trim() || editingDailyPlace.name;
+    const coords = await geocodeAddress(finalAddress);
+
+    const updated = dailyPlaces.map(dp => {
+      if (dp.id === editingDailyPlace.id) {
+        return {
+          ...dp,
+          name: finalName,
+          address: finalAddress,
+          coords: coords || dp.coords
+        };
+      }
+      return dp;
+    });
+
+    setDailyPlaces(updated);
+    localStorage.setItem('pickme_daily_places', JSON.stringify(updated));
+    setEditingDailyPlace(null);
+  };
+
   // Auto-fetch Current Location on Boot
   useEffect(() => {
     if (navigator.geolocation) {
@@ -671,43 +739,19 @@ function CustomerHome({ user }) {
             </button>
           </div>
 
-          {/* Quick Category Chips */}
+          {/* Quick Daily Commute Shortcuts Bar */}
           <div className="quick-category-chips">
-            <div className="quick-chip" onClick={() => {
-              setDropoff('Siruseri SIPCOT IT Park');
-              navigate('/book', { state: { pickup: pickup || 'Current location', dropoff: 'Siruseri SIPCOT IT Park', estimatedDistance: 4.8 } });
-            }}>
-              <span className="chip-icon">💼</span>
-              <span>Work</span>
-            </div>
-            <div className="quick-chip" onClick={() => {
-              setDropoff('Chennai International Airport (MAA)');
-              navigate('/book', { state: { pickup: pickup || 'Current location', dropoff: 'Chennai International Airport (MAA)', estimatedDistance: 28.5 } });
-            }}>
-              <span className="chip-icon">✈️</span>
-              <span>Airport</span>
-            </div>
-            <div className="quick-chip" onClick={() => {
-              setDropoff('Guindy Metro Station');
-              navigate('/book', { state: { pickup: pickup || 'Current location', dropoff: 'Guindy Metro Station', estimatedDistance: 27.0 } });
-            }}>
-              <span className="chip-icon">🚇</span>
-              <span>Metro Hub</span>
-            </div>
-            <div className="quick-chip" onClick={() => {
-              setDropoff('Navalur Vivira Mall & Tech Zone');
-              navigate('/book', { state: { pickup: pickup || 'Current location', dropoff: 'Navalur Vivira Mall & Tech Zone', estimatedDistance: 6.8 } });
-            }}>
-              <span className="chip-icon">🍛</span>
-              <span>Biryani Spot</span>
-            </div>
-            <div className="quick-chip" onClick={() => {
-              setDropoff('Pondicherry (Puducherry)');
-              navigate('/book', { state: { pickup: pickup || 'Current location', dropoff: 'Pondicherry (Puducherry)', estimatedDistance: 115.0 } });
-            }}>
-              <span className="chip-icon">🏖️</span>
-              <span>Outstation</span>
-            </div>
+            {dailyPlaces.map(place => (
+              <div 
+                key={place.id}
+                className="quick-chip"
+                onClick={() => handleLaunchDailyPlace(place)}
+                title={`Ride to ${place.name}`}
+              >
+                <span className="chip-icon">{place.icon}</span>
+                <span>{place.label}</span>
+              </div>
+            ))}
           </div>
 
           {/* Services Grid with 100% Crisp Vector Badges */}
@@ -760,39 +804,57 @@ function CustomerHome({ user }) {
             </div>
           </div>
 
-          {/* Quick Saved Destinations */}
-          <div className="uber-suggestions">
-            {PLACES_DATABASE.slice(0, 2).map(place => (
-              <div 
-                key={place.id} 
-                className="suggestion-item"
-                onClick={() => {
-                  setDropoff(place.name);
-                  navigate('/book', {
-                    state: {
-                      pickup: pickup || 'Current location',
-                      dropoff: place.name,
-                      isScheduled,
-                      scheduledDate,
-                      scheduledTime,
-                      estimatedDistance: place.distanceKm || 5
-                    }
-                  });
-                }}
-              >
-                <div className="suggestion-icon">{place.icon}</div>
-                <div className="suggestion-info">
-                  <span className="suggestion-name">{place.name}</span>
-                  <span className="suggestion-address">{place.address}</span>
-                </div>
-                <div className="suggestion-arrow">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff5c8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14"/>
-                    <path d="M12 5l7 7-7 7"/>
-                  </svg>
-                </div>
+          {/* Front Daily Commute & Saved Shortcuts */}
+          <div className="daily-commute-section">
+            <div className="daily-commute-header">
+              <div className="header-title-box">
+                <span className="sparkle-star">⭐</span>
+                <span className="section-title">Daily Commute & Saved Places</span>
               </div>
-            ))}
+              <span className="custom-hint-badge">Tap to Ride • ✏️ Edit</span>
+            </div>
+
+            <div className="daily-places-list">
+              {dailyPlaces.map(place => (
+                <div 
+                  key={place.id} 
+                  className="daily-place-card"
+                  onClick={() => handleLaunchDailyPlace(place)}
+                >
+                  <div className="daily-place-icon-box">
+                    <span className="daily-place-emoji">{place.icon}</span>
+                  </div>
+                  <div className="daily-place-info">
+                    <div className="daily-place-title-row">
+                      <span className="daily-place-name">{place.name}</span>
+                      <span className="daily-place-tag">{place.label}</span>
+                    </div>
+                    <span className="daily-place-address">{place.address}</span>
+                  </div>
+                  <div className="daily-place-actions">
+                    <button 
+                      type="button" 
+                      className="btn-edit-daily" 
+                      title={`Edit ${place.label} address`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingDailyPlace(place);
+                        setCustomNameInput(place.name);
+                        setCustomAddressInput(place.address);
+                      }}
+                    >
+                      ✏️
+                    </button>
+                    <div className="daily-place-arrow">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ff5c8a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14"/>
+                        <path d="M12 5l7 7-7 7"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -1018,6 +1080,93 @@ function CustomerHome({ user }) {
                   Confirm Pickup Time
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* CUSTOMIZE DAILY COMMUTE PLACE MODAL */}
+        {editingDailyPlace && (
+          <div className="modal-overlay" style={{ zIndex: 999999 }}>
+            <div className="edit-daily-modal">
+              <div className="schedule-modal-header">
+                <div className="modal-title-box">
+                  <div className="modal-icon-glow">
+                    <span style={{ fontSize: '20px' }}>{editingDailyPlace.icon}</span>
+                  </div>
+                  <div>
+                    <h3 className="modal-title-text">Edit {editingDailyPlace.label} Location</h3>
+                    <span className="modal-subtitle-text">Save your frequent daily commute shortcut</span>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  className="close-schedule-btn" 
+                  onClick={() => setEditingDailyPlace(null)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveDailyPlace} className="edit-place-form">
+                <div className="form-group">
+                  <label className="section-label">Location Label / Name</label>
+                  <input
+                    type="text"
+                    className="custom-place-input"
+                    value={customNameInput}
+                    placeholder="e.g. Home, Office, SSN College"
+                    onChange={(e) => setCustomNameInput(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="section-label">Street / Area Address</label>
+                  <input
+                    type="text"
+                    className="custom-place-input"
+                    value={customAddressInput}
+                    placeholder="e.g. Kelambakkam, Siruseri IT Park, OMR"
+                    onChange={(e) => setCustomAddressInput(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+
+                {/* Popular Quick Suggestions */}
+                <div className="quick-suggestions-box">
+                  <span className="sub-label">Quick Suggestions:</span>
+                  <div className="quick-suggest-pills">
+                    {PLACES_DATABASE.slice(0, 6).map(p => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        className="suggest-pill"
+                        onClick={() => {
+                          setCustomNameInput(p.name);
+                          setCustomAddressInput(p.address);
+                        }}
+                      >
+                        {p.icon} {p.name.split(' ')[0]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="schedule-actions-row">
+                  <button 
+                    type="button" 
+                    className="btn-clear-schedule"
+                    onClick={() => setEditingDailyPlace(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="btn-confirm-schedule"
+                  >
+                    Save Shortcut
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
